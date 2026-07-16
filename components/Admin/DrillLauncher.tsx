@@ -29,34 +29,45 @@ const NfcBadge: React.FC<{ size?: 'sm' | 'md' }> = ({ size = 'sm' }) => (
   </span>
 );
 
-/* Mobile-first rules & guide sheet: every game's full playbook in native
-   <details> accordions — no JS state per section, taps huge, reads clean. */
-const GameGuideSheet: React.FC<{ game: GameDefinition; onClose: () => void }> = ({ game, onClose }) => {
-  const Section: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; open?: boolean }> = ({ title, icon, children, open }) => (
+/* Accordion section for the guide sheet. Defined at module scope with its own
+   open state: components created inside a render get a fresh identity on every
+   parent re-render, which remounts the subtree and snaps native <details>
+   closed (the admin re-renders constantly on live events — sections appeared
+   to "flash" open then collapse). */
+const GuideSection: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; initialOpen?: boolean }> = ({ title, icon, children, initialOpen }) => {
+  const [open, setOpen] = useState(!!initialOpen);
+  return (
     <details open={open} className="pz-card-sm group" style={{ background: 'var(--pz-panel-2)' }}>
-      <summary className="flex items-center justify-between gap-3 p-4 min-h-[52px] cursor-pointer list-none select-none">
+      <summary
+        onClick={(e) => { e.preventDefault(); setOpen(o => !o); }}
+        className="flex items-center justify-between gap-3 p-4 min-h-[52px] cursor-pointer list-none select-none"
+      >
         <span className="flex items-center gap-2.5 text-white font-black uppercase tracking-wider text-xs">
           <span className="text-[#CBFE1C]">{icon}</span> {title}
         </span>
-        <span className="text-white/40 transition-transform group-open:rotate-90"><Ic.ChevronRight size={16} /></span>
+        <span className={`text-white/40 transition-transform ${open ? 'rotate-90' : ''}`}><Ic.ChevronRight size={16} /></span>
       </summary>
       <div className="px-4 pb-4 text-sm leading-relaxed" style={{ color: 'var(--pz-text)' }}>
         {children}
       </div>
     </details>
   );
+};
 
-  const List: React.FC<{ items: string[] }> = ({ items }) => (
-    <ul className="space-y-2">
-      {items.map((item, i) => (
-        <li key={i} className="flex gap-2.5">
-          <span className="text-[#CBFE1C] flex-shrink-0 mt-0.5"><Ic.ChevronRight size={13} /></span>
-          <span>{item}</span>
-        </li>
-      ))}
-    </ul>
-  );
+const GuideList: React.FC<{ items: string[] }> = ({ items }) => (
+  <ul className="space-y-2">
+    {items.map((item, i) => (
+      <li key={i} className="flex gap-2.5">
+        <span className="text-[#CBFE1C] flex-shrink-0 mt-0.5"><Ic.ChevronRight size={13} /></span>
+        <span>{item}</span>
+      </li>
+    ))}
+  </ul>
+);
 
+/* Mobile-first rules & guide sheet: every game's full playbook in
+   stable accordion sections with huge taps and clean reading. */
+const GameGuideSheet: React.FC<{ game: GameDefinition; onClose: () => void }> = ({ game, onClose }) => {
   return createPortal(
     <div className="pz-scope fixed inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex flex-col" style={{ height: '100dvh' }}>
       <div className="flex-shrink-0 px-4 py-3 flex items-center justify-between gap-3" style={{ background: 'var(--pz-panel)', borderBottom: '1px solid var(--pz-border)' }}>
@@ -93,43 +104,43 @@ const GameGuideSheet: React.FC<{ game: GameDefinition; onClose: () => void }> = 
           <div className="text-white font-bold text-sm">“{game.coachScriptShort}”</div>
         </div>
 
-        <Section title="How to play" icon={<Ic.Controller size={16} />} open>
-          <List items={game.rules} />
-        </Section>
+        <GuideSection title="How to play" icon={<Ic.Controller size={16} />} initialOpen>
+          <GuideList items={game.rules} />
+        </GuideSection>
 
-        <Section title="Setup" icon={<Ic.ClipboardCheck size={16} />}>
-          {game.setupSteps.length > 0 ? <List items={game.setupSteps} /> : <p>No setup needed — just gather the players.</p>}
+        <GuideSection title="Setup" icon={<Ic.ClipboardCheck size={16} />}>
+          {game.setupSteps.length > 0 ? <GuideList items={game.setupSteps} /> : <p>No setup needed — just gather the players.</p>}
           {game.equipmentChecklist.length > 0 && (
             <div className="mt-3">
               <div className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">Equipment</div>
-              <List items={game.equipmentChecklist} />
+              <GuideList items={game.equipmentChecklist} />
             </div>
           )}
-        </Section>
+        </GuideSection>
 
-        <Section title="Scoring" icon={<Ic.Bolt size={16} />}>
+        <GuideSection title="Scoring" icon={<Ic.Bolt size={16} />}>
           <p>{game.scoringRules}</p>
-        </Section>
+        </GuideSection>
 
-        <Section title="Penalties & tie-breaker" icon={<Ic.Warning size={16} />}>
+        <GuideSection title="Penalties & tie-breaker" icon={<Ic.Warning size={16} />}>
           <p><span className="text-white/80 font-bold">Penalties:</span> {game.penalties}</p>
           <p className="mt-2"><span className="text-white/80 font-bold">Tie-breaker:</span> {game.tieBreaker}</p>
-        </Section>
+        </GuideSection>
 
-        <Section title="Safety & accessibility" icon={<Ic.CheckCircle size={16} />}>
+        <GuideSection title="Safety & accessibility" icon={<Ic.CheckCircle size={16} />}>
           <p><span className="text-white/80 font-bold">Safety:</span> {game.safetyNotes}</p>
           <p className="mt-2"><span className="text-white/80 font-bold">Adaptations:</span> {game.accessibilityVariants}</p>
-        </Section>
+        </GuideSection>
 
         {isNfcGame(game) && (
-          <Section title="NFC bands" icon={<Ic.Nfc size={16} />}>
+          <GuideSection title="NFC bands" icon={<Ic.Nfc size={16} />}>
             <p>
               This game uses wristband taps. Open <span className="text-white/80 font-bold">NFC Bands</span>, pick{' '}
               <span className="text-white/80 font-bold">Timing</span> (laps/splits) or{' '}
               <span className="text-white/80 font-bold">Points</span> (score per tap), and select this game under
               “Recording for” once it's launched — every tap then counts automatically.
             </p>
-          </Section>
+          </GuideSection>
         )}
       </div>
     </div>,
