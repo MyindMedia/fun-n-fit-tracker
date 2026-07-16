@@ -41,6 +41,12 @@ class ParentAuthService {
     return this.token;
   }
 
+  // Clerk bridge: adopt a parentSessions token minted by convex/clerkBridge.ts
+  // after a verified Clerk sign-in.
+  public adoptToken(token: string) {
+    this.setToken(token);
+  }
+
   private setToken(token: string | null) {
     try {
       if (token) localStorage.setItem(TOKEN_KEY, token);

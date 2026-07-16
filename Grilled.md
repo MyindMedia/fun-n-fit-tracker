@@ -101,6 +101,26 @@ completed Convex migration:
    unauthenticated (front-desk device trust); QR primary / NFC progressive enhancement;
    no payments/PHI anywhere in the new surface.
 
+# Clerk authentication (2026-07-15)
+
+- **Identity**: Clerk app "Fun N' Fit" (`app_3GZGTMK8INnd457uFoZ8xPWKLyx`, dev instance
+  `wanted-chipmunk-37`). Parents sign in with email or Google via Clerk's hosted portal;
+  `components/PortalGate.tsx` (route `/#/parent-login`, nav label **Portal**) exchanges the
+  Clerk session for the app's own `parentSessions` token through
+  `convex/clerkBridge.ts` (JWKS-verified JWT + Clerk Backend API email lookup), so every
+  existing parent-scoped Convex function works unchanged. Parent rows are matched/created
+  by email.
+- **Roles**: admins = Clerk `publicMetadata.role === "admin"` OR email in
+  `VITE_ADMIN_EMAILS` (defaults: lawrenceberment@gmail.com, info@myindmedia.org —
+  `services/adminAccess.ts`). The Admin nav link renders only for admins; `/#/admin` is
+  wrapped in an AdminGuard redirecting everyone else to the Portal; admins are routed to
+  `/admin` immediately after login. Home + Live stay public. Convex admin *functions*
+  remain unauthenticated server-side (unchanged trust model) — the gate is client-side.
+- **Env**: `VITE_CLERK_PUBLISHABLE_KEY` required at build time (set in `.env.local`; must
+  also be set in the Netlify/Vercel build env). Convex prod has `CLERK_SECRET_KEY` +
+  `CLERK_JWT_ISSUER`. Legacy PBKDF2 sign-in code remains in `convex/parents.ts` but the UI
+  now goes through Clerk only. Production Clerk instance not yet configured (dev keys).
+
 ## Open questions from E2E verification (2026-07-15)
 - **Spending can demote.** Ranks are computed from *current* points (pre-existing
   mechanic), so a big perk purchase that drops a kid below a rank threshold triggers the

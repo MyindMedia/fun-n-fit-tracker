@@ -1,7 +1,9 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
 import { supabaseService } from '../services/supabaseService';
+import { isAdminUser } from '../services/adminAccess';
 import { AppSettings, Student } from '../types';
 import { APP_LOGO_URL, HOUSES } from '../constants';
 import StudentProfileModal from './StudentProfileModal';
@@ -17,6 +19,8 @@ const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px)
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const { user } = useUser();
+  const isAdmin = isAdminUser(user);
   // HashRouter puts route in hash, not pathname. Check both for compatibility.
   const isLive = location.pathname === '/live' || location.hash === '#/live' || window.location.hash.includes('/live');
   const isLogin = location.pathname === '/login' || location.hash === '#/login' || window.location.hash.includes('/login');
@@ -315,11 +319,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 Live
                 {isLive && <span className="absolute left-3 right-3 md:left-4 md:right-4 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
               </Link>
-              <Link to="/admin" className={`relative px-3 md:px-4 py-2 text-xs font-bold transition-colors uppercase tracking-widest ${!isLive ? 'text-white' : 'text-white/60 hover:text-white'}`}>
-                Admin
-                {!isLive && <span className="absolute left-3 right-3 md:left-4 md:right-4 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
-              </Link>
-              <a href="/#/parent-login" className="pz-btn-ghost px-3 md:px-4 py-2 text-xs">Parents</a>
+              {isAdmin && (
+                <Link to="/admin" className={`relative px-3 md:px-4 py-2 text-xs font-bold transition-colors uppercase tracking-widest ${!isLive ? 'text-white' : 'text-white/60 hover:text-white'}`}>
+                  Admin
+                  {!isLive && <span className="absolute left-3 right-3 md:left-4 md:right-4 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
+                </Link>
+              )}
+              <a href="/#/parent-login" className="pz-btn-ghost px-3 md:px-4 py-2 text-xs">Portal</a>
             </div>
           </div>
         </div>

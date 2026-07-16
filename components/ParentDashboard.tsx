@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useClerk } from '@clerk/clerk-react';
 import { supabaseService } from '../services/supabaseService';
 import { parentAuth } from '../services/parentAuth';
 import { gameCenter } from '../services/gameCenter';
@@ -24,6 +25,7 @@ const TABS: Array<{ id: Exclude<TabId, 'add'>; label: string }> = [
 
 const ParentDashboard: React.FC = () => {
     const navigate = useNavigate();
+    const clerk = useClerk();
     const [parentId, setParentId] = useState('');
     const [parentEmail, setParentEmail] = useState('');
     const [parentName, setParentName] = useState('');
@@ -97,6 +99,9 @@ const ParentDashboard: React.FC = () => {
 
     const handleSignOut = async () => {
         await parentAuth.signOut();
+        // End the Clerk session too, or the Portal gate would instantly
+        // sign the parent back in.
+        try { await clerk.signOut(); } catch { /* not signed in via Clerk */ }
         navigate('/parent-login');
     };
 

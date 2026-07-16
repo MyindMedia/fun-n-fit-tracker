@@ -12,6 +12,7 @@ import type * as activity from "../activity.js";
 import type * as blog from "../blog.js";
 import type * as catalog from "../catalog.js";
 import type * as checkins from "../checkins.js";
+import type * as clerkBridge from "../clerkBridge.js";
 import type * as events from "../events.js";
 import type * as files from "../files.js";
 import type * as games from "../games.js";
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   blog: typeof blog;
   catalog: typeof catalog;
   checkins: typeof checkins;
+  clerkBridge: typeof clerkBridge;
   events: typeof events;
   files: typeof files;
   games: typeof games;
