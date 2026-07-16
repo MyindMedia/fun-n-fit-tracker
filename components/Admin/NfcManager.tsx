@@ -143,7 +143,15 @@ const NfcManager: React.FC<NfcManagerProps> = ({ adminName }) => {
         } else {
           const owner = await gameCenter.nfcResolveTag(scan.uid);
           if (owner) {
-            showFlash({ tone: 'info', title: owner.fullName, sub: `Already owns this band (…${scan.uid.slice(-6)})`, avatarUrl: owner.avatarUrl, houseId: owner.houseId });
+            // Known band: the most useful default is a check-in, so a tap
+            // always marks the kid Here even from Assign mode.
+            const res = await gameCenter.nfcCheckInByTag(scan.uid, adminName);
+            if (res.status === 'ALREADY') {
+              showFlash({ tone: 'info', title: owner.fullName, sub: `Has this band (…${scan.uid.slice(-6)}) · already checked in`, avatarUrl: owner.avatarUrl, houseId: owner.houseId });
+            } else {
+              showFlash({ tone: 'ok', title: owner.fullName, sub: `Checked in +10 · band …${scan.uid.slice(-6)}`, avatarUrl: owner.avatarUrl, houseId: owner.houseId });
+              pushLog(owner.fullName, 'checked in +10');
+            }
           } else {
             setPendingUid(scan.uid);
             showFlash({ tone: 'warn', title: `New band …${scan.uid.slice(-6)}`, sub: 'Pick a student below to assign it' });

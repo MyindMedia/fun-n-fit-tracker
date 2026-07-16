@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { supabaseService } from '../services/supabaseService';
 import { GameSession, Student, NotificationEvent } from '../types';
 import DrillLauncher from './Admin/DrillLauncher';
@@ -28,6 +28,9 @@ import StaffManager from './Admin/StaffManager';
 import NfcManager from './Admin/NfcManager';
 import ScanLog from './Admin/ScanLog';
 import { Ic } from './icons';
+import { gameCenter } from '../services/gameCenter';
+import { useNfcWedge, WedgeScan } from './useNfcWedge';
+import { haptic } from '../utils/haptics';
 
 // Sub-pages that swap the tab switcher for a back button + page title
 const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF', 'NFC', 'SCANLOG'];
@@ -153,6 +156,56 @@ const AdminDashboard: React.FC = () => {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const [toasts, setToasts] = useState<Array<{ id: string; message: string; amount?: number }>>([]);
+
+  // ── Global band scans: a tap checks the kid in from ANY admin screen ──────
+  // The NFC Bands page owns scans while it's open (modes); everywhere else —
+  // Roll Call, Games, sub-pages — a tap is a check-in with a toast.
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+  const adminNameRef = useRef(adminName);
+  adminNameRef.current = adminName;
+  const scanBusyRef = useRef(false);
+
+  const pushScanToast = (message: string, amount?: number) => {
+    const id = `nfc-${Date.now()}`;
+    setToasts(prev => [...prev, { id, message, amount }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3500);
+  };
+
+  const handleGlobalScan = async (scan: WedgeScan) => {
+    if (activeTabRef.current === 'NFC') return; // NFC Bands page handles these
+    if (!adminNameRef.current || scanBusyRef.current) return;
+    scanBusyRef.current = true;
+    try {
+      const res = await gameCenter.nfcCheckInByTag(scan.uid, adminNameRef.current);
+      if (res.status === 'UNKNOWN_TAG') {
+        haptic('warning');
+        pushScanToast('Unknown band — open NFC Bands to assign it');
+      } else if (res.status === 'ALREADY') {
+        haptic('tap');
+        pushScanToast(`${res.fullName} is already checked in`);
+      } else {
+        haptic('success');
+        pushScanToast(`${res.fullName} checked in`, 10);
+        refreshData();
+      }
+    } catch (e) {
+      console.error('Global band scan failed:', e);
+    } finally {
+      scanBusyRef.current = false;
+    }
+  };
+  const handleGlobalScanRef = useRef(handleGlobalScan);
+  handleGlobalScanRef.current = handleGlobalScan;
+
+  useNfcWedge((scan) => void handleGlobalScanRef.current(scan), true);
+  useEffect(
+    () =>
+      gameCenter.subscribeNfcAgentScans((scan) =>
+        void handleGlobalScanRef.current({ uid: scan.uid, ts: scan.ts })
+      ),
+    []
+  );
 
   // Check for existing coach session on mount
   useEffect(() => {
