@@ -12,6 +12,7 @@ import StudentAvatar from './StudentAvatar';
 import { useRef } from 'react';
 import { getStudentDisplayName } from '../utils/studentDisplay';
 import { Ic } from './icons';
+import { pzDelay } from './useReveal';
 
 // Pubzi theme: small notched cut-corner shape for inline elements
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
@@ -175,6 +176,19 @@ const Leaderboard: React.FC = () => {
   const lastRankById = useRef<Record<string, string>>({});
   const lastHousePointsRef = useRef<Record<string, number>>({});
   const lastLevelUpSoundTs = useRef<number>(0);
+  // One-shot broadcast entrance (presentation only): `.pz-in` is applied
+  // declaratively once the first load settles, so the banner/cards/panel play
+  // their staggered reveal exactly once. Anything mounting afterwards (leader
+  // swaps, reorders, polling refreshes) renders with `.pz-in` already present
+  // — instantly visible, never re-animated on the projector.
+  const [entranceIn, setEntranceIn] = useState(false);
+  useEffect(() => {
+    if (entranceIn || isLoading) return;
+    // Let the hidden state paint for one frame so the transition runs.
+    const raf = requestAnimationFrame(() => setEntranceIn(true));
+    return () => cancelAnimationFrame(raf);
+  }, [entranceIn, isLoading]);
+  const revealCls = entranceIn ? 'pz-reveal pz-in' : 'pz-reveal';
 
   // Deduplicated level-up sound - only plays if not played in last 3 seconds
   const playLevelUpOnce = () => {
@@ -685,11 +699,11 @@ const Leaderboard: React.FC = () => {
                     {isLeader ? (
                       /* #1 — the dominant banner */
                       <div
-                        className="pz-card relative flex items-center gap-4 sm:gap-8 p-5 sm:p-8"
+                        className={`pz-card relative flex items-center gap-4 sm:gap-8 p-5 sm:p-8 ${revealCls}`}
                         style={{ borderColor: 'rgba(203, 254, 28, 0.45)' }}
                       >
                         <span className="absolute left-0 top-0 bottom-0 w-1.5" style={{ background: entry.color }} />
-                        <img src={entry.icon} alt={entry.name} className="w-20 h-20 sm:w-28 sm:h-28 shrink-0 drop-shadow-lg" />
+                        <img src={entry.icon} alt={entry.name} className="w-20 h-20 sm:w-28 sm:h-28 shrink-0 drop-shadow-lg pz-float" />
                         <div className="flex-grow min-w-0">
                           <div className="flex items-center gap-3 mb-1.5 sm:mb-2.5">
                             <span className="pz-display text-[10px] sm:text-xs px-2.5 py-1" style={{ background: 'var(--pz-volt)', color: '#0B0E13', clipPath: NOTCH_SM }}>#1</span>
@@ -708,7 +722,7 @@ const Leaderboard: React.FC = () => {
                       </div>
                     ) : (
                       /* #2–#4 — clearly ranked clan cards */
-                      <div className="pz-card relative h-full flex flex-col p-4 sm:p-5">
+                      <div className={`pz-card relative h-full flex flex-col p-4 sm:p-5 ${revealCls}`} style={pzDelay(idx * 100)}>
                         <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: entry.color }} />
                         <div className="flex items-center justify-between mb-3">
                           <span className="pz-display text-[10px] px-2 py-1 border" style={{ borderColor: 'var(--pz-border)', color: 'var(--pz-text)', clipPath: NOTCH_SM }}>#{idx + 1}</span>
@@ -717,7 +731,7 @@ const Leaderboard: React.FC = () => {
                           )}
                         </div>
                         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                          <img src={entry.icon} alt={entry.name} className="w-14 h-14 sm:w-16 sm:h-16 shrink-0" />
+                          <img src={entry.icon} alt={entry.name} className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 pz-float-slow" />
                           <div className="min-w-0">
                             <h3 className="text-lg sm:text-xl leading-none truncate" style={{ color: entry.color }}>{entry.name}</h3>
                             <div className="pz-display text-3xl sm:text-4xl mt-1.5 leading-none" style={{ color: scoreColor, transition: 'color 0.4s ease' }}>
@@ -735,7 +749,7 @@ const Leaderboard: React.FC = () => {
         </div>
 
         <div className="w-full lg:w-96 flex flex-col gap-4 md:gap-6 shrink-0">
-          <div className="pz-card p-4 md:p-6 relative">
+          <div className={`pz-card p-4 md:p-6 relative ${revealCls}`} style={pzDelay(300)}>
             <div className="pz-eyebrow mb-1">Top Players</div>
             <h2 className="text-white text-lg md:text-xl mb-4 md:mb-5">Hall of Fame</h2>
             <div className="space-y-2 md:space-y-3">

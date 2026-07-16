@@ -25,6 +25,7 @@ import type * as parents from "../parents.js";
 import type * as partners from "../partners.js";
 import type * as points from "../points.js";
 import type * as redemptions from "../redemptions.js";
+import type * as scanlog from "../scanlog.js";
 import type * as seasons from "../seasons.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
@@ -59,6 +60,7 @@ declare const fullApi: ApiFromModules<{
   partners: typeof partners;
   points: typeof points;
   redemptions: typeof redemptions;
+  scanlog: typeof scanlog;
   seasons: typeof seasons;
   seed: typeof seed;
   settings: typeof settings;

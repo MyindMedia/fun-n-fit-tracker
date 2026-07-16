@@ -9,6 +9,7 @@ import QRScanSheet from './QRScanSheet';
 import KidPassSheet from './KidPassSheet';
 import { extractScanParam, cleanErr, fmtTime, pStyles, KidSelect, PZ } from './shared';
 import { Ic } from '../icons';
+import { haptic } from '../../utils/haptics';
 
 /* Check-in method glyph (history rows) */
 const MethodIcon: React.FC<{ method?: string }> = ({ method }) => {
@@ -131,11 +132,13 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
         setError(null);
         try {
             const res = await gameCenter.checkInWithToken(token, selected, method);
+            haptic(res.some(r => r.status === 'OK') ? 'success' : 'warning');
             setResults(res);
             setToken(null);
             loadHistory();
             onRefresh?.();
         } catch (e: any) {
+            haptic('error');
             setError(cleanErr(e));
         } finally {
             setSubmitting(false);

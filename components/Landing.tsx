@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { HOUSES, APP_LOGO_URL } from '../constants';
 import { HouseId } from '../types';
 import { Ic, IconProps } from './icons';
+import { useScrollReveal, useParallaxScroll, pzDelay } from './useReveal';
 
 /* ────────────────────────────────────────────────────────────────────────────
    Marketing landing page for Fun 'n Fit Academy.
@@ -137,12 +138,13 @@ const Cta: React.FC<{
   </Link>
 );
 
-const SectionHeading: React.FC<{ eyebrow: string; title: React.ReactNode; lede?: string }> = ({
+const SectionHeading: React.FC<{ eyebrow: string; title: React.ReactNode; lede?: string; className?: string }> = ({
   eyebrow,
   title,
   lede,
+  className = '',
 }) => (
-  <div className="max-w-3xl">
+  <div className={`max-w-3xl ${className}`}>
     <p className="pz-eyebrow mb-3">{eyebrow}</p>
     <h2 className="text-3xl sm:text-4xl lg:text-5xl text-white leading-tight">{title}</h2>
     {lede && (
@@ -154,19 +156,31 @@ const SectionHeading: React.FC<{ eyebrow: string; title: React.ReactNode; lede?:
 );
 
 // Decorative theme shape — purely visual, hidden from assistive tech.
-const Deco: React.FC<{ src: string; className: string }> = ({ src, className }) => (
-  <img
-    src={src}
-    alt=""
+// Outer span is the parallax layer (scroll-driven translate at `speed`);
+// the inner img bobs on `.pz-float-slow`. They must be separate elements —
+// both effects use `transform`, so on one node the animation would win.
+const Deco: React.FC<{ src: string; className: string; speed?: number; float?: boolean }> = ({
+  src,
+  className,
+  speed = -0.1,
+  float = true,
+}) => (
+  <span
     aria-hidden="true"
-    className={`pointer-events-none select-none absolute hidden md:block ${className}`}
-  />
+    className={`pz-parallax pointer-events-none select-none absolute hidden md:block ${className}`}
+    style={{ '--pz-speed': String(speed) } as React.CSSProperties}
+  >
+    <img src={src} alt="" className={`w-full ${float ? 'pz-float-slow' : ''}`} />
+  </span>
 );
 
 /* ── 1. Sticky nav ────────────────────────────────────────────────────────── */
 
-const LandingNav: React.FC = () => {
+const LandingNav: React.FC<{ solid: boolean }> = ({ solid }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  // Transparent while riding the hero; solid + shadow once scrolled past ~40px
+  // (or whenever the mobile menu needs a readable backdrop).
+  const detached = solid || menuOpen;
 
   const handleAnchor = (id: string) => {
     setMenuOpen(false);
@@ -179,10 +193,12 @@ const LandingNav: React.FC = () => {
     <header
       className="sticky top-0 z-50"
       style={{
-        background: 'rgba(11, 14, 19, 0.92)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        borderBottom: '1px solid var(--pz-border)',
+        background: detached ? 'rgba(11, 14, 19, 0.92)' : 'rgba(11, 14, 19, 0)',
+        backdropFilter: detached ? 'blur(10px)' : 'none',
+        WebkitBackdropFilter: detached ? 'blur(10px)' : 'none',
+        borderBottom: `1px solid ${detached ? 'var(--pz-border)' : 'transparent'}`,
+        boxShadow: detached ? '0 14px 34px -18px rgba(0, 0, 0, 0.7)' : 'none',
+        transition: 'background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease',
       }}
     >
       <nav aria-label="Main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -281,12 +297,14 @@ const LandingNav: React.FC = () => {
 
 const Hero: React.FC = () => (
   <section className="relative overflow-hidden" style={{ background: 'var(--pz-bg)' }}>
-    {/* 21:9 arena photo — kids sit center-left, dark sky top-right for the headline */}
+    {/* 21:9 arena photo — kids sit center-left, dark sky top-right for the headline.
+        Parallax layer: drifts at -0.25× scroll for depth; oversized vertically
+        (112%) so the travel never exposes the section edge. */}
     <img
       src="/assets/theme/landing-hero.png"
       alt="Kids mid-game in a dodgeball match, lit by a bright volt light beam across a dark gym"
-      className="absolute inset-0 w-full h-full object-cover"
-      style={{ objectPosition: '32% center' }}
+      className="pz-parallax absolute left-0 right-0 w-full object-cover"
+      style={{ objectPosition: '32% center', top: '-6%', height: '112%', '--pz-speed': '-0.25' } as React.CSSProperties}
     />
     {/* Legibility overlays: fade to page bg at the bottom, deepen the dark right side */}
     <div
@@ -312,16 +330,21 @@ const Hero: React.FC = () => (
     />
 
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[560px] md:min-h-[640px] lg:min-h-[78vh] flex items-end lg:items-center">
+      {/* Above the fold: the observer fires on mount, so this plays as a
+          staggered load-in — eyebrow → headline → subline → CTAs. */}
       <div className="w-full lg:max-w-xl lg:ml-auto pb-14 pt-40 lg:py-24">
-        <p className="pz-eyebrow mb-4">Upland, CA — Ages 6–17</p>
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl text-white leading-[0.95]">
+        <p className="pz-eyebrow mb-4 pz-reveal">Upland, CA — Ages 6–17</p>
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl text-white leading-[0.95] pz-reveal" style={pzDelay(120)}>
           Where fitness meets <span style={{ color: 'var(--pz-volt)' }}>fun</span> and leadership
         </h1>
-        <p className="mt-5 text-base md:text-lg leading-relaxed max-w-lg" style={{ color: '#c9c9c9' }}>
+        <p
+          className="mt-5 text-base md:text-lg leading-relaxed max-w-lg pz-reveal"
+          style={{ color: '#c9c9c9', ...pzDelay(240) }}
+        >
           <span className="text-white font-semibold">Empower through play.</span> Physical activity, mental growth,
           and core-values coaching — through games kids beg to come back to. We shape leaders, not just athletes.
         </p>
-        <div className="mt-8 flex flex-wrap items-center gap-3">
+        <div className="mt-8 flex flex-wrap items-center gap-3 pz-reveal" style={pzDelay(360)}>
           <Cta to="/parent-login">Enroll Now</Cta>
           <Cta to="/live" variant="ghost">
             Watch the Live Board
@@ -337,8 +360,8 @@ const Hero: React.FC = () => (
 const ValueStrip: React.FC = () => (
   <section aria-label="Why families choose Fun 'n Fit" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-2 pb-4">
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {BENEFITS.map(b => (
-        <div key={b.title} className="pz-card-sm relative p-5">
+      {BENEFITS.map((b, i) => (
+        <div key={b.title} className="pz-card-sm relative p-5 pz-reveal" style={pzDelay(i * 80)}>
           <span aria-hidden="true" className="absolute left-0 top-0 bottom-0 w-1" style={{ background: 'var(--pz-volt)', opacity: 0.85 }} />
           <h3 className="text-sm text-white mb-1.5 flex items-center gap-2">
             <span aria-hidden="true" className="shrink-0" style={{ color: 'var(--pz-volt)' }}><b.icon size={18} /></span>
@@ -357,10 +380,13 @@ const ValueStrip: React.FC = () => (
 
 const HousesSection: React.FC = () => (
   <section id="houses" className="relative overflow-hidden py-20 md:py-28" style={{ scrollMarginTop: '4.5rem' }}>
-    <Deco src="/assets/theme/shape-1.png" className="right-[8%] top-16 w-14 opacity-40" />
+    {/* Depth layers: slow background drift right, faster foreground drift left */}
+    <Deco src="/assets/theme/shape-1.png" className="right-[8%] top-32 w-14 opacity-40" speed={-0.1} />
+    <Deco src="/assets/theme/dot-arrow.png" className="left-[3%] top-10 w-14 opacity-25" speed={0.08} float={false} />
 
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <SectionHeading
+        className="pz-reveal"
         eyebrow="The house system"
         title={
           <>
@@ -371,11 +397,15 @@ const HousesSection: React.FC = () => (
       />
 
       <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-5">
-        {HOUSE_ORDER.map(id => {
+        {HOUSE_ORDER.map((id, idx) => {
           const house = HOUSES[id];
           const lore = HOUSE_LORE[id];
           return (
-            <div key={id} className="pz-card relative overflow-hidden p-6 pt-8">
+            <div
+              key={id}
+              className={`pz-card relative overflow-hidden p-6 pt-8 pz-reveal ${idx % 2 === 0 ? 'pz-reveal-left' : 'pz-reveal-right'}`}
+              style={pzDelay(idx * 100)}
+            >
               {/* House color spine */}
               <span aria-hidden="true" className="absolute top-0 left-0 right-0 h-1" style={{ background: house.colorHex }} />
               {/* Ambient house glow */}
@@ -420,8 +450,11 @@ const HousesSection: React.FC = () => (
 
 /* ── 5. Programs ──────────────────────────────────────────────────────────── */
 
-const ProgramCard: React.FC<{ program: Program }> = ({ program }) => (
-  <div className={`pz-card relative p-6 ${program.wide ? 'md:col-span-2' : ''}`}>
+const ProgramCard: React.FC<{ program: Program; delayMs: number }> = ({ program, delayMs }) => (
+  <div
+    className={`pz-card relative p-6 pz-reveal pz-reveal-scale ${program.wide ? 'md:col-span-2' : ''}`}
+    style={pzDelay(delayMs)}
+  >
     {program.badge && (
       <span
         className="absolute top-4 right-4 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.15em]"
@@ -457,22 +490,23 @@ const ProgramCard: React.FC<{ program: Program }> = ({ program }) => (
 
 const ProgramsSection: React.FC = () => (
   <section id="programs" className="relative py-20 md:py-28" style={{ background: 'var(--pz-panel-2)', borderTop: '1px solid var(--pz-border)', borderBottom: '1px solid var(--pz-border)', scrollMarginTop: '4.5rem' }}>
-    <Deco src="/assets/theme/shape-2.png" className="right-[6%] top-14 w-14 opacity-40" />
+    <Deco src="/assets/theme/shape-2.png" className="right-[6%] top-56 w-14 opacity-40" speed={-0.08} />
 
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <SectionHeading
+        className="pz-reveal"
         eyebrow="Weekly schedule"
         title="Programs"
         lede="Find the session that fits your family. Every program below runs on the same house points system — so every week counts."
       />
 
       <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-        {PROGRAMS.map(p => (
-          <ProgramCard key={p.name} program={p} />
+        {PROGRAMS.map((p, i) => (
+          <ProgramCard key={p.name} program={p} delayMs={i * 80} />
         ))}
       </div>
 
-      <div className="mt-8 flex flex-wrap items-center gap-2.5">
+      <div className="mt-8 flex flex-wrap items-center gap-2.5 pz-reveal" style={pzDelay(160)}>
         <span className="text-xs font-bold uppercase tracking-[0.25em]" style={{ color: 'var(--pz-text)' }}>
           Also at the academy:
         </span>
@@ -500,7 +534,24 @@ const BOARD_PREVIEW: Array<{ id: HouseId; points: string; width: string }> = [
 ];
 
 const BoardPreview: React.FC = () => (
-  <div aria-hidden="true" className="pz-card relative p-5 md:p-6" style={{ background: 'rgba(18, 22, 31, 0.92)' }}>
+  <div
+    aria-hidden="true"
+    className="pz-card relative p-5 md:p-6 pz-reveal pz-reveal-right"
+    style={{ background: 'rgba(18, 22, 31, 0.92)', ...pzDelay(150) }}
+  >
+    {/* Standings bars fill (scaleX — compositor-only) once the board reveals:
+        width is the real value inline; the transform sweeps 0 → 1 staggered. */}
+    <style>{`
+      .gc-bar {
+        transform: scaleX(0);
+        transform-origin: left center;
+        transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .pz-in .gc-bar { transform: scaleX(1); }
+      @media (prefers-reduced-motion: reduce) {
+        .gc-bar { transform: none; transition: none; }
+      }
+    `}</style>
     <div className="flex items-center justify-between mb-5">
       <div>
         <p className="pz-eyebrow mb-1 text-[10px]">Live from the gym floor</p>
@@ -529,7 +580,10 @@ const BoardPreview: React.FC = () => (
                 <span className="pz-display text-sm text-white">{row.points}</span>
               </div>
               <div className="h-1.5 w-full bg-white/5 overflow-hidden" style={{ clipPath: NOTCH_SM }}>
-                <div className="h-full" style={{ width: row.width, background: house.colorHex }} />
+                <div
+                  className="gc-bar h-full"
+                  style={{ width: row.width, background: house.colorHex, transitionDelay: `${350 + idx * 90}ms` }}
+                />
               </div>
             </div>
           </div>
@@ -564,10 +618,12 @@ const GameCenterSection: React.FC = () => (
       backgroundPosition: 'center',
     }}
   >
-    <Deco src="/assets/theme/dot-arrow.png" className="left-[4%] bottom-12 w-16 opacity-40" />
+    {/* Authored below the section edge; the negative-speed drift raises it into
+        frame as the section scrolls through the viewport. */}
+    <Deco src="/assets/theme/dot-arrow.png" className="left-[4%] -bottom-24 w-16 opacity-40" speed={-0.05} />
 
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-      <div>
+      <div className="pz-reveal pz-reveal-left">
         <p className="pz-eyebrow mb-3">The Game Center</p>
         <h2 className="text-3xl sm:text-4xl lg:text-5xl text-white leading-tight">
           Your kid's points, <span style={{ color: 'var(--pz-volt)' }}>live on the big board</span>
@@ -602,9 +658,12 @@ const GameCenterSection: React.FC = () => (
 /* ── 7. Visit / Contact ───────────────────────────────────────────────────── */
 
 const VisitSection: React.FC = () => (
-  <section id="visit" className="relative py-20 md:py-28" style={{ scrollMarginTop: '4.5rem' }}>
+  <section id="visit" className="relative overflow-hidden py-20 md:py-28" style={{ scrollMarginTop: '4.5rem' }}>
+    <Deco src="/assets/theme/shape-1.png" className="right-[7%] top-64 w-12 opacity-30" speed={-0.04} />
+
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <SectionHeading
+        className="pz-reveal"
         eyebrow="Visit us"
         title="Come see a session"
         lede="Drop in during Fall hours, give us a call, or say hi on Instagram — we'd love to show you around the arena."
@@ -612,7 +671,7 @@ const VisitSection: React.FC = () => (
 
       <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
         {/* Hours */}
-        <div className="pz-card p-6">
+        <div className="pz-card p-6 pz-reveal">
           <h3 className="text-base text-white mb-4 flex items-center gap-2">
             <span aria-hidden="true" style={{ color: 'var(--pz-volt)' }}><Ic.Calendar size={16} /></span>
             Fall hours
@@ -637,7 +696,7 @@ const VisitSection: React.FC = () => (
         </div>
 
         {/* Contact */}
-        <div className="pz-card p-6">
+        <div className="pz-card p-6 pz-reveal" style={pzDelay(100)}>
           <h3 className="text-base text-white mb-4">Find us</h3>
           <div className="flex flex-col gap-4">
             <a
@@ -675,7 +734,10 @@ const VisitSection: React.FC = () => (
         </div>
 
         {/* Enroll CTA */}
-        <div className="pz-card relative overflow-hidden p-6 flex flex-col md:col-span-2 lg:col-span-1">
+        <div
+          className="pz-card relative overflow-hidden p-6 flex flex-col md:col-span-2 lg:col-span-1 pz-reveal"
+          style={pzDelay(200)}
+        >
           <div
             aria-hidden="true"
             className="absolute inset-0 pointer-events-none"
@@ -710,7 +772,7 @@ const FOOTER_LINKS = [
 
 const LandingFooter: React.FC = () => (
   <footer style={{ background: 'var(--pz-panel)', borderTop: '1px solid var(--pz-border)' }}>
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pz-reveal">
       <div className="flex flex-col md:flex-row gap-10 md:gap-16 justify-between">
         <div className="max-w-xs">
           <Link to="/" className={`flex items-center gap-3 group ${FOCUS_RING}`}>
@@ -783,19 +845,28 @@ const LandingFooter: React.FC = () => (
 
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 
-const Landing: React.FC = () => (
-  <div className="pz-scope min-h-screen" style={{ background: 'var(--pz-bg)' }}>
-    <LandingNav />
-    <main>
-      <Hero />
-      <ValueStrip />
-      <HousesSection />
-      <ProgramsSection />
-      <GameCenterSection />
-      <VisitSection />
-    </main>
-    <LandingFooter />
-  </div>
-);
+const Landing: React.FC = () => {
+  // One observer reveals every `.pz-reveal` on the page; one rAF scroll
+  // handler drives every `.pz-parallax` layer via `--pz-scroll` on this root
+  // AND feeds the nav detach state — a single scrollY read per frame.
+  const rootRef = useScrollReveal<HTMLDivElement>();
+  const [navSolid, setNavSolid] = useState(false);
+  useParallaxScroll(rootRef, y => setNavSolid(y > 40));
+
+  return (
+    <div ref={rootRef} className="pz-scope min-h-screen" style={{ background: 'var(--pz-bg)' }}>
+      <LandingNav solid={navSolid} />
+      <main>
+        <Hero />
+        <ValueStrip />
+        <HousesSection />
+        <ProgramsSection />
+        <GameCenterSection />
+        <VisitSection />
+      </main>
+      <LandingFooter />
+    </div>
+  );
+};
 
 export default Landing;

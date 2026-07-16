@@ -444,6 +444,24 @@ export default defineSchema({
     .index("by_student", ["studentId", "createdAt"])
     .index("by_parent", ["byParentId", "createdAt"]),
 
+  // ── Game center: durable NFC scan log (check-in taps live in checkIns) ────
+  nfcScans: defineTable({
+    ts: v.number(),
+    kind: v.union(v.literal("CHECKIN"), v.literal("GAME"), v.literal("AWARD")),
+    tagUid: v.string(),
+    studentId: v.optional(v.union(v.id("students"), v.null())),
+    studentName: v.optional(v.union(v.string(), v.null())),
+    houseId: v.optional(v.union(houseId, v.null())),
+    sessionId: v.optional(v.union(v.id("gameSessions"), v.null())),
+    gameTitle: v.optional(v.union(v.string(), v.null())),
+    splitMs: v.optional(v.union(v.number(), v.null())), // vs student's previous scan in the session
+    amount: v.optional(v.union(v.number(), v.null())),
+    actor: v.string(),
+  })
+    .index("by_ts", ["ts"])
+    .index("by_session", ["sessionId", "ts"])
+    .index("by_student", ["studentId", "ts"]),
+
   // ── Game center: perk redemptions ──────────────────────────────────────────
   redemptions: defineTable({
     studentId: v.id("students"),

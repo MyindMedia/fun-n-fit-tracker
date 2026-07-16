@@ -19,6 +19,7 @@ import React from 'react';
 import { Student } from '../../types';
 import { HOUSES } from '../../constants';
 import { Ic } from '../icons';
+import { haptic } from '../../utils/haptics';
 
 /* ── Pubzi token palette (mirrors the CSS custom props in index.html) ─────── */
 export const PZ = {
@@ -178,7 +179,7 @@ export const KidSelect: React.FC<{
                         key={s.id}
                         type="button"
                         className="pzp-clip"
-                        onClick={() => toggle(s.id)}
+                        onClick={() => { haptic('select'); toggle(s.id); }}
                         aria-pressed={isSelected}
                         style={{
                             display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%',

@@ -221,8 +221,44 @@
         from { background-position: 0 0; }
         to { background-position: 0 8px; }
       }
+      /* ── Scroll reveal + parallax (landing & live board) ──────────────────
+         Elements start hidden with .pz-reveal (optionally .pz-reveal-left/right
+         for directional slides); an IntersectionObserver adds .pz-in to play.
+         Stagger children with --pz-delay. Parallax layers move via a CSS var
+         set from scroll position (translate3d for compositing). */
+      .pz-reveal {
+        opacity: 0;
+        transform: translateY(28px);
+        transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        transition-delay: var(--pz-delay, 0ms);
+        will-change: opacity, transform;
+      }
+      .pz-reveal-left { transform: translateX(-36px); }
+      .pz-reveal-right { transform: translateX(36px); }
+      .pz-reveal-scale { transform: scale(0.94) translateY(16px); }
+      .pz-reveal.pz-in {
+        opacity: 1;
+        transform: none;
+      }
+      .pz-parallax {
+        transform: translate3d(0, calc(var(--pz-scroll, 0) * var(--pz-speed, -0.15) * 1px), 0);
+        will-change: transform;
+      }
+      @keyframes pz-float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      .pz-float { animation: pz-float 7s ease-in-out infinite; }
+      .pz-float-slow { animation: pz-float 11s ease-in-out infinite; }
+      @keyframes pz-drift {
+        0%, 100% { background-position: center top; }
+        50% { background-position: center 12%; }
+      }
       @media (prefers-reduced-motion: reduce) {
-        .pz-live { animation: none; }
+        .pz-live, .pz-float, .pz-float-slow { animation: none; }
+        .pz-reveal { opacity: 1; transform: none; transition: none; }
+        .pz-parallax { transform: none; }
       }
 
       .animate-card-reveal {

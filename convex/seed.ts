@@ -97,6 +97,53 @@ export const catalog = mutation({
   },
 });
 
+// Upsert the game library from the bundled constants — unlike `catalog`,
+// existing games are UPDATED, so rule/scoring edits (e.g. NFC variants)
+// propagate. Run after changing GAME_LIBRARY: npx convex run seed:refreshGames
+export const refreshGames = mutation({
+  args: {},
+  handler: async (ctx) => {
+    let inserted = 0;
+    let updated = 0;
+    for (const game of GAME_LIBRARY) {
+      const fields = {
+        gameKey: game.gameKey,
+        displayName: game.displayName,
+        category: game.category,
+        houseTraitFocus: game.houseTraitFocus,
+        minPlayers: game.minPlayers,
+        maxPlayers: game.maxPlayers,
+        recommendedAgeBand: game.recommendedAgeBand,
+        durationDefaultSeconds: game.durationDefaultSeconds,
+        equipmentChecklist: game.equipmentChecklist,
+        setupSteps: game.setupSteps,
+        rules: game.rules,
+        scoringRules: game.scoringRules,
+        penalties: game.penalties,
+        tieBreaker: game.tieBreaker,
+        safetyNotes: game.safetyNotes,
+        accessibilityVariants: game.accessibilityVariants,
+        coachScriptShort: game.coachScriptShort,
+        dataCaptureFields: game.dataCaptureFields,
+        leaderboardMetric: game.leaderboardMetric,
+        templateId: game.templateId,
+      };
+      const existing = await ctx.db
+        .query("gameLibrary")
+        .withIndex("by_gameKey", (q) => q.eq("gameKey", game.gameKey))
+        .unique();
+      if (existing) {
+        await ctx.db.patch(existing._id, fields);
+        updated++;
+      } else {
+        await ctx.db.insert("gameLibrary", fields);
+        inserted++;
+      }
+    }
+    return { inserted, updated };
+  },
+});
+
 // ── Game center seed ─────────────────────────────────────────────────────────
 // Rarity-tiered avatar skins (DiceBear art — no custom assets needed) and a
 // starter set of off-site special tasks. Idempotent: skips existing keys/titles.

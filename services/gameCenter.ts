@@ -527,11 +527,31 @@ class GameCenterService {
     });
   }
 
+  /** Unified check-in & scan log for a time range (admin Scan Log page). */
+  public async scanLog(fromMs: number, toMs: number): Promise<
+    Array<{ ts: number; type: string; studentName: string; houseId?: string | null; detail: string; actor: string }>
+  > {
+    return (await this.client.query(api.scanlog.list, { fromMs, toMs })) as any[];
+  }
+
+  /** Live scan feed for one game session (Timing mode splits board). */
+  public subscribeSessionScans(
+    sessionId: string,
+    cb: (scans: Array<{ studentId?: string | null; studentName?: string | null; houseId?: string | null; splitMs?: number | null; ts: number; kind: string }>) => void
+  ): () => void {
+    return this.client.onUpdate(
+      api.nfc.sessionScans,
+      { sessionId: sessionId as Id<'gameSessions'> },
+      (rows) => cb(rows as any[])
+    );
+  }
+
   public async nfcAwardByTag(
     tagUid: string,
     amount: number,
     description: string,
-    adminName: string
+    adminName: string,
+    sessionId?: string
   ): Promise<{
     status: 'OK' | 'UNKNOWN_TAG';
     tagUid?: string;
@@ -542,12 +562,15 @@ class GameCenterService {
     amount?: number;
     finalPoints?: number;
     didRankUp?: boolean;
+    checkedIn?: boolean;
   }> {
     return await this.client.mutation(api.nfc.awardByTag, {
       tagUid,
       amount,
       description,
       adminName,
+      sessionId: sessionId as Id<'gameSessions'> | undefined,
+      localDate: localDate(),
     });
   }
 
@@ -573,7 +596,11 @@ class GameCenterService {
     });
   }
 
-  public async nfcGameScanByTag(tagUid: string, adminName: string): Promise<{
+  public async nfcGameScanByTag(
+    tagUid: string,
+    adminName: string,
+    sessionId?: string
+  ): Promise<{
     status: 'OK' | 'UNKNOWN_TAG';
     tagUid?: string;
     studentId?: string;
@@ -581,8 +608,16 @@ class GameCenterService {
     houseId?: string;
     avatarUrl?: string;
     ts: number;
+    splitMs?: number | null;
+    lap?: number;
+    checkedIn?: boolean;
   }> {
-    return await this.client.mutation(api.nfc.gameScanByTag, { tagUid, adminName });
+    return await this.client.mutation(api.nfc.gameScanByTag, {
+      tagUid,
+      adminName,
+      sessionId: sessionId as Id<'gameSessions'> | undefined,
+      localDate: localDate(),
+    });
   }
 }
 

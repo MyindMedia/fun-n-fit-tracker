@@ -14,6 +14,7 @@ import StudentDetailExtras from './Parent/StudentDetailExtras';
 import KidPassSheet from './Parent/KidPassSheet';
 import { PZ, PzPortalCss, pStyles } from './Parent/shared';
 import { Ic, DataIcon, IconProps } from './icons';
+import { haptic } from '../utils/haptics';
 
 type TabId = 'my-students' | 'add' | 'check-in' | 'messages' | 'earn' | 'perks';
 
@@ -334,7 +335,7 @@ const ParentDashboard: React.FC = () => {
                                 role="tab"
                                 aria-selected={isActive}
                                 aria-label={t.label}
-                                onClick={() => setActiveTab(t.id)}
+                                onClick={() => { haptic('tap'); setActiveTab(t.id); }}
                                 style={{
                                     ...styles.tabItem,
                                     color: isActive ? PZ.volt : PZ.text,
