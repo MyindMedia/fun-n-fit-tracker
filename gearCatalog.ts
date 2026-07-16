@@ -142,6 +142,129 @@ export const GEAR_ITEMS: GearItemDef[] = [
   },
 ];
 
+// ── Wave 2 ────────────────────────────────────────────────────────────────
+GEAR_ITEMS.push(
+  // Rank C — cheap builds
+  {
+    key: 'gear_satchel', name: "Runner's Satchel", rank: 'C', icon: '/assets/gear/gear_satchel.png',
+    effects: { earn: 0.10 }, price: 200,
+    flavor: 'Packed light, paid fast.',
+  },
+  {
+    key: 'gear_shroom', name: 'Power Shroom', rank: 'C', icon: '/assets/gear/gear_shroom.png',
+    effects: { game: 0.10, earn: -0.05 }, price: 200,
+    flavor: 'Grows in the dark. Pops in the game.',
+  },
+  {
+    key: 'gear_goldbar', name: 'Gold Bar', rank: 'C', icon: '/assets/gear/gear_goldbar.png',
+    effects: { earn: 0.05, checkin: 0.05 }, price: 300,
+    flavor: 'Heavy pockets, steady gains.',
+  },
+  {
+    key: 'gear_banner', name: 'House Banner', rank: 'C', icon: '/assets/gear/gear_banner.png',
+    effects: { checkin: 0.10 }, price: 300,
+    flavor: 'Fly the colors. Show up loud.',
+  },
+  {
+    key: 'gear_wizhat', name: "Wizard's Cap", rank: 'C', icon: '/assets/gear/gear_wizhat.png',
+    effects: { game: 0.05, earn: 0.05 }, price: 300,
+    flavor: 'A little magic everywhere you go.',
+  },
+
+  // Rank B — sharper trade-offs
+  {
+    key: 'gear_elixir', name: 'Ember Elixir', rank: 'B', icon: '/assets/gear/gear_elixir.png',
+    effects: { game: 0.15, earn: -0.05 }, price: 400,
+    flavor: 'Burns slow, hits hard on the floor.',
+  },
+  {
+    key: 'gear_amulet', name: 'Frost Amulet', rank: 'B', icon: '/assets/gear/gear_amulet.png',
+    effects: { checkin: 0.15, game: -0.05 }, price: 400,
+    flavor: 'Cool head. Cold streaks never miss a day.',
+  },
+  {
+    key: 'gear_pouch', name: 'Bounty Pouch', rank: 'B', icon: '/assets/gear/gear_pouch.png',
+    effects: { earn: 0.10, checkin: 0.10, game: -0.10 }, price: 400,
+    flavor: 'Collects everywhere except the scoreboard.',
+  },
+  {
+    key: 'gear_lock', name: 'Iron Discipline', rank: 'B', icon: '/assets/gear/gear_lock.png',
+    effects: { checkin: 0.15, game: 0.05, earn: -0.10 }, price: 400,
+    unlock: { type: 'CHECKINS', count: 20, label: 'Check in 20 times' },
+    flavor: 'Locked in. Literally.',
+  },
+  {
+    key: 'gear_cache', name: 'Sunset Cache', rank: 'B', icon: '/assets/gear/gear_cache.png',
+    effects: { earn: 0.10, game: 0.05, checkin: -0.05 }, price: 400,
+    unlock: { type: 'CRATES', count: 10, label: 'Open 10 loot crates' },
+    flavor: 'Every opened crate remembers you.',
+  },
+  {
+    key: 'gear_boots', name: 'Winged Boots', rank: 'B', icon: '/assets/gear/gear_boots.png',
+    effects: { game: 0.10, checkin: 0.10, earn: -0.10 }, price: 500,
+    unlock: { type: 'LAPS', count: 15, label: 'Clock 15 band taps in games' },
+    flavor: 'Fast in the door, faster on the floor.',
+  },
+  {
+    key: 'gear_contract', name: 'Sponsor Contract', rank: 'B', icon: '/assets/gear/gear_contract.png',
+    effects: { earn: 0.20, game: -0.10 }, price: 500,
+    unlock: { type: 'VISITS', count: 8, label: 'Visit 8 partner businesses' },
+    flavor: 'Signed, sealed, sponsored.',
+  },
+
+  // Rank A — build definers
+  {
+    key: 'gear_axe', name: 'Battle Axe', rank: 'A', icon: '/assets/gear/gear_axe.png',
+    effects: { game: 0.25, checkin: -0.10 }, price: 800,
+    unlock: { type: 'LAPS', count: 35, label: 'Clock 35 band taps in games' },
+    flavor: 'Subtlety is for rank C.',
+  },
+  {
+    key: 'gear_viking', name: 'Viking Helm', rank: 'A', icon: '/assets/gear/gear_viking.png',
+    effects: { game: 0.20, checkin: 0.10, earn: -0.15 }, price: 800,
+    unlock: { type: 'MEDALS', count: 2, label: 'Earn 2 coach medals' },
+    flavor: 'Raid the gym. Leave the errands.',
+  },
+  {
+    key: 'gear_map', name: "Explorer's Map", rank: 'A', icon: '/assets/gear/gear_map.png',
+    effects: { earn: 0.25, checkin: 0.05, game: -0.15 }, price: 800,
+    unlock: { type: 'VISITS', count: 10, label: 'Visit 10 partner businesses' },
+    flavor: 'X marks every partner in town.',
+  },
+  {
+    key: 'gear_bomb', name: 'Chaos Bomb', rank: 'A', icon: '/assets/gear/gear_bomb.png',
+    effects: { game: 0.30, checkin: -0.15, earn: -0.05 }, price: 800,
+    unlock: { type: 'CRATES', count: 15, label: 'Open 15 loot crates' },
+    flavor: 'Light the fuse. Apologize later.',
+  },
+  {
+    key: 'gear_portal', name: 'Warp Gate', rank: 'A', icon: '/assets/gear/gear_portal.png',
+    effects: { game: 0.15, earn: 0.15, checkin: -0.05 }, price: 1000,
+    unlock: { type: 'LIFETIME_POINTS', count: 3000, label: 'Earn 3,000 lifetime points' },
+    flavor: 'Everywhere at once. Almost.',
+  },
+
+  // Rank S — endgame
+  {
+    key: 'gear_mjolnir', name: 'Thunder Maul', rank: 'S', icon: '/assets/gear/gear_mjolnir.png',
+    effects: { game: 0.35, checkin: -0.20 }, price: 1500,
+    unlock: { type: 'MEDALS', count: 5, label: 'Earn 5 coach medals' },
+    flavor: 'Whoever holds this hammer owns the floor.',
+  },
+  {
+    key: 'gear_trophy', name: 'Golden Chalice', rank: 'S', icon: '/assets/gear/gear_trophy.png',
+    effects: { game: 0.25, earn: 0.25, checkin: -0.20 }, price: 1500,
+    unlock: { type: 'LIFETIME_POINTS', count: 10000, label: 'Earn 10,000 lifetime points' },
+    flavor: 'You did not find the chalice. It found you.',
+  },
+  {
+    key: 'gear_aegis', name: 'Aegis Ward', rank: 'S', icon: '/assets/gear/gear_aegis.png',
+    effects: { game: 0.15, checkin: 0.15, earn: 0.15 }, price: 1800,
+    unlock: { type: 'CHECKINS', count: 40, label: 'Check in 40 times' },
+    flavor: 'The perfect build has no weaknesses. This is it.',
+  },
+);
+
 export const gearItem = (key?: string | null): GearItemDef | undefined =>
   GEAR_ITEMS.find((g) => g.key === key);
 

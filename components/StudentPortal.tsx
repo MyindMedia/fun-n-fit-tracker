@@ -7,7 +7,6 @@ import AvatarStudio from './avatar/AvatarStudio';
 import AvatarRig from './avatar/AvatarRig';
 import LootCrates from './avatar/LootCrates';
 import GearShop from './avatar/GearShop';
-import PerkShop from './Student/PerkShop';
 import GameCenterStats from './Student/GameCenterStats';
 import TrophyCase from './TrophyCase';
 import LevelPath from './LevelPath';
@@ -24,7 +23,7 @@ interface StudentPortalProps {
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
 
 const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefresh }) => {
-  const [activeTab, setActiveTab] = useState<'PROFILE' | 'PROGRESS' | 'AWARDS' | 'SHOP' | 'FRIENDS' | 'TEAM' | 'STORE' | 'NEWS'>('PROFILE');
+  const [activeTab, setActiveTab] = useState<'PROFILE' | 'PROGRESS' | 'AWARDS' | 'FRIENDS' | 'TEAM' | 'STORE' | 'NEWS'>('PROFILE');
   const [ranks, setRanks] = useState<Rank[]>([]);
   const [trophies, setTrophies] = useState<Trophy[]>([]);
   const [friends, setFriends] = useState<Student[]>([]);
@@ -724,8 +723,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
               { id: 'PROFILE', label: 'Profile', icon: Ic.User },
               { id: 'PROGRESS', label: 'Stats', icon: Ic.Chart },
               { id: 'AWARDS', label: 'Awards', icon: Ic.Medal },
-              { id: 'SHOP', label: 'Perk Shop', icon: Ic.Cart },
-              { id: 'STORE', label: 'Store', icon: Ic.Store },
+              { id: 'STORE', label: 'Item Shop', icon: Ic.Store },
               { id: 'NEWS', label: 'News', icon: Ic.Note },
               { id: 'FRIENDS', label: 'Friends', icon: Ic.Users },
               { id: 'TEAM', label: 'Team', icon: Ic.Home }
@@ -752,7 +750,6 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           {activeTab === 'PROFILE' && renderProfileTab()}
           {activeTab === 'PROGRESS' && renderProgressTab()}
           {activeTab === 'AWARDS' && <TrophyCase student={student} />}
-          {activeTab === 'SHOP' && <PerkShop student={student} onRefresh={onRefresh} />}
           {activeTab === 'STORE' && renderStoreTab()}
           {activeTab === 'NEWS' && renderNewsTab()}
           {activeTab === 'FRIENDS' && renderFriendsTab()}

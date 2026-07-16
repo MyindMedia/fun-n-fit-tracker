@@ -113,10 +113,10 @@ const FEATURES: Feature[] = [
     id: 'perks',
     eyebrow: 'Rewards',
     title: 'Points they can actually spend',
-    copy: "Earned points buy real perks from the academy's shop — and you can watch every redemption from the portal, with full history.",
+    copy: "Earned points buy ranked power gear in the Item Shop — boosts with real trade-offs — plus loot crates and avatar unlocks. Every point spent is tracked in the portal.",
     bullets: [
-      { icon: Ic.Gift, text: 'Perk shop with real and virtual rewards' },
-      { icon: Ic.History, text: 'Every claim and fulfillment, tracked' },
+      { icon: Ic.Gift, text: 'Item Shop gear that boosts what kids earn' },
+      { icon: Ic.History, text: 'Every purchase and claim, tracked' },
     ],
     shot: `${G}/perks.png`,
     alt: 'Perk shop and redemption history',
@@ -239,7 +239,7 @@ const ParentGuide: React.FC = () => {
             <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'var(--pz-text)' }}>
               Flip on <span className="text-white font-bold">Student Login</span> and set a 4-digit PIN from your
               portal, and your kid can sign in on their own — build their avatar in the Avatar Studio, open loot
-              crates with points they earned by moving, pick their gamer tag, and spend perks. Points are earned by
+              crates with points they earned by moving, pick their gamer tag, and gear up in the Item Shop. Points are earned by
               exercise only. There is nothing to buy, ever.
             </p>
           </div>
