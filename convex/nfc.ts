@@ -137,6 +137,39 @@ export const pushScan = mutation({
   },
 });
 
+// Agent presence: heartbeat on connect + every ~20s so the UI can show the
+// reader as online by name the moment it's plugged in (and offline when the
+// heartbeats stop). Stored in appSettings (single row, no event spam).
+export const pushHeartbeat = mutation({
+  args: { readerId: v.string(), online: v.optional(v.boolean()) },
+  handler: async (ctx, { readerId, online }) => {
+    const value = JSON.stringify({ readerId, ts: Date.now(), online: online ?? true });
+    const existing = await ctx.db
+      .query("appSettings")
+      .withIndex("by_key", (q) => q.eq("key", "nfc_reader_status"))
+      .unique();
+    if (existing) await ctx.db.patch(existing._id, { value, updatedAt: Date.now() });
+    else await ctx.db.insert("appSettings", { key: "nfc_reader_status", value, updatedAt: Date.now() });
+    return { ok: true };
+  },
+});
+
+export const readerStatus = query({
+  args: {},
+  handler: async (ctx) => {
+    const row = await ctx.db
+      .query("appSettings")
+      .withIndex("by_key", (q) => q.eq("key", "nfc_reader_status"))
+      .unique();
+    if (!row) return null;
+    try {
+      return JSON.parse(row.value) as { readerId: string; ts: number; online: boolean };
+    } catch {
+      return null;
+    }
+  },
+});
+
 export const latestScans = query({
   args: { sinceTs: v.number() },
   handler: async (ctx, { sinceTs }) => {

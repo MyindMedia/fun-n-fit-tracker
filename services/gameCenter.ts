@@ -551,6 +551,13 @@ class GameCenterService {
     });
   }
 
+  /** Live USB reader presence (agent heartbeats every ~20s). */
+  public subscribeNfcReaderStatus(
+    cb: (status: { readerId: string; ts: number; online: boolean } | null) => void
+  ): () => void {
+    return this.client.onUpdate(api.nfc.readerStatus, {}, (status) => cb(status as any));
+  }
+
   /** Live scans from the local USB reader agent (scripts/nfc-agent.mjs). */
   public subscribeNfcAgentScans(
     cb: (scan: { uid: string; readerId: string; ts: number }) => void

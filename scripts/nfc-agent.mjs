@@ -22,10 +22,32 @@ log("Waiting for a USB NFC reader (plug in your ACR1252U)...");
 const nfc = new NFC();
 let lastUid = null;
 let lastTs = 0;
+let heartbeatTimer = null;
+let activeReaderName = null;
+
+const sendHeartbeat = async (online = true) => {
+  if (!activeReaderName) return;
+  try {
+    await client.mutation(api.nfc.pushHeartbeat, {
+      readerId: activeReaderName,
+      online,
+    });
+  } catch (e) {
+    log(`Heartbeat failed: ${e.message}`);
+  }
+};
 
 nfc.on("reader", (reader) => {
+  // The ACR1252 exposes PICC (contactless) + SAM slots; track the PICC one.
+  if (/SAM/i.test(reader.reader.name) && activeReaderName) return;
   log(`✅ Reader connected: ${reader.reader.name}`);
   log("   Tap a band/tag to send it to the app.");
+  if (!/SAM/i.test(reader.reader.name)) {
+    activeReaderName = reader.reader.name;
+    void sendHeartbeat(true);
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = setInterval(() => void sendHeartbeat(true), 20_000);
+  }
 
   // UID-only mode; we don't need NDEF payloads.
   reader.autoProcessing = true;
@@ -54,7 +76,14 @@ nfc.on("reader", (reader) => {
   });
 
   reader.on("error", (err) => log(`Reader error: ${err.message}`));
-  reader.on("end", () => log(`Reader disconnected: ${reader.reader.name}`));
+  reader.on("end", () => {
+    log(`Reader disconnected: ${reader.reader.name}`);
+    if (reader.reader.name === activeReaderName) {
+      clearInterval(heartbeatTimer);
+      void sendHeartbeat(false);
+      activeReaderName = null;
+    }
+  });
 });
 
 nfc.on("error", (err) => {
@@ -62,7 +91,9 @@ nfc.on("error", (err) => {
   log("If this persists: unplug/replug the reader, or check that no other NFC software is holding it.");
 });
 
-process.on("SIGINT", () => {
+process.on("SIGINT", async () => {
+  clearInterval(heartbeatTimer);
+  await sendHeartbeat(false).catch(() => {});
   log("Agent stopped.");
   process.exit(0);
 });

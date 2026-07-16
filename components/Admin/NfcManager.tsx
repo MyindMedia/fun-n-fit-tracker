@@ -140,6 +140,17 @@ const NfcManager: React.FC<NfcManagerProps> = ({ adminName }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Active reader presence from agent heartbeats; goes stale after 45s.
+  const [readerStatus, setReaderStatus] = useState<{ readerId: string; ts: number; online: boolean } | null>(null);
+  const [, forceTick] = useState(0);
+  useEffect(() => gameCenter.subscribeNfcReaderStatus(setReaderStatus), []);
+  useEffect(() => {
+    const t = setInterval(() => forceTick((n) => n + 1), 5000);
+    return () => clearInterval(t);
+  }, []);
+  const readerOnline = !!readerStatus && readerStatus.online && Date.now() - readerStatus.ts < 45_000;
+  const readerName = readerStatus?.readerId?.replace(/\s*\(.*\)$/, '').replace(/\s*(PICC|SAM)\s*$/i, '').trim();
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const rows = q ? roster.filter((r) => r.fullName.toLowerCase().includes(q)) : roster;
@@ -178,9 +189,9 @@ const NfcManager: React.FC<NfcManagerProps> = ({ adminName }) => {
               <Ic.Nfc size={22} className="text-[#CBFE1C]" /> Tap a band to test
             </div>
             <div className="text-[11px] mt-1" style={{ color: 'var(--pz-text)' }}>
-              {agentReader
-                ? <>USB reader online: <span className="text-[#CBFE1C] font-bold">{agentReader.replace(/\s*\(.*\)$/, '')}</span></>
-                : <>Keyboard-mode readers work instantly; PC/SC readers (ACR1252U) need the desk agent: <span className="text-white font-bold">npm run nfc-agent</span></>}
+              {readerOnline
+                ? <>Ready to scan on <span className="text-[#CBFE1C] font-bold">{readerName}</span></>
+                : <>No USB reader detected — start the desk agent: <span className="text-white font-bold">npm run nfc-agent</span> (keyboard-mode readers work without it)</>}
               {lastUid && <> · Last scan: <span className="text-white font-bold">…{lastUid.slice(-8)}</span></>}
             </div>
           </div>
@@ -193,9 +204,15 @@ const NfcManager: React.FC<NfcManagerProps> = ({ adminName }) => {
                 <Ic.Phone size={16} /> {webNfc.reading ? 'Phone NFC On' : 'Use Phone NFC'}
               </button>
             )}
-            <span className={`pz-live inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-[#CBFE1C]/10 border border-[#CBFE1C]/40 text-[#CBFE1C]`}>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#CBFE1C]" /> Listening
-            </span>
+            {readerOnline ? (
+              <span className="pz-live inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-[#CBFE1C]/10 border border-[#CBFE1C]/40 text-[#CBFE1C]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#CBFE1C]" /> Reader Online
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-white/5 border border-white/15 text-white/50">
+                <span className="w-1.5 h-1.5 rounded-full bg-white/30" /> No Reader
+              </span>
+            )}
           </div>
         </div>
 
