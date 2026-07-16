@@ -35,7 +35,11 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
   // Edit states
   const [gamerTag, setGamerTag] = useState(student.gamerTag || '');
   const [bio, setBio] = useState(student.bio || '');
-  const [displayPreference, setDisplayPreference] = useState<'FULL_NAME' | 'GAMER_TAG' | 'INITIALS'>(student.displayPreference || 'FULL_NAME');
+  // Default: gamer tag leads when one exists (real name shows small below);
+  // kids can still deliberately switch to real-name-first or initials.
+  const [displayPreference, setDisplayPreference] = useState<'FULL_NAME' | 'GAMER_TAG' | 'INITIALS'>(
+    student.displayPreference || (student.gamerTag ? 'GAMER_TAG' : 'FULL_NAME')
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [showAddFriend, setShowAddFriend] = useState(false);
   const [showAvatarCreator, setShowAvatarCreator] = useState(false);
@@ -44,7 +48,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
   useEffect(() => {
     setGamerTag(student.gamerTag || '');
     setBio(student.bio || '');
-    setDisplayPreference(student.displayPreference || 'FULL_NAME');
+    setDisplayPreference(student.displayPreference || (student.gamerTag ? 'GAMER_TAG' : 'FULL_NAME'));
     loadData();
   }, [student]);
 
