@@ -6,6 +6,7 @@ import { AVATAR_ITEMS, HAIR_COLORS, SKIN_TONES, avatarItem } from "../avatarCata
 // (no joins on boards); ownership is validated against studentWearables.
 
 const lookValidator = v.object({
+  body: v.optional(v.union(v.literal("M"), v.literal("F"))),
   skin: v.optional(v.string()),
   hairColor: v.optional(v.string()),
   hair: v.optional(v.string()),
@@ -54,6 +55,7 @@ export const saveLook = mutation({
 
     await ctx.db.patch(studentId, {
       avatarLook: {
+        body: look.body,
         skin: look.skin,
         hairColor: look.hairColor,
         hair: look.hair,

@@ -38,7 +38,14 @@ interface AvatarStudioProps {
 // Character-select style studio: base silhouette + skin tones, layered hair /
 // clothes / accessories / house merch. Locked items can be bought with points.
 const AvatarStudio: React.FC<AvatarStudioProps> = ({ student, onClose, onSaved }) => {
-  const [look, setLook] = useState<AvatarLook>({ ...DEFAULT_LOOK, ...(student.avatarLook ?? {}) });
+  const [look, setLook] = useState<AvatarLook>({
+    ...DEFAULT_LOOK,
+    // First visit: base the starter look on the athlete's gender (free items
+    // only) — everything stays fully switchable.
+    body: student.gender === 'Female' ? 'F' : 'M',
+    hair: student.gender === 'Female' ? 'hair_bob' : DEFAULT_LOOK.hair,
+    ...(student.avatarLook ?? {}),
+  });
   const [owned, setOwned] = useState<Map<string, number>>(new Map());
   const [saving, setSaving] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
@@ -140,6 +147,28 @@ const AvatarStudio: React.FC<AvatarStudioProps> = ({ student, onClose, onSaved }
         </div>
 
         <div className="p-4 space-y-5">
+          {/* Base style */}
+          <div>
+            <div className="pz-eyebrow mb-2">Style</div>
+            <div className="grid grid-cols-2 gap-2 max-w-xs">
+              {([['M', 'Boy'], ['F', 'Girl']] as const).map(([code, label]) => (
+                <button
+                  key={code}
+                  onClick={() => setLook(prev => ({ ...prev, body: code }))}
+                  className="touch-btn min-h-[48px] py-2 border-2 text-xs font-black uppercase tracking-wide transition-all"
+                  style={{
+                    clipPath: NOTCH_SM,
+                    borderColor: (look.body ?? 'M') === code ? 'var(--pz-volt)' : 'var(--pz-border)',
+                    background: (look.body ?? 'M') === code ? 'rgba(203,254,28,0.10)' : 'var(--pz-panel-2)',
+                    color: (look.body ?? 'M') === code ? 'var(--pz-volt)' : 'var(--pz-text)',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Skin tone */}
           <div>
             <div className="pz-eyebrow mb-2">Skin Tone</div>
@@ -229,6 +258,8 @@ const AvatarStudio: React.FC<AvatarStudioProps> = ({ student, onClose, onSaved }
                         </div>
                       ) : level > 0 ? (
                         <div className="text-[9px] font-black uppercase" style={{ color: 'var(--pz-volt)' }}>{UPGRADE_TIERS[level]} tier</div>
+                      ) : item.isDefault ? (
+                        <div className="text-[9px] font-black uppercase" style={{ color: 'var(--pz-text)' }}>Free</div>
                       ) : (
                         <div className="text-[9px] font-bold" style={{ color: rarityColor }}>{item.rarity}</div>
                       )}

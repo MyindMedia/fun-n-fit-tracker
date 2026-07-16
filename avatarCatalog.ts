@@ -16,6 +16,7 @@ export interface AvatarItemDef {
 }
 
 export interface AvatarLook {
+  body?: 'M' | 'F'; // base style (defaults from the athlete's gender)
   skin?: string; // SKIN_TONES id
   hairColor?: string; // HAIR_COLORS hex
   hair?: string; // HAIRSTYLE item key
@@ -43,7 +44,7 @@ export const HAIR_COLORS: string[] = [
   '#2FA8FF', // blue
 ];
 
-export const DEFAULT_LOOK: Required<Omit<AvatarLook, 'acc'>> & { acc: string | null } = {
+export const DEFAULT_LOOK: Required<Omit<AvatarLook, 'acc' | 'body'>> & { acc: string | null; body?: 'M' | 'F' } = {
   skin: 's3',
   hairColor: '#1B1B22',
   hair: 'hair_short',
@@ -52,14 +53,20 @@ export const DEFAULT_LOOK: Required<Omit<AvatarLook, 'acc'>> & { acc: string | n
 };
 
 export const AVATAR_ITEMS: AvatarItemDef[] = [
-  // ── Hair ──────────────────────────────────────────────────────────────────
+  // ── Hair (free starters first, then unlockables) ──────────────────────────
   { key: 'hair_buzz', name: 'Buzz Cut', slot: 'HAIRSTYLE', rarity: 'common', cost: 0, isDefault: true },
   { key: 'hair_short', name: 'Fresh Fade', slot: 'HAIRSTYLE', rarity: 'common', cost: 0, isDefault: true },
+  { key: 'hair_bob', name: 'Classic Bob', slot: 'HAIRSTYLE', rarity: 'common', cost: 0, isDefault: true },
+  { key: 'hair_ponytail', name: 'Power Ponytail', slot: 'HAIRSTYLE', rarity: 'common', cost: 0, isDefault: true },
   { key: 'hair_spiky', name: 'Spike Up', slot: 'HAIRSTYLE', rarity: 'common', cost: 75 },
   { key: 'hair_curls', name: 'Cloud Curls', slot: 'HAIRSTYLE', rarity: 'common', cost: 75 },
+  { key: 'hair_pigtails', name: 'Pigtails', slot: 'HAIRSTYLE', rarity: 'common', cost: 75 },
   { key: 'hair_long', name: 'Flow', slot: 'HAIRSTYLE', rarity: 'uncommon', cost: 150 },
   { key: 'hair_locs', name: 'Locs', slot: 'HAIRSTYLE', rarity: 'uncommon', cost: 150 },
   { key: 'hair_bun', name: 'Top Knot', slot: 'HAIRSTYLE', rarity: 'uncommon', cost: 150 },
+  { key: 'hair_braids', name: 'Twin Braids', slot: 'HAIRSTYLE', rarity: 'uncommon', cost: 150 },
+  { key: 'hair_waves', name: 'Beach Waves', slot: 'HAIRSTYLE', rarity: 'uncommon', cost: 150 },
+  { key: 'hair_puffs', name: 'Double Puffs', slot: 'HAIRSTYLE', rarity: 'uncommon', cost: 150 },
   { key: 'hair_mohawk', name: 'Volt Hawk', slot: 'HAIRSTYLE', rarity: 'legendary', cost: 600 },
 
   // ── Tops (clothes + house merch) ──────────────────────────────────────────

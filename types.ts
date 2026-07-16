@@ -218,6 +218,7 @@ export interface Student {
   // Layered avatar (components/avatar): photo vs avatar + equipped look
   avatarMode?: 'PHOTO' | 'AVATAR';
   avatarLook?: {
+    body?: 'M' | 'F';
     skin?: string;
     hairColor?: string;
     hair?: string;

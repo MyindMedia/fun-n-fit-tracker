@@ -48,6 +48,40 @@ const HairBack: React.FC<{ hair: string; color: string }> = ({ hair, color }) =>
           <Shade d="M72 96 h13 v70 h-13 Z M108 104 h13 v62 h-13 Z M144 96 h13 v70 h-13 Z" />
         </g>
       );
+    case 'hair_bob':
+      return (
+        <g>
+          <path d="M68 92 Q66 34 120 32 Q174 34 172 92 L172 132 Q172 146 156 144 L84 144 Q68 146 68 132 Z" fill={color} />
+          <Shade d="M68 110 L68 132 Q68 146 84 144 L100 144 L100 110 Z" />
+        </g>
+      );
+    case 'hair_ponytail':
+      return (
+        <g>
+          <path d="M158 44 Q188 40 184 82 Q180 122 162 142 Q152 128 158 100 Q162 72 150 56 Z" fill={color} />
+          <Shade d="M162 142 Q152 128 158 100 Q162 80 156 64 L164 60 Q172 84 168 108 Q166 130 162 142 Z" />
+          <rect x={148} y={52} width={16} height={9} rx={4.5} fill="#1E2128" opacity={0.4} />
+        </g>
+      );
+    case 'hair_braids':
+      return (
+        <g fill={color}>
+          {[58, 168].map(x => (
+            <g key={x}>
+              <rect x={x} y={96} width={15} height={66} rx={7.5} />
+              <path d={`M${x + 2} 116 h11 M${x + 2} 132 h11 M${x + 2} 148 h11`} stroke="#000" opacity={0.18} strokeWidth={4} fill="none" />
+              <rect x={x + 2} y={158} width={11} height={7} rx={3.5} fill="#1E2128" opacity={0.4} />
+            </g>
+          ))}
+        </g>
+      );
+    case 'hair_waves':
+      return (
+        <g>
+          <path d="M64 96 Q62 42 120 40 Q178 42 176 96 L178 150 Q179 164 168 158 Q160 172 150 160 Q142 174 132 162 L132 120 L108 120 L108 162 Q98 174 90 160 Q80 172 72 158 Q61 164 62 150 Z" fill={color} />
+          <Shade d="M64 110 L62 150 Q61 164 72 158 Q80 172 90 160 L94 120 L64 110 Z" />
+        </g>
+      );
     default:
       return null;
   }
@@ -118,6 +152,56 @@ const HairFront: React.FC<{ hair: string; color: string }> = ({ hair, color }) =
         <g>
           <path d="M104 62 L106 26 L114 48 L120 14 L126 48 L134 26 L136 62 Q128 56 120 56 Q112 56 104 62 Z" fill={color} />
           <path d="M80 84 Q80 56 104 50 L104 62 Q88 68 84 86 Z M160 84 Q160 56 136 50 L136 62 Q152 68 156 86 Z" fill={color} opacity={0.45} />
+        </g>
+      );
+    case 'hair_bob':
+      return (
+        <g>
+          <path d="M72 96 Q70 30 120 28 Q170 30 168 96 Q168 62 150 56 Q134 51 120 54 Q102 50 90 58 Q74 66 72 96 Z" fill={color} />
+          <path d="M66 84 Q66 70 74 64 L86 74 L86 128 Q86 138 76 138 Q66 138 66 128 Z" fill={color} />
+          <path d="M174 84 Q174 70 166 64 L154 74 L154 128 Q154 138 164 138 Q174 138 174 128 Z" fill={color} />
+          <Shade d="M120 54 Q102 50 90 58 Q74 66 72 96 Q70 30 120 28 Z M66 100 L66 128 Q66 138 76 138 L76 100 Z" />
+        </g>
+      );
+    case 'hair_ponytail':
+      return (
+        <g>
+          <path d="M72 92 Q70 28 120 26 Q170 28 168 92 Q166 60 148 54 Q132 48 118 54 Q96 50 86 62 Q74 72 72 92 Z" fill={color} />
+          <Shade d="M118 54 Q96 50 86 62 Q74 72 72 92 Q70 28 120 26 Z" />
+        </g>
+      );
+    case 'hair_pigtails':
+      return (
+        <g fill={color}>
+          <circle cx={62} cy={92} r={19} />
+          <circle cx={178} cy={92} r={19} />
+          <rect x={70} y={78} width={9} height={12} rx={4.5} fill="#1E2128" opacity={0.4} />
+          <rect x={161} y={78} width={9} height={12} rx={4.5} fill="#1E2128" opacity={0.4} />
+          <path d="M74 92 Q72 30 120 28 Q168 30 166 92 Q164 62 146 56 Q132 51 120 54 Q102 50 92 60 Q76 68 74 92 Z" />
+          <Shade d="M62 92 m-19 0 a19 19 0 0 0 19 19 Z" />
+        </g>
+      );
+    case 'hair_braids':
+      return (
+        <g>
+          <path d="M74 92 Q72 30 120 28 Q168 30 166 92 Q164 62 146 56 Q132 51 120 54 Q102 50 92 60 Q76 68 74 92 Z" fill={color} />
+          <path d="M120 30 L120 54" stroke="#000" opacity={0.18} strokeWidth={4} />
+        </g>
+      );
+    case 'hair_waves':
+      return (
+        <g>
+          <path d="M72 94 Q70 30 120 28 Q170 30 168 94 Q166 64 144 56 Q126 50 112 58 Q94 52 84 66 Q74 76 72 94 Z" fill={color} />
+          <Shade d="M112 58 Q94 52 84 66 Q74 76 72 94 Q70 30 120 28 Z" />
+        </g>
+      );
+    case 'hair_puffs':
+      return (
+        <g fill={color}>
+          <circle cx={82} cy={40} r={21} />
+          <circle cx={158} cy={40} r={21} />
+          <Shade d="M82 40 m-21 0 a21 21 0 0 0 21 21 Z" />
+          <path d="M76 90 Q74 42 120 40 Q166 42 164 90 Q160 62 120 60 Q80 62 76 90 Z" />
         </g>
       );
     default:
@@ -300,6 +384,7 @@ const AvatarRig: React.FC<AvatarRigProps> = ({ look, size = 96, className = '', 
   const hair = look?.hair ?? DEFAULT_LOOK.hair;
   const top = look?.top ?? DEFAULT_LOOK.top;
   const acc = look?.acc ?? null;
+  const feminine = look?.body === 'F';
 
   return (
     <svg
@@ -333,6 +418,14 @@ const AvatarRig: React.FC<AvatarRigProps> = ({ look, size = 96, className = '', 
         <circle cx={140} cy={104} r={7} fill={INK} />
         <circle cx={97.5} cy={101.5} r={2.2} fill="#FFFFFF" />
         <circle cx={137.5} cy={101.5} r={2.2} fill="#FFFFFF" />
+        {feminine && (
+          <g stroke={INK} strokeWidth={2.6} strokeLinecap="round">
+            <path d="M92 98 L86 93" />
+            <path d="M90 103 L83 100" />
+            <path d="M148 98 L154 93" />
+            <path d="M150 103 L157 100" />
+          </g>
+        )}
         {/* confident smile */}
         <path d="M104 122 Q120 135 136 122" stroke={INK} strokeWidth={5} strokeLinecap="round" fill="none" />
         <HairFront hair={hair} color={hairColor} />
