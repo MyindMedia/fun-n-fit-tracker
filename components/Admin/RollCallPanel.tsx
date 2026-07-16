@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
-import { Student, HouseId } from '../../types';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Student, HouseId, BoardEntry } from '../../types';
 import { HOUSES } from '../../constants';
 import { supabaseService } from '../../services/supabaseService';
+import { gameCenter } from '../../services/gameCenter';
 import { Ic } from '../icons';
 
 interface RollCallPanelProps {
@@ -10,10 +11,29 @@ interface RollCallPanelProps {
   onRefresh: () => void;
 }
 
+const METHOD_META: Record<string, { icon: React.FC<{ size?: number | string }>; label: string }> = {
+  QR: { icon: Ic.QrCode, label: 'QR' },
+  NFC: { icon: Ic.Nfc, label: 'NFC' },
+  MANUAL: { icon: Ic.Edit, label: 'Coach' },
+};
+
+const fmtTime = (ms: number) =>
+  new Date(ms).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+
 const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRefresh }) => {
   const [houseFilter, setHouseFilter] = useState<HouseId | 'ALL'>('ALL');
   const [isBusy, setIsBusy] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  // Live check-in ledger for today — parent QR scans land here instantly.
+  const [board, setBoard] = useState<BoardEntry[]>([]);
+
+  useEffect(() => gameCenter.subscribeBoard(setBoard), []);
+
+  const checkInByStudent = useMemo(() => {
+    const map = new Map<string, BoardEntry['checkIn']>();
+    for (const entry of board) map.set(entry.checkIn.studentId, entry.checkIn);
+    return map;
+  }, [board]);
 
   const filtered = useMemo(() => {
     let result = students;
@@ -24,17 +44,27 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
       const q = searchQuery.toLowerCase();
       result = result.filter(s => s.fullName.toLowerCase().includes(q));
     }
-    return result;
-  }, [students, houseFilter, searchQuery]);
+    // Active kids first, most recent arrival on top; absentees after.
+    return [...result].sort((a, b) => {
+      if (a.isPresent !== b.isPresent) return a.isPresent ? -1 : 1;
+      const aIn = checkInByStudent.get(a.id)?.checkedInAt ?? 0;
+      const bIn = checkInByStudent.get(b.id)?.checkedInAt ?? 0;
+      return bIn - aIn;
+    });
+  }, [students, houseFilter, searchQuery, checkInByStudent]);
 
   const presentCount = filtered.filter(s => s.isPresent).length;
   const totalPresent = students.filter(s => s.isPresent).length;
+  const checkedInToday = board.length;
 
+  // Coach toggles go through the same check-in ledger as parent QR scans, so
+  // the board, roll call, and daily bonus always agree.
   const setPresent = async (id: string, present: boolean) => {
     if (isBusy) return;
     setIsBusy(true);
     try {
-      await supabaseService.markPresent(id, present, adminName);
+      if (present) await gameCenter.manualCheckIn(id, adminName);
+      else await gameCenter.checkOut(id, adminName);
       onRefresh();
     } finally {
       setIsBusy(false);
@@ -46,7 +76,9 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
     setIsBusy(true);
     try {
       for (const s of filtered) {
-        await supabaseService.markPresent(s.id, present, adminName);
+        if (s.isPresent === present) continue;
+        if (present) await gameCenter.manualCheckIn(s.id, adminName);
+        else await gameCenter.checkOut(s.id, adminName);
       }
       onRefresh();
     } finally {
@@ -68,14 +100,22 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
 
   return (
     <div className="space-y-4">
-      {/* Stats Summary */}
+      {/* Stats Summary — live: parent QR scans appear here the moment they happen */}
       <div className="pz-card p-4 text-white">
         <div className="flex items-center justify-between">
           <div>
             <div className="pz-display text-2xl sm:text-3xl text-[#CBFE1C]">{totalPresent}/{students.length}</div>
-            <div className="text-xs sm:text-sm font-bold" style={{ color: 'var(--pz-text)' }}>Athletes Present Today</div>
+            <div className="text-xs sm:text-sm font-bold" style={{ color: 'var(--pz-text)' }}>Active on the floor right now</div>
+            <div className="text-[11px] mt-0.5" style={{ color: 'var(--pz-text)' }}>
+              {checkedInToday} checked in today
+            </div>
           </div>
-          <Ic.ClipboardCheck size={44} className="text-[#CBFE1C] opacity-80" />
+          <div className="flex flex-col items-end gap-2">
+            <span className="pz-live inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-[#CBFE1C]/10 border border-[#CBFE1C]/40 text-[#CBFE1C]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#CBFE1C]" /> Live
+            </span>
+            <Ic.ClipboardCheck size={36} className="text-[#CBFE1C] opacity-80" />
+          </div>
         </div>
       </div>
 
@@ -176,7 +216,7 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
                   <div className={`font-bold text-sm truncate ${!s.isPresent ? 'text-white/40' : 'text-white'}`}>
                     {s.fullName}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span
                       className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded"
                       style={{
@@ -187,6 +227,27 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
                       {HOUSES[s.houseId].name}
                     </span>
                     <span className="text-[9px]" style={{ color: 'var(--pz-text)' }}>{s.points} pts</span>
+                    {(() => {
+                      const ci = checkInByStudent.get(s.id);
+                      if (!ci) return null;
+                      const meta = METHOD_META[ci.method] ?? METHOD_META.MANUAL;
+                      const MethodIcon = meta.icon;
+                      const out = !!ci.checkedOutAt;
+                      return (
+                        <span
+                          className={`inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded border ${
+                            out
+                              ? 'text-white/40 border-white/10 bg-white/5'
+                              : 'text-[#CBFE1C] border-[#CBFE1C]/30 bg-[#CBFE1C]/10'
+                          }`}
+                          title={out ? `Checked out ${fmtTime(ci.checkedOutAt!)}` : undefined}
+                        >
+                          <MethodIcon size={10} />
+                          {meta.label} {fmtTime(ci.checkedInAt)}
+                          {out && <> · out {fmtTime(ci.checkedOutAt!)}</>}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
                 <button
