@@ -94,6 +94,24 @@ export async function checkInStudent(
     .withIndex("by_student_date", (q: any) => q.eq("studentId", studentId).eq("date", date))
     .unique();
   if (existing && !existing.checkedOutAt) {
+    // "Already checked in" is only true if they're actually marked present.
+    // Daily resets and legacy presence toggles flip the flag without closing
+    // the ledger row — a scan must self-heal that desync, not report ALREADY
+    // while the athlete shows absent.
+    if (!student.isPresent) {
+      const now = Date.now();
+      await ctx.db.patch(studentId, { isPresent: true });
+      await ctx.db.patch(existing._id, { checkedInAt: now, method });
+      await logActivity(ctx, {
+        type: "CHECKIN",
+        message: `${student.fullName} is back on the floor! 🎮`,
+        adminName: actorName,
+        studentId,
+        studentName: student.fullName,
+      });
+      await publishEvent(ctx, "player_status", { studentId, isPresent: true, ts: now });
+      return { studentId, fullName: student.fullName, status: "OK" as const };
+    }
     return { studentId, fullName: student.fullName, status: "ALREADY" as const };
   }
 
