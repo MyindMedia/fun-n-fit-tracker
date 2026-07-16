@@ -6,6 +6,7 @@ import { gameCenter } from '../services/gameCenter';
 import AvatarStudio from './avatar/AvatarStudio';
 import AvatarRig from './avatar/AvatarRig';
 import LootCrates from './avatar/LootCrates';
+import GearShop from './avatar/GearShop';
 import PerkShop from './Student/PerkShop';
 import GameCenterStats from './Student/GameCenterStats';
 import TrophyCase from './TrophyCase';
@@ -649,6 +650,9 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
         </div>
         <div style={{ color: 'var(--pz-volt)' }}><Ic.Store size={28} /></div>
       </div>
+
+      {/* Power gear — perks, downsides, live multipliers */}
+      <GearShop student={student} onRefresh={onRefresh} />
 
       {/* Loot crates — random drops for the avatar */}
       <LootCrates student={student} onRefresh={onRefresh} />

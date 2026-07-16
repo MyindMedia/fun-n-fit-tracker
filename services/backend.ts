@@ -66,6 +66,7 @@ type StudentDoc = {
   totalXp?: number;
   avatarMode?: "PHOTO" | "AVATAR";
   avatarLook?: Student["avatarLook"];
+  gearEquipped?: string | null;
 };
 
 export const mapStudent = (s: StudentDoc): Student => ({
@@ -88,6 +89,7 @@ export const mapStudent = (s: StudentDoc): Student => ({
   totalXp: s.totalXp ?? 0,
   avatarMode: s.avatarMode,
   avatarLook: s.avatarLook,
+  gearEquipped: s.gearEquipped,
 });
 
 type SessionDoc = {

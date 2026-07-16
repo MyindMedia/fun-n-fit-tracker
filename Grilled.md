@@ -235,6 +235,34 @@ NFC Bands page, no picking Timing/Points modes. Decisions:
    work when open, but gameplay no longer needs it. Verified on prod: timed game
    (lap 1 → split 1140ms), Gold Rush (+10/tap), no-game fallback to check-in.
 
+# Gear system / Item Shop (2026-07-16)
+
+Lawrence's directive: redesign the item shop into ranked power items ("Brawlhalla
+meets Rocket League") that multiply points when worn — with names, ranks, perks
+AND downsides — earnable via achievements or purchasable at premium prices.
+
+1. **16 gear items** (`gearCatalog.ts`, icons from Lawrence's licensed Game
+   Assets pack → public/assets/gear/): ranks C/B/A/S, each with source-specific
+   effects — `game` (coach/game awards), `checkin` (daily bonus), `earn`
+   (partner visits + tasks). Positive perks and negative downsides per item
+   (e.g. Heat Streak: +35% game / −15% check-in / −10% earn). Gear factor per
+   award clamped to [0.5, 2.0] — gear can at most double a score.
+2. **One equipped slot** (`students.gearEquipped`); applyPoints multiplies
+   positive earnings by the equipped gear's factor for that source and stamps
+   the ledger description with "(gear +15%)" so every boost is auditable.
+   Stacks with the global point boost.
+3. **Dual acquisition** — achievement grind (CHECKINS / LAPS / MEDALS / CRATES /
+   VISITS / LIFETIME_POINTS, live progress computed from the real ledgers,
+   claim validates server-side) or direct buy at premium (200–1,500 pts).
+   Buying/claiming auto-equips; claims fire a board celebration.
+4. **Item Shop UI** (`GearShop.tsx`, top of the Store tab): loadout panel with
+   live x-multipliers per source, rank-colored cards with ▲ green perks /
+   ▼ red downsides, flavor lines, achievement progress bars with Claim buttons.
+5. Verified on prod: +15% game boost (20→23), −5% check-in downside (20→19),
+   claim gate rejection with progress, buy + auto-equip. KNOWN: big gear
+   purchases can trip the pre-existing spend-demotion mechanic (open question
+   from the migration phase).
+
 # Parent invites (2026-07-16)
 
 Invite links parents can sign up from, sendable by admins and by the GoHighLevel

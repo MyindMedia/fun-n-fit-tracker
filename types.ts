@@ -217,6 +217,7 @@ export interface Student {
   totalXp?: number;
   // Layered avatar (components/avatar): photo vs avatar + equipped look
   avatarMode?: 'PHOTO' | 'AVATAR';
+  gearEquipped?: string | null;
   avatarLook?: {
     body?: 'M' | 'F';
     skin?: string;

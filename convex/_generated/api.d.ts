@@ -18,6 +18,7 @@ import type * as email from "../email.js";
 import type * as events from "../events.js";
 import type * as files from "../files.js";
 import type * as games from "../games.js";
+import type * as gear from "../gear.js";
 import type * as helpers from "../helpers.js";
 import type * as http from "../http.js";
 import type * as invites from "../invites.js";
@@ -59,6 +60,7 @@ declare const fullApi: ApiFromModules<{
   events: typeof events;
   files: typeof files;
   games: typeof games;
+  gear: typeof gear;
   helpers: typeof helpers;
   http: typeof http;
   invites: typeof invites;

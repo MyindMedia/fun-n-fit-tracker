@@ -1,6 +1,7 @@
 import { MutationCtx, QueryCtx } from "./_generated/server";
 import { Id, Doc } from "./_generated/dataModel";
 import { RANKS, DEMOTION_PENALTY_POINTS } from "../constants";
+import { gearFactor, GearSource } from "../gearCatalog";
 
 export interface RankInfo {
   id: string;
@@ -119,6 +120,23 @@ export async function applyPoints(
     if (Number.isFinite(mult) && mult > 1) {
       amount = Math.round(amount * mult);
       description = `${description} (${mult}x)`;
+    }
+
+    // Equipped gear (gearCatalog.ts): source-specific perk/downside multiplier,
+    // clamped inside gearFactor to [0.5, 2.0]. Wearing gear has consequences —
+    // good and bad — visible right on the ledger line.
+    const gearSource: GearSource | null =
+      sourceType === "MANUAL" ? "game"
+      : sourceType === "CHECKIN" ? "checkin"
+      : sourceType === "PARTNER_VISIT" || sourceType === "SPECIAL_TASK" ? "earn"
+      : null;
+    if (gearSource && student.gearEquipped) {
+      const factor = gearFactor(student.gearEquipped, gearSource);
+      if (factor !== 1) {
+        amount = Math.max(1, Math.round(amount * factor));
+        const pct = Math.round((factor - 1) * 100);
+        description = `${description} (gear ${pct > 0 ? "+" : ""}${pct}%)`;
+      }
     }
   }
 

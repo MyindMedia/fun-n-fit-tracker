@@ -43,6 +43,8 @@ export default defineSchema({
     // Layered avatar (components/avatar/AvatarRig): photo vs avatar choice +
     // the equipped look, denormalized here so boards render without joins.
     avatarMode: v.optional(v.union(v.literal("PHOTO"), v.literal("AVATAR"))),
+    // Equipped gear item (gearCatalog.ts) — multiplies point earning by source
+    gearEquipped: v.optional(v.union(v.string(), v.null())),
     avatarLook: v.optional(
       v.object({
         body: v.optional(v.union(v.literal("M"), v.literal("F"))),
@@ -275,6 +277,14 @@ export default defineSchema({
     enabled: v.boolean(),
     pin: v.string(), // 4-digit, set by the parent
     updatedAt: v.number(),
+  }).index("by_student", ["studentId"]),
+
+  // Owned gear items (bought or earned via achievements).
+  studentGear: defineTable({
+    studentId: v.id("students"),
+    gearKey: v.string(),
+    acquiredVia: v.string(), // BUY | ACHIEVEMENT
+    acquiredAt: v.number(),
   }).index("by_student", ["studentId"]),
 
   // One row per crate opened — the loot ledger (odds audit + daily cap).

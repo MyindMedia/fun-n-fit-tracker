@@ -602,6 +602,39 @@ class GameCenterService {
     })) as { ok: boolean; reason: 'DISABLED' | 'WRONG_PIN' | null };
   }
 
+  // ── Gear shop (boost items) ────────────────────────────────────────────────
+
+  public async gearShop(studentId: string): Promise<{
+    items: Array<{ key: string; owned: boolean; equipped: boolean; progress: number | null }>;
+    equipped: string | null;
+    points: number;
+  }> {
+    return (await this.client.query(api.gear.shop, {
+      studentId: studentId as Id<'students'>,
+    })) as any;
+  }
+
+  public async gearEquip(studentId: string, gearKey: string | null): Promise<void> {
+    await this.client.mutation(api.gear.equip, {
+      studentId: studentId as Id<'students'>,
+      gearKey,
+    });
+  }
+
+  public async gearBuy(studentId: string, gearKey: string): Promise<{ ok: boolean; balance: number }> {
+    return (await this.client.mutation(api.gear.buy, {
+      studentId: studentId as Id<'students'>,
+      gearKey,
+    })) as any;
+  }
+
+  public async gearClaim(studentId: string, gearKey: string): Promise<void> {
+    await this.client.mutation(api.gear.claim, {
+      studentId: studentId as Id<'students'>,
+      gearKey,
+    });
+  }
+
   // ── Avatar studio + loot crates ────────────────────────────────────────────
 
   public async ownedWearables(studentId: string): Promise<Array<{ key: string; upgradeLevel: number }>> {
