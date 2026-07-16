@@ -129,6 +129,16 @@ const NfcManager: React.FC<NfcManagerProps> = ({ adminName }) => {
   useNfcWedge(handleScan, true);
   // Phone/tablet NFC (Android Chrome): opt-in reader on this device.
   const webNfc = useWebNfc(handleScan);
+  // PC/SC USB readers (ACR1252U etc.) via the local agent (npm run nfc-agent):
+  // taps stream through Convex and land here like any other scan.
+  const [agentReader, setAgentReader] = useState<string | null>(null);
+  useEffect(() => {
+    return gameCenter.subscribeNfcAgentScans((scan) => {
+      setAgentReader(scan.readerId);
+      handleScan({ uid: scan.uid, ts: scan.ts });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -168,8 +178,10 @@ const NfcManager: React.FC<NfcManagerProps> = ({ adminName }) => {
               <Ic.Nfc size={22} className="text-[#CBFE1C]" /> Tap a band to test
             </div>
             <div className="text-[11px] mt-1" style={{ color: 'var(--pz-text)' }}>
-              USB readers (keyboard mode) work instantly — just plug in and tap.
-              {lastUid && <> Last scan: <span className="text-white font-bold">…{lastUid.slice(-8)}</span></>}
+              {agentReader
+                ? <>USB reader online: <span className="text-[#CBFE1C] font-bold">{agentReader.replace(/\s*\(.*\)$/, '')}</span></>
+                : <>Keyboard-mode readers work instantly; PC/SC readers (ACR1252U) need the desk agent: <span className="text-white font-bold">npm run nfc-agent</span></>}
+              {lastUid && <> · Last scan: <span className="text-white font-bold">…{lastUid.slice(-8)}</span></>}
             </div>
           </div>
           <div className="flex items-center gap-2">

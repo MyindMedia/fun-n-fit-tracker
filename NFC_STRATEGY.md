@@ -22,9 +22,31 @@ games. iOS Safari has no Web NFC; iPhones use the QR paths instead.
 
 > Buying guidance: any reader sold as "USB NFC reader keyboard emulation /
 > 13.56 MHz Mifare" works. If the reader outputs nothing when tapped, it's a
-> PC/SC-only model (like a stock ACR122U) — most can be flipped to HID/keyboard
-> mode with the vendor tool, or exchanged for a keyboard-emulation model.
+> PC/SC-only model — use the desk agent below.
 > Wristbands: 13.56 MHz NTAG213 / Mifare Classic silicone bands, any vendor.
+
+## PC/SC readers (the academy's ACR1252U) — the desk agent
+
+The academy's reader is an **ACS ACR1252U-M1**, a professional PC/SC (CCID)
+reader — it never types keystrokes, so the wedge listener can't see it. For
+these, a tiny local agent bridges the reader to the app:
+
+```
+npm run nfc-agent        # on the machine the reader is plugged into
+```
+
+`scripts/nfc-agent.mjs` (Node + nfc-pcsc, no drivers needed on macOS) detects
+the reader the moment it's plugged in, reads each tap's UID, debounces
+repeat-fires, and pushes it to Convex (`nfc.pushScan` → ephemeral appEvents
+bus). The open **Admin → NFC Bands** page subscribes (`nfc.latestScans`) and
+treats agent taps exactly like wedge scans — same assign / check-in / points /
+timing modes. The page's status strip flips to "USB reader online: ACS ACR1252"
+once the first tap arrives.
+
+Verified live 2026-07-15 with the actual ACR1252U: reader detected as
+"ACS ACR1252 Dual Reader PICC", tag tap `…D2386680` delivered end-to-end.
+Keep the agent running on the front-desk machine (a Login Item / LaunchAgent
+that runs `npm run nfc-agent` in the repo folder survives reboots).
 
 ## Data model
 

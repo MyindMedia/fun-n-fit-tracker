@@ -121,6 +121,35 @@ export const checkInByTag = mutation({
   },
 });
 
+// ── Local reader agent bridge ────────────────────────────────────────────────
+// PC/SC readers (ACR1252U etc.) can't type like keyboard-wedge models, so a
+// tiny local agent (scripts/nfc-agent.mjs) reads them natively and pushes
+// scans here; the open NFC Bands page subscribes and treats them exactly like
+// wedge scans. Events ride the existing ephemeral appEvents bus.
+
+export const pushScan = mutation({
+  args: { tagUid: v.string(), readerId: v.optional(v.string()) },
+  handler: async (ctx, { tagUid, readerId }) => {
+    const uid = normalizeUid(tagUid);
+    if (uid.length < 4) return { ok: false };
+    await publishEvent(ctx, "nfc_scan", { uid, readerId: readerId ?? "usb-reader", ts: Date.now() });
+    return { ok: true };
+  },
+});
+
+export const latestScans = query({
+  args: { sinceTs: v.number() },
+  handler: async (ctx, { sinceTs }) => {
+    const events = await ctx.db
+      .query("appEvents")
+      .withIndex("by_ts", (q) => q.gt("ts", sinceTs))
+      .collect();
+    return events
+      .filter((e) => e.kind === "nfc_scan")
+      .map((e) => ({ id: e._id, ...(e.payload as any) }));
+  },
+});
+
 // Coach scoring tap: award a preset amount to whoever owns the tag. Runs
 // through applyPoints (rank logic, ledger, celebrations) like every award.
 export const awardByTag = mutation({

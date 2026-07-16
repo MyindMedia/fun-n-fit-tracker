@@ -551,6 +551,21 @@ class GameCenterService {
     });
   }
 
+  /** Live scans from the local USB reader agent (scripts/nfc-agent.mjs). */
+  public subscribeNfcAgentScans(
+    cb: (scan: { uid: string; readerId: string; ts: number }) => void
+  ): () => void {
+    const seen = new Set<string>();
+    const sinceTs = Date.now();
+    return this.client.onUpdate(api.nfc.latestScans, { sinceTs }, (rows) => {
+      for (const row of rows as any[]) {
+        if (seen.has(row.id)) continue;
+        seen.add(row.id);
+        cb({ uid: row.uid, readerId: row.readerId, ts: row.ts });
+      }
+    });
+  }
+
   public async nfcGameScanByTag(tagUid: string, adminName: string): Promise<{
     status: 'OK' | 'UNKNOWN_TAG';
     tagUid?: string;
