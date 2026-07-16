@@ -43,66 +43,76 @@ const StudentLogin: React.FC = () => {
     );
   }
 
+  // Pubzi theme: small notched cut-corner shape for inline elements
+  const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
-        <div className="bg-brand-blue p-6 text-white text-center relative overflow-hidden">
-          <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full" />
-          <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-white/5 rounded-full" />
-          <div className="relative">
-            <div className="w-16 h-16 mx-auto mb-3 bg-white rounded-xl flex items-center justify-center shadow-lg">
-              <img src="/fnfa-logo.png" alt="Logo" className="w-full h-full object-contain p-1" />
-            </div>
-            <h1 className="text-2xl font-black uppercase tracking-tight mb-2">Student Portal</h1>
-            <p className="text-blue-100 text-sm font-medium">Find your name to login</p>
+    <div className="min-h-screen pz-scope pz-arena flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-6">
+          <div
+            className="w-16 h-16 mx-auto mb-4 bg-white flex items-center justify-center shadow-lg"
+            style={{ clipPath: NOTCH_SM }}
+          >
+            <img src="/fnfa-logo.png" alt="Logo" className="w-full h-full object-contain p-1" />
           </div>
+          <div className="pz-eyebrow mb-2">Student Portal</div>
+          <h1 className="text-3xl text-white tracking-tight mb-2">Pick Your Player</h1>
+          <p className="text-sm font-medium" style={{ color: 'var(--pz-text)' }}>Find your name to jump in</p>
         </div>
 
-        <div className="p-6">
-          <div className="relative mb-6">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+        <div className="pz-card p-5 sm:p-6">
+          <div className="relative mb-5">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">🔍</span>
             <input
               type="text"
               placeholder="Search your name..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-slate-100 bg-slate-50 font-bold text-slate-900 focus:border-brand-blue focus:bg-white outline-none transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 font-bold text-white placeholder-white/40 focus:border-[#CBFE1C] focus:bg-white/10 outline-none transition-all"
+              style={{ clipPath: NOTCH_SM }}
             />
           </div>
 
           {loading ? (
-            <div className="text-center py-8 text-slate-400">Loading students...</div>
+            <div className="text-center py-8" style={{ color: 'var(--pz-text)' }}>Loading players...</div>
           ) : (
             <div className="max-h-[60vh] overflow-y-auto space-y-2 custom-scrollbar">
               {filteredStudents.length === 0 ? (
-                <div className="text-center py-8 text-slate-400 text-sm">No students found</div>
+                <div className="text-center py-8 text-sm" style={{ color: 'var(--pz-text)' }}>No players found</div>
               ) : (
                 filteredStudents.map(student => {
                   const displayName = getStudentDisplayName(student);
+                  const house = HOUSES[student.houseId];
                   return (
                     <button
                       key={student.id}
                       onClick={() => setSelectedStudent(student)}
-                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all group text-left"
+                      className="pz-card-sm relative w-full flex items-center gap-3 p-3 hover:border-[#CBFE1C] transition-all group text-left active:scale-[0.98]"
+                      style={{ background: 'var(--pz-panel-2)' }}
                     >
+                      <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: house.colorHex }} />
                       <img
                         src={student.avatarUrl}
-                        className="w-10 h-10 rounded-full border-2 object-cover"
-                        style={{ borderColor: HOUSES[student.houseId].colorHex }}
+                        className="w-10 h-10 rounded-full border-2 object-cover shrink-0"
+                        style={{ borderColor: house.colorHex }}
                         alt=""
                       />
                       <div className="flex-grow min-w-0">
-                        <div className="font-black text-slate-900 truncate group-hover:text-brand-blue transition-colors">
+                        <div className="font-bold text-white truncate">
                           {displayName.primary}
                         </div>
                         {displayName.secondary && (
-                          <div className="text-[9px] text-slate-400 truncate">{displayName.secondary}</div>
+                          <div className="text-[9px] truncate" style={{ color: 'var(--pz-text)' }}>{displayName.secondary}</div>
                         )}
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                          {HOUSES[student.houseId].name}
+                        <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: house.colorHex }}>
+                          {house.name}
                         </div>
                       </div>
-                      <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center group-hover:bg-brand-blue group-hover:text-white transition-all">
+                      <div
+                        className="w-8 h-8 flex items-center justify-center text-white/40 border border-white/10 group-hover:bg-[#CBFE1C] group-hover:text-[#0B0E13] group-hover:border-[#CBFE1C] transition-all shrink-0"
+                        style={{ clipPath: NOTCH_SM }}
+                      >
                         ➜
                       </div>
                     </button>

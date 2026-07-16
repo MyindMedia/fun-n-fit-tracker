@@ -1,9 +1,9 @@
 // Messages tab — live staff↔parent thread via gameCenter.subscribeParentThread.
-// PARENT bubbles right-aligned, STAFF bubbles left with sender name.
+// PARENT bubbles right-aligned (volt), STAFF bubbles left with sender name.
 import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage } from '../../types';
 import { gameCenter } from '../../services/gameCenter';
-import { cleanErr, fmtDateTime, pStyles } from './shared';
+import { cleanErr, fmtDateTime, pStyles, PZ } from './shared';
 
 const ParentMessages: React.FC = () => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -54,14 +54,14 @@ const ParentMessages: React.FC = () => {
 
     return (
         <div style={{ ...pStyles.card, display: 'flex', flexDirection: 'column', padding: '1rem' }}>
-            <h2 style={{ ...pStyles.sectionTitle, marginBottom: '0.75rem' }}>💬 Messages</h2>
+            <div className="pz-eyebrow" style={{ margin: '0 0 0.75rem' }}>Messages</div>
 
             {/* Thread */}
             <div style={{
                 flex: 1, overflowY: 'auto', minHeight: '300px', maxHeight: '55vh',
                 display: 'flex', flexDirection: 'column', gap: '0.6rem',
-                padding: '0.5rem 0.25rem', background: '#f8fafc',
-                border: '1px solid #f1f5f9', borderRadius: '12px',
+                padding: '0.5rem 0.25rem', background: PZ.bg,
+                border: `1px solid ${PZ.border}`, borderRadius: '4px',
             }}>
                 {!loaded ? (
                     <p style={{ ...pStyles.mutedText, textAlign: 'center', margin: 'auto' }}>Loading…</p>
@@ -69,7 +69,7 @@ const ParentMessages: React.FC = () => {
                     <div style={{ margin: 'auto', textAlign: 'center', padding: '1.5rem' }}>
                         <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👋</div>
                         <p style={{ ...pStyles.mutedText, fontWeight: 600 }}>
-                            Message the Fun 'N Fit team — we'll reply here.
+                            Message the Fun 'N Fit team — we'll reply right here.
                         </p>
                     </div>
                 ) : (
@@ -83,7 +83,8 @@ const ParentMessages: React.FC = () => {
                             }}>
                                 {!mine && (
                                     <span style={{
-                                        fontSize: '0.6875rem', fontWeight: 800, color: '#4f46e5',
+                                        fontSize: '0.6875rem', fontWeight: 700, color: PZ.volt,
+                                        textTransform: 'uppercase', letterSpacing: '0.08em',
                                         margin: '0 0 0.15rem 0.5rem',
                                     }}>
                                         {m.senderName || 'Fun ’N Fit Team'}
@@ -91,19 +92,18 @@ const ParentMessages: React.FC = () => {
                                 )}
                                 <div style={{
                                     maxWidth: '82%',
-                                    background: mine ? '#4f46e5' : '#ffffff',
-                                    color: mine ? '#ffffff' : '#0f172a',
-                                    border: mine ? 'none' : '1px solid #e2e8f0',
-                                    borderRadius: mine ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                                    background: mine ? PZ.volt : PZ.panel2,
+                                    color: mine ? PZ.bg : PZ.white,
+                                    border: mine ? 'none' : `1px solid ${PZ.border}`,
+                                    borderRadius: mine ? '10px 10px 2px 10px' : '10px 10px 10px 2px',
                                     padding: '0.6rem 0.875rem',
                                     fontSize: '0.9375rem', fontWeight: 500,
                                     lineHeight: 1.4, wordBreak: 'break-word',
-                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                                 }}>
                                     {m.body}
                                 </div>
                                 <span style={{
-                                    fontSize: '0.625rem', fontWeight: 600, color: '#94a3b8',
+                                    fontSize: '0.6875rem', fontWeight: 600, color: PZ.faint,
                                     margin: mine ? '0.15rem 0.5rem 0 0' : '0.15rem 0 0 0.5rem',
                                 }}>
                                     {fmtDateTime(m.createdAt)}
@@ -115,7 +115,7 @@ const ParentMessages: React.FC = () => {
                 <div ref={endRef} />
             </div>
 
-            {error && <div style={{ ...pStyles.errorBox, marginTop: '0.75rem' }}>⚠️ {error}</div>}
+            {error && <div style={{ ...pStyles.errorBox, marginTop: '0.75rem' }}>{error}</div>}
 
             {/* Composer */}
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', alignItems: 'flex-end' }}>
@@ -123,8 +123,9 @@ const ParentMessages: React.FC = () => {
                     value={draft}
                     onChange={e => setDraft(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type a message…"
+                    placeholder="Message the team…"
                     rows={1}
+                    aria-label="Message the team"
                     style={{
                         ...pStyles.input,
                         flex: 1, resize: 'none', minHeight: '48px', maxHeight: '120px',
@@ -134,6 +135,7 @@ const ParentMessages: React.FC = () => {
                 <button
                     onClick={send}
                     disabled={sending || !draft.trim()}
+                    className="pz-btn"
                     style={{
                         ...pStyles.btnPrimary,
                         padding: '0.75rem 1.125rem', height: '48px',
@@ -141,7 +143,7 @@ const ParentMessages: React.FC = () => {
                         flexShrink: 0,
                     }}
                 >
-                    {sending ? '…' : 'Send ➤'}
+                    {sending ? '…' : 'Send'}
                 </button>
             </div>
         </div>

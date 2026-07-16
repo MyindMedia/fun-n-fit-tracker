@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { BarChart, Bar, XAxis, Cell, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts';
 import { supabaseService } from '../services/supabaseService';
 import { House, NotificationEvent, Student, TimeRange, HouseId, Rank } from '../types';
 import { HOUSES, APP_LOGO_URL } from '../constants';
@@ -12,6 +11,9 @@ import CelebrationOverlay, { Celebration } from './CelebrationOverlay';
 import StudentAvatar from './StudentAvatar';
 import { useRef } from 'react';
 import { getStudentDisplayName } from '../utils/studentDisplay';
+
+// Pubzi theme: small notched cut-corner shape for inline elements
+const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
 
 const ActivityTicker: React.FC<{ events: NotificationEvent[] }> = ({ events }) => {
   // Filter: show achievements and manual points, exclude attendance/system noise; include game winners
@@ -62,48 +64,65 @@ const ActivityTicker: React.FC<{ events: NotificationEvent[] }> = ({ events }) =
   const repeatedEvents = [...playerEvents, ...playerEvents, ...playerEvents, ...playerEvents];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-slate-900 text-white py-3 z-[120] border-t border-white/10 overflow-hidden flex items-center">
-       <div className="whitespace-nowrap flex animate-ticker-infinite">
+    <div
+      className="fixed bottom-0 left-0 right-0 z-[120] pz-scope flex items-stretch overflow-hidden"
+      style={{ background: 'var(--pz-panel)', borderTop: '1px solid var(--pz-border)' }}
+    >
+      {/* Broadcast lower-third station tag */}
+      <div
+        className="shrink-0 relative z-10 flex items-center gap-2 pl-4 pr-7 pz-display text-xs"
+        style={{ background: 'var(--pz-volt)', color: '#0B0E13', clipPath: 'polygon(0 0, 100% 0, calc(100% - 16px) 100%, 0 100%)' }}
+      >
+        <span className="w-2 h-2 rounded-full" style={{ background: '#0B0E13' }} />
+        Live
+      </div>
+      <div className="flex-1 overflow-hidden flex items-center py-3">
+        <div className="whitespace-nowrap flex animate-ticker-infinite">
           {repeatedEvents.map((e, i) => {
             const isKey = isKeyUpdate(e);
             const isNew = highlightedIds.has(String(e.id)) && i < playerEvents.length; // highlight only first pass
             return (
               <div
                 key={`${e.id}-${i}`}
-                className={`flex items-center gap-4 px-12 border-r border-white/10 relative ${
-                  isNew && isKey ? 'bg-slate-800' : ''
-                }`}
+                className="flex items-center gap-4 px-12 relative"
+                style={{
+                  borderRight: '1px solid var(--pz-border)',
+                  background: isNew && isKey ? 'var(--pz-panel-2)' : undefined
+                }}
               >
                 {isNew && isKey && (
                   <div className="absolute inset-0 border-2 border-emerald-500 animate-flash-border pointer-events-none" />
                 )}
-                <span className="text-brand-blue font-black uppercase text-[10px] tracking-widest">
+                <span className="font-bold uppercase text-[10px] tracking-widest" style={{ color: 'var(--pz-text)' }}>
                   {new Date(e.timestamp).toLocaleTimeString(undefined, {hour: '2-digit', minute:'2-digit'})}
                 </span>
 
                 {/* Show badge image for BADGE_EARNED events */}
                 {e.type === 'BADGE_EARNED' && e.badge?.icon && (
-                  <div className="w-8 h-8 rounded-full bg-white/20 border-2 border-emerald-400 p-1 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-white/10 border-2 border-emerald-400 p-1 flex items-center justify-center shrink-0">
                     <img src={e.badge.icon} className="w-full h-full object-contain" alt="Badge" />
                   </div>
                 )}
 
                 {/* Show rank icon for RANK_UP events */}
                 {e.type === 'RANK_UP' && e.rank?.icon && (
-                  <div className="w-8 h-8 rounded-full bg-white/20 border-2 border-yellow-400 p-1 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-white/10 border-2 border-yellow-400 p-1 flex items-center justify-center shrink-0">
                     <img src={e.rank.icon} className="w-full h-full object-contain" alt="Rank" />
                   </div>
                 )}
                 {/* Show trophy for GAME_END */}
                 {e.type === 'GAME_END' && (
-                  <div className="w-8 h-8 rounded-full bg-white/20 border-2 border-yellow-400 p-1 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-white/10 border-2 border-yellow-400 p-1 flex items-center justify-center shrink-0">
                     <span className="text-yellow-400">🏆</span>
                   </div>
                 )}
 
                 {/* Amount pill for POINTS updates */}
                 {e.type === 'POINTS' && typeof e.amount === 'number' && (
-                  <div className={`px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 border ${e.amount >= 0 ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300' : 'bg-red-500/20 border-red-400 text-red-300'}`}>
+                  <div
+                    className={`px-2 py-0.5 text-[10px] font-black shrink-0 border ${e.amount >= 0 ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300' : 'bg-red-500/20 border-red-400 text-red-300'}`}
+                    style={{ clipPath: NOTCH_SM }}
+                  >
                     {e.amount >= 0 ? '+' : ''}{e.amount}
                   </div>
                 )}
@@ -116,7 +135,7 @@ const ActivityTicker: React.FC<{ events: NotificationEvent[] }> = ({ events }) =
                     </span>
                   )}
                   {/* Event message */}
-                  <span className={`text-xs font-bold tracking-wide ${isNew && isKey ? 'text-emerald-400' : 'text-white'}`}>
+                  <span className="text-xs font-bold tracking-wide" style={{ color: isNew && isKey ? '#34d399' : 'var(--pz-text)' }}>
                     {e.type === 'RANK_UP' && '🏆 '}
                     {e.type === 'BADGE_EARNED' && '⭐ '}
                     {e.type === 'POINTS' && '💪 '}
@@ -130,7 +149,8 @@ const ActivityTicker: React.FC<{ events: NotificationEvent[] }> = ({ events }) =
               </div>
             );
           })}
-       </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -483,355 +503,325 @@ const Leaderboard: React.FC = () => {
   }, [houses]);
 
   return (
-    <div className="h-full flex flex-col p-4 md:p-6 lg:p-10 gap-6 md:gap-8 overflow-y-auto relative bg-slate-50">
+    <div className="h-full flex flex-col p-4 md:p-6 lg:p-10 pb-20 md:pb-24 gap-6 md:gap-8 overflow-y-auto relative pz-scope pz-arena">
       <GameOverlay />
-      {/* Floating Point Bubble */}
+      {/* Floating Point Toast (angular broadcast style) */}
       {pointFlash && (
-        <div className="fixed inset-0 z-[700] pointer-events-none overflow-hidden">
+        <div className="fixed inset-0 z-[700] pointer-events-none overflow-hidden pz-scope">
           <div
             className={`absolute -translate-x-1/2 ${
               pointFlash.amount >= 0 ? 'animate-points-float-up' : 'animate-points-break-fall'
             }`}
             style={{
               left: `${pointFlash.xPos}%`,
-              top: '50%'
+              top: '50%',
+              filter: pointFlash.amount >= 0
+                ? 'drop-shadow(0 0 20px rgba(16, 185, 129, 0.45))'
+                : 'drop-shadow(0 0 20px rgba(239, 68, 68, 0.45))'
             }}
           >
-            <div className={`
-              flex items-center gap-4 px-7 py-5 rounded-full border-[6px] shadow-2xl
-              ${pointFlash.amount >= 0
-                ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 border-emerald-300 animate-sparkle-burst'
-                : 'bg-gradient-to-br from-red-500 to-red-700 border-red-400 animate-red-pulse'
-              }
-            `}>
-              {/* Avatar - 40% larger */}
+            <div
+              className="pz-card relative flex items-center gap-4 px-6 py-4"
+              style={{ borderColor: pointFlash.amount >= 0 ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.7)' }}
+            >
+              <span
+                className="absolute left-0 top-0 bottom-0 w-1.5"
+                style={{ background: pointFlash.amount >= 0 ? '#10b981' : '#ef4444' }}
+              />
+              {/* Avatar */}
               {pointFlash.avatar ? (
-                <img src={pointFlash.avatar} className="w-[68px] h-[68px] rounded-full border-[3px] border-white shadow-lg object-cover" />
+                <img src={pointFlash.avatar} className="w-[64px] h-[64px] rounded-full border-2 object-cover shrink-0" style={{ borderColor: pointFlash.amount >= 0 ? '#10b981' : '#ef4444' }} />
               ) : (
-                <div className="w-[68px] h-[68px] rounded-full bg-white/30 flex items-center justify-center text-4xl">
+                <div className="w-[64px] h-[64px] rounded-full bg-white/10 flex items-center justify-center text-3xl shrink-0">
                   {pointFlash.amount >= 0 ? '⭐' : '💔'}
                 </div>
               )}
 
-              {/* Name & Message - 40% larger */}
-              <div className="flex flex-col">
-                <div className="text-white text-2xl font-black uppercase tracking-wide drop-shadow">
+              {/* Name & Message */}
+              <div className="flex flex-col min-w-0">
+                <div className="pz-display text-white text-xl md:text-2xl leading-tight truncate">
                   {pointFlash.name}
                 </div>
-                <div className="text-white/90 text-sm font-semibold">{pointFlash.message}</div>
+                <div className="text-sm font-semibold" style={{ color: 'var(--pz-text)' }}>{pointFlash.message}</div>
               </div>
 
-              {/* Points Badge - 40% larger */}
-              <div className={`
-                px-6 py-3 rounded-full text-4xl font-black ml-2
-                ${pointFlash.amount >= 0 ? 'bg-white text-emerald-600' : 'bg-white text-red-600'}
-              `}>
+              {/* Points readout */}
+              <div className={`pz-display text-4xl md:text-5xl ml-2 shrink-0 ${pointFlash.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 {pointFlash.amount >= 0 ? '+' : ''}{pointFlash.amount}
               </div>
-
-              {/* Sparkles for positive - larger */}
-              {pointFlash.amount >= 0 && (
-                <>
-                  <div className="absolute -top-3 -left-3 text-3xl animate-ping">✨</div>
-                  <div className="absolute -top-2 -right-3 text-2xl animate-ping" style={{ animationDelay: '0.15s' }}>⭐</div>
-                </>
-              )}
             </div>
           </div>
         </div>
       )}
-      {/* Floating Status Bubble (IN/OUT) */}
+      {/* Floating Status Toast (IN/OUT) */}
       {statusFlash && (
-        <div className="fixed inset-0 z-[700] pointer-events-none overflow-hidden">
+        <div className="fixed inset-0 z-[700] pointer-events-none overflow-hidden pz-scope">
           <div
             className={`absolute -translate-x-1/2 ${
               statusFlash.isOut ? 'animate-points-break-fall' : 'animate-points-float-up'
             }`}
             style={{
               left: `${statusFlash.xPos}%`,
-              top: '50%'
+              top: '50%',
+              filter: statusFlash.isOut
+                ? 'drop-shadow(0 0 20px rgba(239, 68, 68, 0.45))'
+                : 'drop-shadow(0 0 20px rgba(14, 165, 233, 0.45))'
             }}
           >
-            <div className={`
-              flex items-center gap-4 px-7 py-5 rounded-full border-[6px] shadow-2xl
-              ${statusFlash.isOut
-                ? 'bg-gradient-to-br from-red-500 to-red-700 border-red-400 animate-red-pulse'
-                : 'bg-gradient-to-br from-blue-400 to-blue-600 border-blue-300 animate-sparkle-burst'
-              }
-            `}>
+            <div
+              className="pz-card relative flex items-center gap-4 px-6 py-4"
+              style={{ borderColor: statusFlash.isOut ? 'rgba(239, 68, 68, 0.7)' : 'rgba(14, 165, 233, 0.7)' }}
+            >
+              <span
+                className="absolute left-0 top-0 bottom-0 w-1.5"
+                style={{ background: statusFlash.isOut ? '#ef4444' : '#0ea5e9' }}
+              />
               {/* Avatar */}
               {statusFlash.avatar ? (
-                <img src={statusFlash.avatar} className="w-[68px] h-[68px] rounded-full border-[3px] border-white shadow-lg object-cover" />
+                <img src={statusFlash.avatar} className="w-[64px] h-[64px] rounded-full border-2 object-cover shrink-0" style={{ borderColor: statusFlash.isOut ? '#ef4444' : '#0ea5e9' }} />
               ) : (
-                <div className="w-[68px] h-[68px] rounded-full bg-white/30 flex items-center justify-center text-4xl">
+                <div className="w-[64px] h-[64px] rounded-full bg-white/10 flex items-center justify-center text-3xl shrink-0">
                   {statusFlash.isOut ? '🚫' : '✅'}
                 </div>
               )}
 
               {/* Name */}
-              <div className="flex flex-col">
-                <div className="text-white text-2xl font-black uppercase tracking-wide drop-shadow">
+              <div className="flex flex-col min-w-0">
+                <div className="pz-display text-white text-xl md:text-2xl leading-tight truncate">
                   {statusFlash.name}
                 </div>
-                <div className="text-white/90 text-sm font-semibold">
-                  {statusFlash.isOut ? 'Marked Out' : 'Back In Game'}
+                <div className="text-sm font-semibold" style={{ color: 'var(--pz-text)' }}>
+                  {statusFlash.isOut ? 'Marked out' : 'Back in the game'}
                 </div>
               </div>
 
-              {/* Status Badge */}
-              <div className={`
-                px-6 py-3 rounded-full text-3xl font-black ml-2
-                ${statusFlash.isOut ? 'bg-white text-red-600' : 'bg-white text-blue-600'}
-              `}>
+              {/* Status readout */}
+              <div className={`pz-display text-3xl md:text-4xl ml-2 shrink-0 ${statusFlash.isOut ? 'text-red-400' : 'text-sky-400'}`}>
                 {statusFlash.isOut ? 'OUT' : 'IN'}
               </div>
-
-              {/* Visual effects */}
-              {statusFlash.isOut ? (
-                <div className="absolute -top-2 -right-2 text-3xl">🚫</div>
-              ) : (
-                <>
-                  <div className="absolute -top-3 -left-3 text-3xl animate-ping">✨</div>
-                  <div className="absolute -top-2 -right-3 text-2xl animate-ping" style={{ animationDelay: '0.15s' }}>💪</div>
-                </>
-              )}
             </div>
           </div>
         </div>
       )}
       <CurrentMatchups />
       {selectedProfile && (
-        <StudentProfileModal 
-          student={selectedProfile} 
-          onClose={() => setSelectedProfile(null)} 
+        <StudentProfileModal
+          student={selectedProfile}
+          onClose={() => setSelectedProfile(null)}
         />
       )}
 
       <div className="flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-10">
-        <div className="flex-grow flex flex-col gap-6 md:gap-8 min-w-0">
-          <div className="bg-white rounded-3xl md:rounded-5xl p-6 md:p-8 lg:p-12 shadow-2xl border border-slate-100 flex flex-col">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 md:mb-10 gap-4 shrink-0">
-               <div className="min-w-0">
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-display font-black text-slate-900 tracking-tight uppercase truncate">House Standings</h1>
-                  <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] md:text-xs mt-2">Live Real-time Faction Competition</p>
-               </div>
-               
+        <div className="flex-grow flex flex-col gap-5 md:gap-6 min-w-0">
+          {/* Match board header */}
+          <div className="flex flex-row justify-between items-end gap-4 shrink-0">
+            <div className="min-w-0">
+              <div className="pz-eyebrow mb-2">Live from the gym floor</div>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white leading-none tracking-tight">House Standings</h1>
             </div>
-
-            <div className="w-full h-[250px] sm:h-[280px] md:h-[320px] lg:h-[380px]">
-              {isLoading && (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-brand-blue mx-auto mb-4"></div>
-                    <p className="text-slate-400 font-bold">Loading standings...</p>
-                  </div>
-                </div>
-              )}
-
-              {error && (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center px-8">
-                    <div className="text-6xl mb-4">⚠️</div>
-                    <h3 className="text-xl font-black text-red-500 mb-2">Error Loading Data</h3>
-                    <p className="text-slate-600 mb-4">{error}</p>
-                    <button
-                      onClick={refreshData}
-                      className="px-6 py-3 bg-brand-blue text-white rounded-xl font-bold hover:bg-blue-600 transition-all"
-                    >
-                      Try Again
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {!isLoading && !error && chartData.length === 0 && (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center px-8">
-                    <div className="text-6xl mb-4">🏃‍♂️</div>
-                    <h3 className="text-2xl font-black text-slate-900 mb-2">Ready to Start!</h3>
-                    <p className="text-slate-400 font-medium">No houses configured. Check your database setup.</p>
-                  </div>
-                </div>
-              )}
-
-              {!isLoading && !error && chartData.length > 0 && (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 60, right: 30, left: 20, bottom: 120 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis
-                      dataKey="name"
-                      axisLine={false}
-                      tickLine={false}
-                      interval={0}
-                      tick={({ x, y, payload }) => {
-                        const house = houses.find(h => h.name === payload.value);
-                        return (
-                          <g transform={`translate(${x},${y})`}>
-                            <image x={-48} y={0} width={96} height={96} xlinkHref={house?.customIcon} className="drop-shadow-md" />
-                          </g>
-                        );
-                      }}
-                    />
-                    <Bar dataKey="points" radius={[12, 12, 0, 0]} isAnimationActive={false}>
-                      {chartData.map((entry, index) => {
-                        const house = houses.find(h => h.name === entry.name);
-                        const isHighlighted = house && !!houseGlow[house.id];
-                        return (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={entry.color}
-                            filter={isHighlighted ? 'url(#glow)' : undefined}
-                            opacity={isHighlighted ? 1 : 0.95}
-                          />
-                        );
-                      })}
-                      <LabelList
-                         dataKey="points"
-                         position="top"
-                         content={({ x, y, width, value, index }) => {
-                           const entry = chartData[index];
-                           const house = houses.find(h => h.name === entry.name);
-                          const glow = (house && houseGlow[house.id]) || null;
-                          const glowColor = glow === 'up' ? 'emerald' : glow === 'down' ? 'red' : null;
-                          const cx = Number(x) + Number(width) / 2;
-                          const cy = Number(y) - 24;
-                          return (
-                            <g>
-                              {glowColor && (
-                                <circle cx={cx} cy={cy} r={22} fill="#ffffff" filter={`url(#${glowColor === 'emerald' ? 'greenGlow' : 'redGlow'})`} />
-                              )}
-                              <text
-                                x={cx}
-                                y={cy + 4}
-                                textAnchor="middle"
-                                className={`text-3xl font-display font-black fill-slate-900`}
-                              >
-                                {Number(value).toLocaleString()}
-                              </text>
-                            </g>
-                          );
-                        }}
-                      />
-                    </Bar>
-                    <defs>
-                      <filter id="glow">
-                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-                        <feMerge>
-                          <feMergeNode in="coloredBlur"/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                      <filter id="greenGlow">
-                        <feGaussianBlur stdDeviation="12" result="blur" />
-                        <feFlood flood-color="#10b981" flood-opacity="0.4" />
-                        <feComposite in2="blur" operator="in" />
-                        <feMerge>
-                          <feMergeNode />
-                          <feMergeNode in="SourceGraphic" />
-                        </feMerge>
-                      </filter>
-                      <filter id="redGlow">
-                        <feGaussianBlur stdDeviation="12" result="blur" />
-                        <feFlood flood-color="#ef4444" flood-opacity="0.4" />
-                        <feComposite in2="blur" operator="in" />
-                        <feMerge>
-                          <feMergeNode />
-                          <feMergeNode in="SourceGraphic" />
-                        </feMerge>
-                      </filter>
-                    </defs>
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
+            <div className="pz-card-sm flex items-center gap-2.5 px-4 py-2.5 shrink-0">
+              <span className="w-2.5 h-2.5 rounded-full pz-live" style={{ background: 'var(--pz-volt)' }} />
+              <span className="text-xs font-bold uppercase tracking-[0.25em]" style={{ color: 'var(--pz-volt)' }}>Live</span>
             </div>
           </div>
+
+          {isLoading && (
+            <div className="pz-card flex items-center justify-center min-h-[320px]">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-4 mx-auto mb-4" style={{ borderColor: 'var(--pz-volt)' }}></div>
+                <p className="font-bold" style={{ color: 'var(--pz-text)' }}>Loading standings...</p>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="pz-card flex items-center justify-center min-h-[320px]" style={{ borderColor: 'rgba(239, 68, 68, 0.5)' }}>
+              <div className="text-center px-8 py-10">
+                <div className="text-6xl mb-4">⚠️</div>
+                <h3 className="text-xl text-red-400 mb-2">Error Loading Data</h3>
+                <p className="mb-6" style={{ color: 'var(--pz-text)' }}>{error}</p>
+                <button
+                  onClick={refreshData}
+                  className="pz-btn px-6 py-3 text-sm"
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!isLoading && !error && chartData.length === 0 && (
+            <div className="pz-card flex items-center justify-center min-h-[320px]">
+              <div className="text-center px-8 py-10">
+                <div className="text-6xl mb-4">🏃‍♂️</div>
+                <h3 className="text-2xl text-white mb-2">Ready to Start!</h3>
+                <p className="font-medium" style={{ color: 'var(--pz-text)' }}>No houses configured. Check your database setup.</p>
+              </div>
+            </div>
+          )}
+
+          {/* House clan banners — rank order reads top to bottom / #1 dominant */}
+          {!isLoading && !error && chartData.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+              {chartData.map((entry, idx) => {
+                const house = houses.find(h => h.name === entry.name);
+                const glow = house ? houseGlow[house.id] : null;
+                const isLeader = idx === 0;
+                const glowFilter = glow === 'up'
+                  ? 'drop-shadow(0 0 18px rgba(16, 185, 129, 0.55))'
+                  : glow === 'down'
+                    ? 'drop-shadow(0 0 18px rgba(239, 68, 68, 0.55))'
+                    : isLeader
+                      ? 'drop-shadow(0 0 22px rgba(203, 254, 28, 0.16))'
+                      : 'none';
+                const scoreColor = glow === 'up' ? '#6ee7b7' : glow === 'down' ? '#fca5a5' : '#ffffff';
+                return (
+                  <div
+                    key={entry.name}
+                    className={isLeader ? 'md:col-span-3' : ''}
+                    style={{ filter: glowFilter, transition: 'filter 0.4s ease' }}
+                  >
+                    {isLeader ? (
+                      /* #1 — the dominant banner */
+                      <div
+                        className="pz-card relative flex items-center gap-4 sm:gap-8 p-5 sm:p-8"
+                        style={{ borderColor: 'rgba(203, 254, 28, 0.45)' }}
+                      >
+                        <span className="absolute left-0 top-0 bottom-0 w-1.5" style={{ background: entry.color }} />
+                        <img src={entry.icon} alt={entry.name} className="w-20 h-20 sm:w-28 sm:h-28 shrink-0 drop-shadow-lg" />
+                        <div className="flex-grow min-w-0">
+                          <div className="flex items-center gap-3 mb-1.5 sm:mb-2.5">
+                            <span className="pz-display text-[10px] sm:text-xs px-2.5 py-1" style={{ background: 'var(--pz-volt)', color: '#0B0E13', clipPath: NOTCH_SM }}>#1</span>
+                            {house?.mascot && (
+                              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.25em] truncate" style={{ color: 'var(--pz-text)' }}>{house.mascot}</span>
+                            )}
+                          </div>
+                          <h2 className="text-2xl sm:text-4xl lg:text-5xl leading-none truncate" style={{ color: entry.color }}>{entry.name}</h2>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="pz-display text-4xl sm:text-6xl lg:text-7xl leading-none" style={{ color: scoreColor, transition: 'color 0.4s ease' }}>
+                            {Number(entry.points).toLocaleString()}
+                          </div>
+                          <div className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.3em] mt-1 sm:mt-2" style={{ color: 'var(--pz-text)' }}>Points</div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* #2–#4 — clearly ranked clan cards */
+                      <div className="pz-card relative h-full flex flex-col p-4 sm:p-5">
+                        <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: entry.color }} />
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="pz-display text-[10px] px-2 py-1 border" style={{ borderColor: 'var(--pz-border)', color: 'var(--pz-text)', clipPath: NOTCH_SM }}>#{idx + 1}</span>
+                          {house?.mascot && (
+                            <span className="text-[9px] font-semibold uppercase tracking-[0.25em] truncate" style={{ color: 'var(--pz-text)' }}>{house.mascot}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                          <img src={entry.icon} alt={entry.name} className="w-14 h-14 sm:w-16 sm:h-16 shrink-0" />
+                          <div className="min-w-0">
+                            <h3 className="text-lg sm:text-xl leading-none truncate" style={{ color: entry.color }}>{entry.name}</h3>
+                            <div className="pz-display text-3xl sm:text-4xl mt-1.5 leading-none" style={{ color: scoreColor, transition: 'color 0.4s ease' }}>
+                              {Number(entry.points).toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className="w-full lg:w-96 flex flex-col gap-4 md:gap-6 shrink-0">
-          <div className="bg-slate-900 rounded-3xl md:rounded-4xl p-4 md:p-6 shadow-2xl border border-white/10 relative overflow-hidden group">
-             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-blue/20 blur-3xl -mr-16 -mt-16 group-hover:bg-brand-blue/40 transition-all duration-700" />
-             <h2 className="text-white text-base md:text-lg font-display font-black mb-4 md:mb-5 uppercase tracking-tight flex items-center gap-2">
-                <span className="text-yellow-400">👑</span> Hall of Fame
-             </h2>
-             <div className="space-y-2 md:space-y-3">
-                {topStudents.map((s, idx) => {
-                  const studentRank = ranks.find(r => r.id === s.rankId);
-                  return (
-                  <div
-                    key={s.id}
-                    onClick={() => setSelectedProfile(s)}
-                    className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer group/item active:scale-95"
-                  >
-                     <div className="relative shrink-0">
-                        <StudentAvatar
-                          student={s}
-                          rank={studentRank}
-                          size="md"
-                        />
-                        <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-yellow-400 text-slate-900 flex items-center justify-center text-[10px] font-black shadow-lg">
-                           {idx + 1}
-                        </div>
-                     </div>
-                     <div className="flex-grow min-w-0">
-                        {(() => {
-                          const displayName = getStudentDisplayName(s);
-                          return (
-                            <>
-                              <div className="text-white font-bold text-sm truncate">{displayName.primary}</div>
-                              {displayName.secondary && (
-                                <div className="text-white/50 text-[10px] truncate">{displayName.secondary}</div>
-                              )}
-                            </>
-                          );
-                        })()}
-                        <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: HOUSES[s.houseId]?.colorHex }}>{HOUSES[s.houseId]?.name}</div>
-                     </div>
-                     <div className="text-right">
-                        <div className="text-brand-blue font-display font-black text-lg">{s.points.toLocaleString()}</div>
-                        <div className="text-[8px] font-black text-white/30 uppercase">Points</div>
-                     </div>
-                  </div>
-                );
-                })}
-                {topStudents.length === 0 && <div className="text-center py-10 text-white/20 text-xs italic">Awaiting champions...</div>}
-             </div>
+          <div className="pz-card p-4 md:p-6 relative">
+            <div className="pz-eyebrow mb-1">Top Players</div>
+            <h2 className="text-white text-lg md:text-xl mb-4 md:mb-5">Hall of Fame</h2>
+            <div className="space-y-2 md:space-y-3">
+              {topStudents.map((s, idx) => {
+                const studentRank = ranks.find(r => r.id === s.rankId);
+                return (
+                <div
+                  key={s.id}
+                  onClick={() => setSelectedProfile(s)}
+                  className="pz-card-sm relative flex items-center gap-3 p-3 hover:border-[#CBFE1C] transition-all cursor-pointer group/item active:scale-95"
+                  style={{ background: 'var(--pz-panel-2)' }}
+                >
+                   <div className="relative shrink-0">
+                      <StudentAvatar
+                        student={s}
+                        rank={studentRank}
+                        size="md"
+                      />
+                      <div
+                        className="absolute -top-2 -left-2 w-6 h-6 flex items-center justify-center text-[10px] font-black shadow-lg"
+                        style={idx === 0
+                          ? { background: 'var(--pz-volt)', color: '#0B0E13', clipPath: NOTCH_SM }
+                          : { background: 'var(--pz-panel)', color: '#ffffff', border: '1px solid var(--pz-border)', clipPath: NOTCH_SM }}
+                      >
+                         {idx + 1}
+                      </div>
+                   </div>
+                   <div className="flex-grow min-w-0">
+                      {(() => {
+                        const displayName = getStudentDisplayName(s);
+                        return (
+                          <>
+                            <div className="text-white font-bold text-sm truncate">{displayName.primary}</div>
+                            {displayName.secondary && (
+                              <div className="text-[10px] truncate" style={{ color: 'var(--pz-text)' }}>{displayName.secondary}</div>
+                            )}
+                          </>
+                        );
+                      })()}
+                      <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: HOUSES[s.houseId]?.colorHex }}>{HOUSES[s.houseId]?.name}</div>
+                   </div>
+                   <div className="text-right">
+                      <div className="pz-display text-white text-lg">{s.points.toLocaleString()}</div>
+                      <div className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>Points</div>
+                   </div>
+                </div>
+              );
+              })}
+              {topStudents.length === 0 && <div className="text-center py-10 text-xs italic" style={{ color: 'var(--pz-text)' }}>Awaiting champions...</div>}
+            </div>
           </div>
 
           {/* GAME LEADERBOARD - Shows current game standings */}
           {drillLeaderboard && activeGameTitle && (
-            <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl md:rounded-4xl p-4 md:p-6 shadow-2xl border border-emerald-400/20 relative overflow-hidden animate-fade-in max-h-[450px] flex flex-col">
-               <div className="absolute top-0 left-0 w-full h-full bg-white/5 backdrop-blur-sm" />
+            <div className="pz-card p-4 md:p-6 relative overflow-hidden animate-fade-in max-h-[450px] flex flex-col" style={{ borderColor: 'rgba(203, 254, 28, 0.35)' }}>
                <div className="relative z-10 overflow-y-auto custom-scrollbar pr-2">
                  <div className="flex items-center gap-2 mb-3 md:mb-4">
-                   <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-lg shadow-red-500/50" />
-                   <h2 className="text-white text-sm md:text-base lg:text-lg font-display font-black uppercase tracking-tight">
+                   <span className="w-2.5 h-2.5 rounded-full pz-live shrink-0" style={{ background: 'var(--pz-volt)' }} />
+                   <h2 className="text-white text-sm md:text-base lg:text-lg tracking-tight">
                      Live Game
                    </h2>
                  </div>
 
-                 <div className="bg-white/10 backdrop-blur-md rounded-xl md:rounded-2xl p-2.5 md:p-3 mb-3 md:mb-4 border border-white/20">
-                   <div className="text-white/80 text-[8px] md:text-[9px] font-black uppercase tracking-widest mb-0.5">Current Game</div>
-                   <div className="text-white font-display font-black text-base md:text-xl">{activeGameTitle}</div>
+                 <div className="pz-card-sm p-2.5 md:p-3 mb-3 md:mb-4" style={{ background: 'var(--pz-panel-2)' }}>
+                   <div className="text-[8px] md:text-[9px] font-black uppercase tracking-widest mb-0.5" style={{ color: 'var(--pz-text)' }}>Current Game</div>
+                   <div className="pz-display text-white text-base md:text-xl">{activeGameTitle}</div>
                  </div>
 
                 {/* House Standings for Current Game */}
                  <div className="space-y-1.5 md:space-y-2 mb-3 md:mb-4">
-                   <div className="text-white/80 text-[9px] md:text-[10px] font-black uppercase tracking-widest">House Scores</div>
+                   <div className="text-[9px] md:text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>House Scores</div>
                   {Object.entries(drillLeaderboard.houses)
                     .sort(([,a], [,b]) => Number(b) - Number(a))
                     .map(([houseId, points], idx) => {
                        const house = HOUSES[houseId as HouseId];
                        if (!house) return null;
                        return (
-                         <div key={houseId} className="bg-white/10 backdrop-blur-md rounded-xl md:rounded-2xl p-2 md:p-3 border border-white/20 flex items-center gap-2 md:gap-3">
-                           <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white/20 text-white flex items-center justify-center text-[9px] md:text-[10px] font-black shrink-0">
+                         <div key={houseId} className="pz-card-sm relative p-2 md:p-3 flex items-center gap-2 md:gap-3" style={{ background: 'var(--pz-panel-2)' }}>
+                           <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: house.colorHex }} />
+                           <div className="w-5 h-5 md:w-6 md:h-6 bg-white/10 text-white flex items-center justify-center text-[9px] md:text-[10px] font-black shrink-0" style={{ clipPath: NOTCH_SM }}>
                              {idx + 1}
                            </div>
                            <img src={house.customIcon} className="w-6 h-6 md:w-8 md:h-8 shrink-0" alt={house.name} />
                            <div className="flex-grow min-w-0">
                              <div className="text-white font-black text-xs md:text-sm truncate">{house.name}</div>
                            </div>
-                           <div className="text-white font-display font-black text-base md:text-lg shrink-0">{points}</div>
+                           <div className="pz-display text-white text-base md:text-lg shrink-0">{points}</div>
                          </div>
                        );
                      })}
@@ -840,14 +830,19 @@ const Leaderboard: React.FC = () => {
                 {/* Top 3 Students in Current Game */}
                  {drillLeaderboard.students.length > 0 && (
                    <div className="space-y-1.5 md:space-y-2">
-                     <div className="text-white/80 text-[9px] md:text-[10px] font-black uppercase tracking-widest">Top Performers</div>
+                     <div className="text-[9px] md:text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>Top Performers</div>
                      {drillLeaderboard.students.slice(0, 3).map((s, idx) => {
                        const studentRank = ranks.find(r => r.id === s.rankId);
                        return (
-                         <div key={s.id} className="bg-white/10 backdrop-blur-md rounded-xl md:rounded-2xl p-2 md:p-3 border border-white/20 flex items-center gap-2 md:gap-3">
+                         <div key={s.id} className="pz-card-sm p-2 md:p-3 flex items-center gap-2 md:gap-3" style={{ background: 'var(--pz-panel-2)' }}>
                            <div className="relative shrink-0">
                              <StudentAvatar student={s} rank={studentRank} size="sm" />
-                             <div className="absolute -top-1 -left-1 w-4 h-4 md:w-5 md:h-5 rounded-full bg-yellow-400 text-slate-900 flex items-center justify-center text-[8px] md:text-[9px] font-black shadow-lg">
+                             <div
+                               className="absolute -top-1 -left-1 w-4 h-4 md:w-5 md:h-5 flex items-center justify-center text-[8px] md:text-[9px] font-black shadow-lg"
+                               style={idx === 0
+                                 ? { background: 'var(--pz-volt)', color: '#0B0E13', clipPath: NOTCH_SM }
+                                 : { background: 'var(--pz-panel)', color: '#ffffff', border: '1px solid var(--pz-border)', clipPath: NOTCH_SM }}
+                             >
                                {idx + 1}
                              </div>
                            </div>
@@ -858,7 +853,7 @@ const Leaderboard: React.FC = () => {
                                  <>
                                    <div className="text-white font-bold text-[11px] md:text-xs truncate">{displayName.primary}</div>
                                    {displayName.secondary && (
-                                     <div className="text-white/50 text-[8px] truncate">{displayName.secondary}</div>
+                                     <div className="text-[8px] truncate" style={{ color: 'var(--pz-text)' }}>{displayName.secondary}</div>
                                    )}
                                  </>
                                );

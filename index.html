@@ -15,7 +15,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lexend+Deca:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lexend+Deca:wght@300;400;500;600;700;800;900&family=Days+One&family=Chakra+Petch:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
       :root {
         --glass-bg: rgba(255, 255, 255, 0.85);
@@ -96,6 +96,124 @@
 
       .animate-float {
         animation: float-slow 6s ease-in-out infinite;
+      }
+
+      /* ── Pubzi esports theme layer (opt-in via .pz-* classes) ──────────────
+         Ported from the Pubzi template: near-black bg, volt accent, Days One
+         display + Chakra Petch body, notched cut-corner panels. Redesigned
+         surfaces (live board, parent portal, site chrome) use these; admin
+         and student portal keep the light theme. */
+      :root {
+        --pz-bg: #0B0E13;
+        --pz-panel: #12161F;
+        --pz-panel-2: #171C27;
+        --pz-volt: #CBFE1C;
+        --pz-text: #ABABAB;
+        --pz-white: #ffffff;
+        --pz-border: rgba(255, 255, 255, 0.08);
+        --pz-unity: #0ea5e9;
+        --pz-sage: #10b981;
+        --pz-spark: #f97316;
+        --pz-valor: #8b5cf6;
+        /* Notched corner cuts (the template's signature panel shape) */
+        --pz-notch: 14px;
+        --pz-notch-sm: 8px;
+      }
+      .pz-display {
+        font-family: 'Days One', 'Lexend Deca', sans-serif;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+      }
+      .pz-body, .pz-scope {
+        font-family: 'Chakra Petch', 'Inter', sans-serif;
+        letter-spacing: 0;
+      }
+      .pz-scope h1, .pz-scope h2, .pz-scope h3, .pz-scope h4 {
+        font-family: 'Days One', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+      }
+      /* Notched panel — top-left + bottom-right corners cut on the diagonal */
+      .pz-card {
+        background: var(--pz-panel);
+        border: 1px solid var(--pz-border);
+        clip-path: polygon(
+          var(--pz-notch) 0, 100% 0, 100% calc(100% - var(--pz-notch)),
+          calc(100% - var(--pz-notch)) 100%, 0 100%, 0 var(--pz-notch)
+        );
+      }
+      .pz-card-sm {
+        background: var(--pz-panel);
+        border: 1px solid var(--pz-border);
+        clip-path: polygon(
+          var(--pz-notch-sm) 0, 100% 0, 100% calc(100% - var(--pz-notch-sm)),
+          calc(100% - var(--pz-notch-sm)) 100%, 0 100%, 0 var(--pz-notch-sm)
+        );
+      }
+      /* Volt call-to-action with a cut corner; dark text like the template */
+      .pz-btn {
+        font-family: 'Chakra Petch', sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #0B0E13;
+        background: var(--pz-volt);
+        clip-path: polygon(var(--pz-notch-sm) 0, 100% 0, 100% calc(100% - var(--pz-notch-sm)), calc(100% - var(--pz-notch-sm)) 100%, 0 100%, 0 var(--pz-notch-sm));
+        transition: filter 0.15s ease, transform 0.1s ease;
+      }
+      .pz-btn:hover { filter: brightness(1.08); }
+      .pz-btn:active { transform: translateY(1px); }
+      .pz-btn-ghost {
+        font-family: 'Chakra Petch', sans-serif;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--pz-white);
+        background: transparent;
+        border: 1px solid var(--pz-border);
+        clip-path: polygon(var(--pz-notch-sm) 0, 100% 0, 100% calc(100% - var(--pz-notch-sm)), calc(100% - var(--pz-notch-sm)) 100%, 0 100%, 0 var(--pz-notch-sm));
+        transition: border-color 0.15s ease, color 0.15s ease;
+      }
+      .pz-btn-ghost:hover { border-color: var(--pz-volt); color: var(--pz-volt); }
+      /* Eyebrow label: volt tick + spaced uppercase, like the template's section tags */
+      .pz-eyebrow {
+        font-family: 'Chakra Petch', sans-serif;
+        font-weight: 600;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.28em;
+        color: var(--pz-volt);
+      }
+      .pz-eyebrow::before { content: "// "; opacity: 0.7; }
+      /* Ambient board background: arena art + gradient falloff */
+      .pz-arena {
+        background-color: var(--pz-bg);
+        background-image:
+          linear-gradient(to bottom, rgba(11, 14, 19, 0.55), rgba(11, 14, 19, 0.92) 70%, #0B0E13),
+          url('/assets/theme/arena-bg.png');
+        background-size: cover;
+        background-position: center top;
+      }
+      .pz-banner {
+        background-color: var(--pz-bg);
+        background-image:
+          linear-gradient(to bottom, rgba(11, 14, 19, 0.35), rgba(11, 14, 19, 0.9)),
+          url('/assets/theme/portal-banner.png');
+        background-size: cover;
+        background-position: center;
+      }
+      /* Volt pulse for LIVE indicators and score changes */
+      @keyframes pz-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(203, 254, 28, 0.5); }
+        50% { box-shadow: 0 0 0 6px rgba(203, 254, 28, 0); }
+      }
+      .pz-live { animation: pz-pulse 2s ease-in-out infinite; }
+      @keyframes pz-scan {
+        from { background-position: 0 0; }
+        to { background-position: 0 8px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .pz-live { animation: none; }
       }
 
       .animate-card-reveal {

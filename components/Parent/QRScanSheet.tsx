@@ -1,8 +1,10 @@
 // Full-screen camera QR scanner for the parent portal (getUserMedia + jsQR,
 // same capture/cleanup pattern as components/Admin/QRScanner.tsx). Fires
 // onScan with the raw decoded text on the first successful read.
+// Pubzi skin: dark notched sheet + volt HUD targeting reticle over the camera.
 import React, { useState, useRef, useEffect } from 'react';
 import jsQR from 'jsqr';
+import { PZ, PzPortalCss, pStyles } from './shared';
 
 interface QRScanSheetProps {
     title: string;
@@ -10,6 +12,23 @@ interface QRScanSheetProps {
     onScan: (text: string) => void;
     onClose: () => void;
 }
+
+/* Volt corner brackets — the HUD targeting reticle over the camera feed */
+const bracket = (pos: React.CSSProperties, borderWidth: string): React.CSSProperties => ({
+    position: 'absolute', width: '34px', height: '34px',
+    borderColor: PZ.volt, borderStyle: 'solid', borderWidth,
+    pointerEvents: 'none', ...pos,
+});
+
+const Reticle: React.FC = () => (
+    <div aria-hidden="true">
+        <div style={bracket({ top: '12%', left: '12%' }, '3px 0 0 3px')} />
+        <div style={bracket({ top: '12%', right: '12%' }, '3px 3px 0 0')} />
+        <div style={bracket({ bottom: '12%', left: '12%' }, '0 0 3px 3px')} />
+        <div style={bracket({ bottom: '12%', right: '12%' }, '0 3px 3px 0')} />
+        <div className="pzp-scanline" />
+    </div>
+);
 
 const QRScanSheet: React.FC<QRScanSheetProps> = ({ title, hint, onScan, onClose }) => {
     const [isScanning, setIsScanning] = useState(false);
@@ -135,30 +154,33 @@ const QRScanSheet: React.FC<QRScanSheetProps> = ({ title, hint, onScan, onClose 
     }, []);
 
     return (
-        <div style={{
+        <div className="pz-scope" style={{
             position: 'fixed', inset: 0, zIndex: 300,
-            background: 'rgba(15,23,42,0.95)',
+            background: 'rgba(6, 8, 12, 0.94)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '1rem',
         }}>
+            <PzPortalCss />
             <div style={{
-                background: '#ffffff', borderRadius: '20px', width: '100%', maxWidth: '480px',
-                overflow: 'hidden', border: '1px solid #e2e8f0',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.4)',
+                background: PZ.panel, width: '100%', maxWidth: '480px',
+                border: `1px solid ${PZ.border}`, clipPath: PZ.notch,
             }}>
                 <div style={{
-                    padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0',
+                    padding: '1rem 1.25rem', borderBottom: `1px solid ${PZ.border}`,
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    background: '#f8fafc',
+                    gap: '0.75rem',
                 }}>
-                    <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 900, color: '#0f172a' }}>{title}</h2>
+                    <h2 className="pz-display" style={{ margin: 0, fontSize: '1rem', color: PZ.white }}>{title}</h2>
                     <button
                         onClick={() => { stopScanner(); onClose(); }}
+                        aria-label="Close scanner"
                         style={{
-                            width: '38px', height: '38px', borderRadius: '50%',
-                            border: 'none', background: '#e2e8f0', color: '#475569',
+                            width: '44px', height: '44px', flexShrink: 0,
+                            border: `1px solid ${PZ.borderStrong}`, borderRadius: '4px',
+                            background: 'transparent', color: PZ.white,
                             fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontFamily: 'inherit',
                         }}
                     >
                         ✕
@@ -167,8 +189,9 @@ const QRScanSheet: React.FC<QRScanSheetProps> = ({ title, hint, onScan, onClose 
 
                 <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                     <div style={{
-                        position: 'relative', background: '#000', borderRadius: '16px',
+                        position: 'relative', background: '#000',
                         overflow: 'hidden', aspectRatio: '4 / 3',
+                        border: `1px solid ${PZ.border}`,
                     }}>
                         <video
                             ref={videoRef}
@@ -177,44 +200,35 @@ const QRScanSheet: React.FC<QRScanSheetProps> = ({ title, hint, onScan, onClose 
                             muted
                             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                         />
-                        {/* Scan target frame */}
-                        <div style={{
-                            position: 'absolute', top: '50%', left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '60%', aspectRatio: '1 / 1',
-                            border: '4px solid rgba(99,102,241,0.9)', borderRadius: '16px',
-                            pointerEvents: 'none',
-                        }} />
+                        {/* HUD targeting reticle */}
+                        <Reticle />
                         {!isScanning && !error && (
                             <div style={{
                                 position: 'absolute', inset: 0, display: 'flex',
                                 alignItems: 'center', justifyContent: 'center',
-                                color: '#e2e8f0', fontWeight: 700, fontSize: '0.9375rem',
+                                color: PZ.white, fontWeight: 700, fontSize: '0.9375rem',
                             }}>
-                                📷 Starting camera…
+                                Starting camera…
                             </div>
                         )}
                     </div>
                     <canvas ref={canvasRef} style={{ display: 'none' }} />
 
-                    <p style={{ margin: 0, textAlign: 'center', color: '#64748b', fontSize: '0.875rem', fontWeight: 600 }}>
+                    <p style={{ margin: 0, textAlign: 'center', color: PZ.muted, fontSize: '0.875rem', fontWeight: 600 }}>
                         {hint}
                     </p>
 
                     {error && (
-                        <div style={{
-                            background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c',
-                            borderRadius: '12px', padding: '0.875rem 1rem',
-                            fontSize: '0.875rem', fontWeight: 600, textAlign: 'center',
-                        }}>
-                            ❌ {error}
+                        <div style={{ ...pStyles.errorBox, textAlign: 'center' }}>
+                            {error}
                             <button
                                 onClick={startScanner}
+                                className="pz-btn"
                                 style={{
-                                    display: 'block', margin: '0.6rem auto 0',
-                                    background: '#4f46e5', color: '#fff', border: 'none',
-                                    borderRadius: '10px', padding: '0.5rem 1.25rem',
-                                    fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem', fontFamily: 'inherit',
+                                    display: 'block', margin: '0.75rem auto 0',
+                                    border: 'none', cursor: 'pointer',
+                                    padding: '0.65rem 1.5rem', minHeight: '44px',
+                                    fontSize: '0.875rem',
                                 }}
                             >
                                 Try Again
@@ -224,11 +238,8 @@ const QRScanSheet: React.FC<QRScanSheetProps> = ({ title, hint, onScan, onClose 
 
                     <button
                         onClick={() => { stopScanner(); onClose(); }}
-                        style={{
-                            width: '100%', background: '#f1f5f9', border: '1px solid #e2e8f0',
-                            color: '#0f172a', borderRadius: '12px', padding: '0.875rem',
-                            fontSize: '0.9375rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-                        }}
+                        className="pz-btn-ghost"
+                        style={{ ...pStyles.btnSecondary, width: '100%' }}
                     >
                         Cancel
                     </button>

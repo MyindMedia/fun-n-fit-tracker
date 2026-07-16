@@ -17,6 +17,7 @@ import type * as files from "../files.js";
 import type * as games from "../games.js";
 import type * as helpers from "../helpers.js";
 import type * as messaging from "../messaging.js";
+import type * as migration from "../migration.js";
 import type * as parents from "../parents.js";
 import type * as partners from "../partners.js";
 import type * as points from "../points.js";
@@ -46,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   games: typeof games;
   helpers: typeof helpers;
   messaging: typeof messaging;
+  migration: typeof migration;
   parents: typeof parents;
   partners: typeof partners;
   points: typeof points;

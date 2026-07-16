@@ -10,15 +10,16 @@ import ParentMessages from './Parent/ParentMessages';
 import EarnAroundTown from './Parent/EarnAroundTown';
 import PerksHistory from './Parent/PerksHistory';
 import StudentDetailExtras from './Parent/StudentDetailExtras';
+import { PZ, PzPortalCss, pStyles } from './Parent/shared';
 
 type TabId = 'my-students' | 'add' | 'check-in' | 'messages' | 'earn' | 'perks';
 
 const TABS: Array<{ id: Exclude<TabId, 'add'>; label: string }> = [
-    { id: 'my-students', label: '🏠 My Kids' },
-    { id: 'check-in', label: '📍 Check In' },
-    { id: 'messages', label: '💬 Messages' },
-    { id: 'earn', label: '🌟 Earn' },
-    { id: 'perks', label: '🎁 Perks' },
+    { id: 'my-students', label: 'My Kids' },
+    { id: 'check-in', label: 'Check In' },
+    { id: 'messages', label: 'Messages' },
+    { id: 'earn', label: 'Earn' },
+    { id: 'perks', label: 'Perks' },
 ];
 
 const ParentDashboard: React.FC = () => {
@@ -143,39 +144,52 @@ const ParentDashboard: React.FC = () => {
     }
 
     return (
-        <div style={styles.page}>
-            <Blob top="-8rem" left="-8rem" color="rgba(99,102,241,0.2)" />
-            <Blob bottom="-6rem" right="-6rem" color="rgba(16,185,129,0.15)" />
+        <div className="pz-scope" style={styles.page}>
+            <PzPortalCss />
 
-            {/* Header */}
-            <div style={styles.header}>
-                <div>
-                    <div style={styles.headerBadge}>Parent Portal</div>
-                    <h1 style={styles.heading}>Welcome, {parentName}! 👋</h1>
-                    <p style={styles.subheading}>{parentEmail}</p>
+            {/* Header — banner art strip with logo + portal title */}
+            <div className="pz-banner" style={styles.banner}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', minWidth: 0 }}>
+                        <img src="/fnfa-logo.png" alt="Fun 'N Fit Academy" style={{ width: '52px', height: '52px', objectFit: 'contain', flexShrink: 0 }} />
+                        <div style={{ minWidth: 0 }}>
+                            <div className="pz-eyebrow">Fun 'N Fit Academy</div>
+                            <h1 className="pz-display" style={styles.heading}>Parent Portal</h1>
+                        </div>
+                    </div>
+                    <button onClick={handleSignOut} className="pz-btn-ghost" style={styles.signOutBtn}>Sign Out</button>
                 </div>
-                <button onClick={handleSignOut} style={styles.signOutBtn}>Sign Out</button>
+                <p style={styles.subheading}>
+                    Welcome, <span style={{ color: PZ.white, fontWeight: 700 }}>{parentName}</span>
+                    <span style={{ color: PZ.faint }}> · {parentEmail}</span>
+                </p>
             </div>
 
             {/* Stats strip */}
             <div style={styles.statsRow}>
-                <StatCard icon="👨‍👩‍👧‍👦" label="My Students" value={myStudents.length} color="#818cf8" />
-                <StatCard icon="⭐" label="Total Points" value={myStudents.reduce((a, s) => a + s.points, 0)} color="#f59e0b" />
-                <StatCard icon="🎖️" label="Badges Earned" value={myStudents.reduce((a, s) => a + (s.badges?.length || 0), 0)} color="#10b981" />
+                <StatCard label="Athletes" value={myStudents.length} color={PZ.white} />
+                <StatCard label="Total Points" value={myStudents.reduce((a, s) => a + s.points, 0)} color={PZ.volt} />
+                <StatCard label="Badges" value={myStudents.reduce((a, s) => a + (s.badges?.length || 0), 0)} color="#34d399" />
             </div>
 
-            {/* Tabs */}
-            <div style={styles.tabs}>
+            {/* Tabs — volt underline marks the active tab */}
+            <div style={styles.tabs} role="tablist">
                 {TABS.map(t => {
                     const isActive = activeTab === t.id || (t.id === 'my-students' && activeTab === 'add');
                     return (
-                        <button key={t.id} onClick={() => setActiveTab(t.id)} style={{
-                            ...styles.tab,
-                            ...(isActive ? styles.tabActive : {}),
-                        }}>
+                        <button
+                            key={t.id}
+                            role="tab"
+                            aria-selected={isActive}
+                            onClick={() => setActiveTab(t.id)}
+                            style={{
+                                ...styles.tab,
+                                ...(isActive ? styles.tabActive : {}),
+                            }}
+                        >
                             {t.label}
                             {t.id === 'messages' && unreadMessages > 0 && (
-                                <span style={styles.unreadBadge}>{unreadMessages > 9 ? '9+' : unreadMessages}</span>
+                                <span className="pz-live" style={styles.unreadBadge}>{unreadMessages > 9 ? '9+' : unreadMessages}</span>
                             )}
                         </button>
                     );
@@ -200,14 +214,15 @@ const ParentDashboard: React.FC = () => {
                         <button
                             onClick={() => setActiveTab('add')}
                             style={{
-                                width: '100%', marginTop: '1rem', padding: '0.875rem',
-                                background: 'transparent', border: '2px dashed #c7d2fe',
-                                borderRadius: '14px', color: '#4f46e5', fontWeight: 700,
-                                fontSize: '0.9375rem', cursor: 'pointer', fontFamily: 'inherit',
+                                width: '100%', marginTop: '1rem', padding: '0.875rem', minHeight: '48px',
+                                background: 'transparent', border: `1px dashed ${PZ.voltDim}`,
+                                clipPath: PZ.notchSm, color: PZ.volt, fontWeight: 700,
+                                textTransform: 'uppercase', letterSpacing: '0.08em',
+                                fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit',
                                 position: 'relative', zIndex: 1,
                             }}
                         >
-                            ➕ Enroll Another Student
+                            + Enroll Another Student
                         </button>
                     </>
                 )
@@ -242,14 +257,16 @@ const ParentDashboard: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('my-students')}
                         style={{
-                            background: 'none', border: 'none', color: '#4f46e5',
-                            fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer',
-                            padding: 0, marginBottom: '0.75rem', fontFamily: 'inherit',
+                            background: 'none', border: 'none', color: PZ.volt,
+                            fontWeight: 700, fontSize: '0.8125rem', cursor: 'pointer',
+                            textTransform: 'uppercase', letterSpacing: '0.08em',
+                            padding: '0.25rem 0', marginBottom: '0.75rem', fontFamily: 'inherit',
                         }}
                     >
                         ← Back to My Kids
                     </button>
-                    <h2 style={styles.sectionTitle}>Enroll a New Student</h2>
+                    <div className="pz-eyebrow" style={pStyles.eyebrow}>New Athlete</div>
+                    <h2 className="pz-display" style={styles.sectionTitle}>Enroll a Student</h2>
                     <form onSubmit={handleEnrollStudent} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <div>
                             <label style={styles.label}>Full Name</label>
@@ -295,13 +312,13 @@ const ParentDashboard: React.FC = () => {
                                 </select>
                             </div>
                         </div>
-                        <button type="submit" disabled={enrollLoading} style={{
-                            ...styles.btnPrimary,
-                            padding: '0.875rem', marginTop: '1rem',
+                        <button type="submit" disabled={enrollLoading} className="pz-btn" style={{
+                            ...pStyles.btnPrimary,
+                            width: '100%', marginTop: '1rem',
                             fontSize: '1rem',
                             opacity: enrollLoading ? 0.7 : 1
                         }}>
-                            {enrollLoading ? 'Enrolling...' : 'Enroll Student'}
+                            {enrollLoading ? 'Enrolling…' : 'Enroll Student'}
                         </button>
                     </form>
                 </div>
@@ -379,13 +396,13 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
     };
 
     return (
-        <div style={styles.page}>
-            <Blob top="-8rem" left="-8rem" color="rgba(99,102,241,0.2)" />
+        <div className="pz-scope" style={styles.page}>
+            <PzPortalCss />
 
-            <button onClick={onBack} style={styles.backBtn}>← Back</button>
+            <button onClick={onBack} className="pz-btn-ghost" style={styles.backBtn}>← Back</button>
 
             {/* Hero card */}
-            <div style={{ ...styles.card, padding: '1.25rem', marginBottom: '1.25rem' }}>
+            <div style={{ ...styles.card, padding: '1.25rem', marginBottom: '1.25rem', borderLeft: `3px solid ${house.colorHex}` }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-start' }}>
 
                     {/* Left Column: Avatar and Info */}
@@ -404,8 +421,8 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                 disabled={uploadingAvatar}
                                 style={{
                                     position: 'absolute', bottom: -5, right: -5,
-                                    background: '#4f46e5', border: '2px solid #1e293b',
-                                    color: '#fff', borderRadius: '50%', width: '36px', height: '36px',
+                                    background: PZ.volt, border: `2px solid ${PZ.bg}`,
+                                    color: PZ.bg, borderRadius: '50%', width: '36px', height: '36px',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     cursor: 'pointer', fontSize: '16px', zIndex: 10
                                 }}
@@ -473,52 +490,60 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                     <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                                         <button
                                             onClick={() => setIsEditingProfile(false)}
-                                            style={{ ...styles.btnSecondary, flex: 1, padding: '0.75rem' }}
+                                            className="pz-btn-ghost"
+                                            style={{ ...pStyles.btnSecondary, flex: 1 }}
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             onClick={handleSaveProfile}
                                             disabled={isSavingProfile || !editForm.fullName || !editForm.gamerTag}
-                                            style={{ ...styles.btnPrimary, flex: 1, padding: '0.75rem' }}
+                                            className="pz-btn"
+                                            style={{ ...pStyles.btnPrimary, flex: 1, opacity: isSavingProfile || !editForm.fullName || !editForm.gamerTag ? 0.6 : 1 }}
                                         >
-                                            {isSavingProfile ? 'Saving...' : 'Save Changes'}
+                                            {isSavingProfile ? 'Saving…' : 'Save Changes'}
                                         </button>
                                     </div>
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: 0 }}>
                                     <div>
-                                        <h2 style={{ margin: '0 0 0.25rem', color: '#0f172a', fontSize: 'clamp(1.25rem, 4vw, 1.75rem)', fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <h2 className="pz-display" style={{ margin: '0 0 0.25rem', color: PZ.white, fontSize: 'clamp(1.25rem, 4vw, 1.625rem)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                             {student.gamerTag || student.fullName}
                                         </h2>
                                         {student.gamerTag && (
-                                            <p style={{ margin: '0 0 0.5rem', color: '#64748b', fontSize: '0.9375rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{student.fullName}</p>
+                                            <p style={{ margin: '0 0 0.5rem', color: PZ.muted, fontSize: '0.9375rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{student.fullName}</p>
                                         )}
                                     </div>
                                     <div>
                                         <div style={{
                                             display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                                            background: `${house.colorHex}22`, border: `1px solid ${house.colorHex}55`,
-                                            color: house.colorHex, borderRadius: '999px',
+                                            background: `${house.colorHex}1a`, border: `1px solid ${house.colorHex}55`,
+                                            color: house.colorHex, borderRadius: '3px',
                                             padding: '0.375rem 0.875rem', fontSize: '0.8125rem', fontWeight: 700,
+                                            textTransform: 'uppercase', letterSpacing: '0.04em',
                                             marginBottom: '0.5rem', whiteSpace: 'nowrap', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis'
                                         }}>
-                                            <span>{house.mascot}</span> {house.name} House
+                                            {house.customIcon && (
+                                                <img src={house.customIcon} alt="" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+                                            )}
+                                            {house.name} House
                                         </div>
                                     </div>
                                     <div>
                                         <button
                                             onClick={() => setIsEditingProfile(true)}
+                                            className="pz-btn-ghost"
                                             style={{
-                                                ...styles.btnSecondary,
-                                                padding: '0.5rem 1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem'
+                                                ...pStyles.btnSecondary,
+                                                padding: '0.6rem 1rem', minHeight: '44px',
+                                                display: 'inline-flex', alignItems: 'center', gap: '0.5rem'
                                             }}
                                         >
                                             ✏️ Edit Profile
                                         </button>
                                     </div>
-                                    {student.bio && <p style={{ margin: '0.5rem 0 0', color: '#64748b', fontSize: '1rem' }}>{student.bio}</p>}
+                                    {student.bio && <p style={{ margin: '0.5rem 0 0', color: PZ.muted, fontSize: '0.9375rem' }}>{student.bio}</p>}
                                 </div>
                             )}
                         </div>
@@ -528,7 +553,7 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                     {!isEditingProfile && (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: '0 0 auto' }}>
                             {house.customIcon ? (
-                                <img src={house.customIcon} style={{ width: 'clamp(80px, 25vw, 128px)', height: 'clamp(80px, 25vw, 128px)', objectFit: 'contain' }} alt={house.name} />
+                                <img src={house.customIcon} style={{ width: 'clamp(80px, 25vw, 128px)', height: 'clamp(80px, 25vw, 128px)', objectFit: 'contain', filter: `drop-shadow(0 0 18px ${house.colorHex}40)` }} alt={house.name} />
                             ) : (
                                 <span style={{ fontSize: 'clamp(3rem, 12vw, 6rem)', lineHeight: 1 }}>{house.mascot}</span>
                             )}
@@ -540,73 +565,77 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
 
             {/* ── Stats Summary ─────────────────────────────────────────── */}
             <div style={{ ...styles.card, marginBottom: '1.25rem' }}>
-                <h3 style={{ ...styles.sectionTitle, marginBottom: '1rem' }}>📊 Student Summary</h3>
+                <div className="pz-eyebrow" style={pStyles.eyebrow}>Athlete Summary</div>
 
                 {/* 4-column stat grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1.25rem' }}>
                     {/* Total Points */}
                     <div style={{
-                        background: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
-                        border: '1px solid #fde68a', borderRadius: '12px', padding: '1rem',
+                        background: PZ.voltFaint,
+                        border: `1px solid ${PZ.voltDim}`, clipPath: PZ.notchSm, padding: '1rem',
                         display: 'flex', flexDirection: 'column', gap: '0.25rem',
                     }}>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Points</div>
-                        <div style={{ fontSize: '2rem', fontWeight: 900, color: '#f59e0b', lineHeight: 1 }}>{student.points.toLocaleString()}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#b45309' }}>⭐ pts earned</div>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: PZ.muted, textTransform: 'uppercase', letterSpacing: '0.12em' }}>Total Points</div>
+                        <div className="pz-display" style={{ fontSize: '2rem', color: PZ.volt, lineHeight: 1 }}>{student.points.toLocaleString()}</div>
+                        <div style={{ fontSize: '0.75rem', color: PZ.muted }}>pts earned</div>
                     </div>
 
                     {/* Current Rank */}
                     <div style={{
-                        background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
-                        border: '1px solid #bfdbfe', borderRadius: '12px', padding: '1rem',
+                        background: PZ.panel2,
+                        border: `1px solid ${PZ.border}`, clipPath: PZ.notchSm, padding: '1rem',
                         display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'flex-start',
                     }}>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#1e40af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Rank</div>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: PZ.muted, textTransform: 'uppercase', letterSpacing: '0.12em' }}>Current Rank</div>
                         <img src={rank.icon} alt={rank.name} style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
-                        <div style={{ fontSize: '1rem', fontWeight: 800, color: '#1d4ed8' }}>{rank.name}</div>
+                        <div style={{ fontSize: '1rem', fontWeight: 700, color: PZ.white }}>{rank.name}</div>
                     </div>
 
                     {/* House */}
                     <div style={{
-                        background: `linear-gradient(135deg, ${house.colorHex}12, ${house.colorHex}22)`,
-                        border: `1px solid ${house.colorHex}44`, borderRadius: '12px', padding: '1rem',
+                        background: `${house.colorHex}14`,
+                        border: `1px solid ${house.colorHex}44`, clipPath: PZ.notchSm, padding: '1rem',
                         display: 'flex', flexDirection: 'column', gap: '0.35rem',
                     }}>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: house.colorHex, textTransform: 'uppercase', letterSpacing: '0.05em' }}>House</div>
-                        <div style={{ fontSize: '1.5rem' }}>{house.mascot}</div>
-                        <div style={{ fontSize: '1rem', fontWeight: 800, color: house.colorHex }}>{house.name}</div>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: PZ.muted, textTransform: 'uppercase', letterSpacing: '0.12em' }}>House</div>
+                        {house.customIcon ? (
+                            <img src={house.customIcon} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+                        ) : (
+                            <div style={{ fontSize: '1.5rem' }}>{house.mascot}</div>
+                        )}
+                        <div style={{ fontSize: '1rem', fontWeight: 700, color: house.colorHex }}>{house.name}</div>
                     </div>
 
                     {/* Badges */}
                     <div style={{
-                        background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
-                        border: '1px solid #bbf7d0', borderRadius: '12px', padding: '1rem',
+                        background: 'rgba(16, 185, 129, 0.08)',
+                        border: '1px solid rgba(16, 185, 129, 0.3)', clipPath: PZ.notchSm, padding: '1rem',
                         display: 'flex', flexDirection: 'column', gap: '0.25rem',
                     }}>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Badges</div>
-                        <div style={{ fontSize: '2rem', fontWeight: 900, color: '#16a34a', lineHeight: 1 }}>{student.badges?.length ?? 0}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#15803d' }}>🏅 earned</div>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: PZ.muted, textTransform: 'uppercase', letterSpacing: '0.12em' }}>Badges</div>
+                        <div className="pz-display" style={{ fontSize: '2rem', color: '#34d399', lineHeight: 1 }}>{student.badges?.length ?? 0}</div>
+                        <div style={{ fontSize: '0.75rem', color: PZ.muted }}>earned</div>
                     </div>
                 </div>
 
                 {/* General info row */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '1.25rem' }}>
-                    <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '0.75rem', textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.25rem' }}>Gender</div>
-                        <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9375rem' }}>
+                    <div style={{ background: PZ.panel2, border: `1px solid ${PZ.border}`, borderRadius: '4px', padding: '0.75rem', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: PZ.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>Gender</div>
+                        <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.9375rem' }}>
                             {student.gender === 'Female' ? '👧' : '👦'} {student.gender}
                         </div>
                     </div>
-                    <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '0.75rem', textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.25rem' }}>Rewards</div>
-                        <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9375rem' }}>
+                    <div style={{ background: PZ.panel2, border: `1px solid ${PZ.border}`, borderRadius: '4px', padding: '0.75rem', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: PZ.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>Rewards</div>
+                        <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.9375rem' }}>
                             🎁 {student.inventory?.length ?? 0}
                         </div>
                     </div>
-                    <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '0.75rem', textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.25rem' }}>Status</div>
-                        <div style={{ fontWeight: 800, color: student.isPresent ? '#16a34a' : '#94a3b8', fontSize: '0.9375rem' }}>
-                            {student.isPresent ? '🟢 Present' : '⚪ Away'}
+                    <div style={{ background: PZ.panel2, border: `1px solid ${PZ.border}`, borderRadius: '4px', padding: '0.75rem', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: PZ.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>Status</div>
+                        <div style={{ fontWeight: 700, color: student.isPresent ? PZ.volt : PZ.muted, fontSize: '0.9375rem' }}>
+                            {student.isPresent ? '● Present' : '○ Away'}
                         </div>
                     </div>
                 </div>
@@ -615,33 +644,33 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                 {nextRank && (
                     <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                            <span style={{ color: '#64748b', fontSize: '0.8125rem', fontWeight: 700 }}>
-                                Progress to <span style={{ color: '#4f46e5' }}>{nextRank.name}</span>
+                            <span style={{ color: PZ.muted, fontSize: '0.8125rem', fontWeight: 700 }}>
+                                Progress to <span style={{ color: PZ.volt }}>{nextRank.name}</span>
                             </span>
-                            <span style={{ color: '#4f46e5', fontSize: '0.8125rem', fontWeight: 700 }}>
+                            <span style={{ color: PZ.volt, fontSize: '0.8125rem', fontWeight: 700 }}>
                                 {nextRank.threshold - student.points} pts to go · {Math.round(progress)}%
                             </span>
                         </div>
-                        <div style={{ background: '#e2e8f0', borderRadius: '999px', height: '10px', overflow: 'hidden' }}>
+                        <div style={{ background: 'rgba(255,255,255,0.08)', height: '10px', overflow: 'hidden', clipPath: 'polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px)' }}>
                             <div style={{
                                 width: `${progress}%`, height: '100%',
-                                background: 'linear-gradient(90deg, #4f46e5, #818cf8)',
-                                borderRadius: '999px', transition: 'width 0.8s ease',
+                                background: `linear-gradient(90deg, rgba(203,254,28,0.55), ${PZ.volt})`,
+                                transition: 'width 0.8s ease',
                             }} />
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem' }}>
-                            <span style={{ color: '#94a3b8', fontSize: '0.6875rem', fontWeight: 600 }}>{rank.name}</span>
-                            <span style={{ color: '#94a3b8', fontSize: '0.6875rem', fontWeight: 600 }}>{nextRank.name}</span>
+                            <span style={{ color: PZ.faint, fontSize: '0.6875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{rank.name}</span>
+                            <span style={{ color: PZ.faint, fontSize: '0.6875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{nextRank.name}</span>
                         </div>
                     </div>
                 )}
                 {!nextRank && (
                     <div style={{
-                        background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
-                        border: '1px solid #f59e0b', borderRadius: '12px', padding: '0.75rem 1rem',
-                        textAlign: 'center', fontWeight: 700, color: '#92400e',
+                        background: PZ.voltFaint,
+                        border: `1px solid ${PZ.voltDim}`, clipPath: PZ.notchSm, padding: '0.75rem 1rem',
+                        textAlign: 'center', fontWeight: 700, color: PZ.volt,
                     }}>
-                        🏆 Max Rank Achieved — Top of the class!
+                        🏆 Max Rank Achieved — top of the class!
                     </div>
                 )}
             </div>
@@ -651,12 +680,12 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
             {/* Badges */}
             {(student.badges?.length ?? 0) > 0 && (
                 <div style={{ ...styles.card, marginBottom: '1.25rem' }}>
-                    <h3 style={styles.sectionTitle}>🎖️ Badges Earned</h3>
+                    <div className="pz-eyebrow" style={pStyles.eyebrow}>Badges Earned</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                         {student.badges!.map(b => (
                             <div key={b} style={{
-                                background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)',
-                                color: '#fcd34d', borderRadius: '8px', padding: '0.375rem 0.75rem',
+                                background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.35)',
+                                color: '#fcd34d', borderRadius: '3px', padding: '0.375rem 0.75rem',
                                 fontSize: '0.8125rem', fontWeight: 700,
                             }}>
                                 🏅 {b}
@@ -669,12 +698,12 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
             {/* Inventory (rewards) */}
             {(student.inventory?.length ?? 0) > 0 && (
                 <div style={{ ...styles.card, marginBottom: '1.25rem' }}>
-                    <h3 style={styles.sectionTitle}>🎁 Rewards Collected</h3>
+                    <div className="pz-eyebrow" style={pStyles.eyebrow}>Rewards Collected</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                         {student.inventory!.map(r => (
                             <div key={r} style={{
-                                background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)',
-                                color: '#6ee7b7', borderRadius: '8px', padding: '0.375rem 0.75rem',
+                                background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.3)',
+                                color: '#6ee7b7', borderRadius: '3px', padding: '0.375rem 0.75rem',
                                 fontSize: '0.8125rem', fontWeight: 700,
                             }}>
                                 🎁 {r}
@@ -687,7 +716,7 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
             {(student.badges?.length ?? 0) === 0 && (student.inventory?.length ?? 0) === 0 && (
                 <div style={{ ...styles.card, textAlign: 'center', padding: '2rem', marginBottom: '1.25rem' }}>
                     <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🌱</div>
-                    <p style={{ color: '#94a3b8', margin: 0, fontWeight: 500 }}>No badges or rewards yet — keep training!</p>
+                    <p style={{ color: PZ.muted, margin: 0, fontWeight: 500 }}>No badges or rewards yet — keep training!</p>
                 </div>
             )}
 
@@ -709,163 +738,173 @@ const StudentCard: React.FC<{
     return (
         <div style={{
             ...styles.card,
-            transition: 'transform 0.2s, box-shadow 0.2s',
+            borderLeft: `3px solid ${house.colorHex}`,
+            transition: 'transform 0.2s, border-color 0.2s, box-shadow 0.2s',
             cursor: 'pointer',
         }}
             onClick={onView}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)'; }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onView(); } }}
+            onMouseEnter={e => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.transform = 'translateY(-2px)';
+                el.style.boxShadow = 'inset 0 0 28px rgba(203,254,28,0.06)';
+                el.style.borderColor = 'rgba(203,254,28,0.35)';
+                el.style.borderLeftColor = house.colorHex;
+            }}
+            onMouseLeave={e => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.transform = 'none';
+                el.style.boxShadow = 'none';
+                el.style.borderColor = PZ.border;
+                el.style.borderLeftColor = house.colorHex;
+            }}
         >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.875rem' }}>
                 <img src={student.avatarUrl} alt="" onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${student.id}`; }} style={{
                     width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover',
                     border: `3px solid ${house.colorHex}`,
                 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: '#0f172a', fontWeight: 800, fontSize: '0.9375rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{student.gamerTag || student.fullName}</div>
-                    <div style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        {house.mascot} {house.name} &middot; <img src={rank.icon} alt={rank.name} style={{ width: '16px', height: '16px', objectFit: 'contain' }} /> {rank.name}
+                    <div className="pz-display" style={{ color: PZ.white, fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {student.gamerTag || student.fullName}
+                    </div>
+                    <div style={{ color: PZ.muted, fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                        {house.customIcon && (
+                            <img src={house.customIcon} alt="" style={{ width: '14px', height: '14px', objectFit: 'contain', flexShrink: 0 }} />
+                        )}
+                        <span style={{ color: house.colorHex }}>{house.name}</span>
+                        <span>·</span>
+                        <img src={rank.icon} alt="" style={{ width: '16px', height: '16px', objectFit: 'contain', flexShrink: 0 }} />
+                        <span>{rank.name}</span>
                     </div>
                 </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ color: '#f59e0b', fontWeight: 900, fontSize: '1.125rem' }}>
-                    {student.points.toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8' }}>pts</span>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <div className="pz-display" style={{ color: PZ.volt, fontSize: '1.25rem' }}>
+                    {student.points.toLocaleString()} <span style={{ fontSize: '0.6875rem', color: PZ.muted, fontFamily: PZ.bodyFont, fontWeight: 700, letterSpacing: '0.1em' }}>PTS</span>
                 </div>
+                <span style={{ color: PZ.faint, fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>View →</span>
             </div>
         </div>
     );
 };
 
-const StatCard: React.FC<{ icon: string; label: string; value: number; color: string }> = ({ icon, label, value, color }) => (
-    <div style={{ ...styles.card, flex: 1, textAlign: 'center', minWidth: 0 }}>
-        <div style={{ fontSize: '1.75rem' }}>{icon}</div>
-        <div style={{ fontSize: '1.5rem', fontWeight: 900, color }}>{value.toLocaleString()}</div>
-        <div style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>{label}</div>
+const StatCard: React.FC<{ label: string; value: number; color: string }> = ({ label, value, color }) => (
+    <div style={{ ...styles.card, flex: 1, textAlign: 'center', minWidth: 0, padding: '0.875rem 0.5rem' }}>
+        <div className="pz-display" style={{ fontSize: '1.5rem', color, lineHeight: 1.2 }}>{value.toLocaleString()}</div>
+        <div style={{ color: PZ.muted, fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginTop: '0.25rem' }}>{label}</div>
     </div>
 );
 
 const EmptyState: React.FC<{ onAdd: () => void }> = ({ onAdd }) => (
-    <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+    <div style={{ ...styles.card, textAlign: 'center', padding: '4rem 2rem' }}>
         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👨‍👩‍👧</div>
-        <h3 style={{ color: '#0f172a', fontWeight: 800, margin: '0 0 0.5rem' }}>No Students Linked Yet</h3>
-        <p style={{ color: '#64748b', fontSize: '0.9375rem', margin: '0 0 1.5rem' }}>
+        <h3 className="pz-display" style={{ color: PZ.white, margin: '0 0 0.5rem', fontSize: '1.125rem' }}>No Athletes Yet</h3>
+        <p style={{ color: PZ.muted, fontSize: '0.9375rem', margin: '0 0 1.5rem' }}>
             Enroll your child to start tracking their Fun 'N Fit progress!
         </p>
-        <button onClick={onAdd} style={{
-            ...styles.btnPrimary, padding: '0.75rem 2rem',
-        }}>
-            ➕ Enroll a Student
+        <button onClick={onAdd} className="pz-btn" style={{ ...pStyles.btnPrimary, padding: '0.875rem 2rem' }}>
+            + Enroll a Student
         </button>
     </div>
 );
 
 const LoadingScreen = () => (
-    <div style={{ ...styles.page, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <div style={{ textAlign: 'center', color: '#64748b' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
-            <div style={{ fontWeight: 600 }}>Loading dashboard...</div>
+    <div className="pz-scope" style={{ ...styles.page, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center', color: PZ.muted }}>
+            <div className="pz-live" style={{
+                width: '14px', height: '14px', borderRadius: '50%',
+                background: PZ.volt, margin: '0 auto 1rem',
+            }} />
+            <div style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', fontSize: '0.8125rem' }}>Loading your squad…</div>
         </div>
     </div>
 );
 
-const Blob: React.FC<{ top?: string; bottom?: string; left?: string; right?: string; color: string }> = ({ top, bottom, left, right, color }) => (
-    <div style={{
-        position: 'fixed', top, bottom, left, right,
-        width: '28rem', height: '28rem',
-        background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-        borderRadius: '50%', pointerEvents: 'none', zIndex: 0,
-    }} />
-);
-
 /* -------------------------------------------------------------------------- */
-/* Styles */
+/* Styles — dark Pubzi tokens (see components/Parent/shared.tsx for palette)  */
 /* -------------------------------------------------------------------------- */
 const styles: Record<string, any> = {
     page: {
         minHeight: '100vh',
-        background: '#f1f5f9',
+        background: PZ.bg,
         padding: 'clamp(1rem, 4vw, 1.5rem)',
-        fontFamily: "'Inter', 'Segoe UI', sans-serif",
+        fontFamily: PZ.bodyFont,
         position: 'relative',
-        color: '#0f172a',
+        color: PZ.white,
         maxWidth: '900px',
         margin: '0 auto',
         boxSizing: 'border-box',
         overflowX: 'hidden',
     },
-    header: {
-        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-        marginBottom: '1.5rem', position: 'relative', zIndex: 1,
+    banner: {
+        clipPath: PZ.notch,
+        border: `1px solid ${PZ.border}`,
+        padding: '1.25rem',
+        marginBottom: '1rem',
+        position: 'relative', zIndex: 1,
     },
-    headerBadge: {
-        display: 'inline-block', background: 'rgba(99,102,241,0.1)',
-        border: '1px solid rgba(99,102,241,0.2)', color: '#4f46e5',
-        borderRadius: '999px', padding: '0.2rem 0.75rem', fontSize: '0.75rem', fontWeight: 700,
-        marginBottom: '0.5rem', letterSpacing: '0.04em',
+    heading: {
+        margin: '0.15rem 0 0', fontSize: 'clamp(1.375rem, 5vw, 1.75rem)',
+        color: '#ffffff', lineHeight: 1.1,
     },
-    heading: { margin: '0 0 0.25rem', fontSize: 'clamp(1.25rem, 5vw, 1.75rem)', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' },
-    subheading: { margin: 0, fontSize: '0.875rem', color: '#64748b', fontWeight: 500 },
+    subheading: { margin: '0.875rem 0 0', fontSize: '0.875rem', color: PZ.muted, fontWeight: 500 },
     signOutBtn: {
-        background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)',
-        color: '#ef4444', borderRadius: '10px', padding: '0.5rem 1rem',
-        fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
+        padding: '0.6rem 1rem', fontSize: '0.75rem', cursor: 'pointer',
+        minHeight: '44px', flexShrink: 0,
     },
-    statsRow: { display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.5rem', position: 'relative', zIndex: 1 },
+    statsRow: { display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem', position: 'relative', zIndex: 1 },
     card: {
-        background: '#ffffff',
-        border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.25rem',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        background: PZ.panel,
+        border: `1px solid ${PZ.border}`,
+        clipPath: PZ.notch,
+        padding: '1.25rem',
         position: 'relative', zIndex: 1,
     },
     tabs: {
-        display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', position: 'relative', zIndex: 1,
-        overflowX: 'auto', paddingBottom: '0.25rem', WebkitOverflowScrolling: 'touch',
+        display: 'flex', gap: '0.25rem', marginBottom: '1.25rem', position: 'relative', zIndex: 1,
+        overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+        borderBottom: `1px solid ${PZ.border}`,
     },
     tab: {
-        flex: '1 0 auto', padding: '0.7rem 0.85rem', border: '1.5px solid #e2e8f0',
-        borderRadius: '12px', background: '#f8fafc',
-        color: '#64748b', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem',
-        transition: 'all 0.2s', whiteSpace: 'nowrap',
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem',
+        flex: '1 0 auto', padding: '0.75rem 0.9rem', minHeight: '48px',
+        background: 'transparent', border: 'none',
+        borderBottom: '3px solid transparent',
+        color: PZ.muted, fontWeight: 700, cursor: 'pointer', fontSize: '0.8125rem',
+        textTransform: 'uppercase', letterSpacing: '0.08em',
+        transition: 'color 0.2s, border-color 0.2s', whiteSpace: 'nowrap',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+        fontFamily: 'inherit',
     },
     tabActive: {
-        background: '#e0e7ff', border: '1.5px solid #c7d2fe',
-        color: '#4f46e5',
+        color: '#ffffff',
+        borderBottom: `3px solid ${PZ.volt}`,
     },
     unreadBadge: {
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         minWidth: '18px', height: '18px', padding: '0 5px', boxSizing: 'border-box',
-        background: '#ef4444', color: '#ffffff', borderRadius: '999px',
+        background: PZ.volt, color: PZ.bg, borderRadius: '3px',
         fontSize: '0.65rem', fontWeight: 800, lineHeight: 1,
     },
     grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: '1rem', position: 'relative', zIndex: 1 },
     input: {
-        width: '100%', padding: '0.875rem 1.25rem', boxSizing: 'border-box',
-        background: '#ffffff', border: '1.5px solid #e2e8f0',
-        borderRadius: '12px', color: '#0f172a', fontSize: '1rem', outline: 'none',
+        width: '100%', padding: '0.875rem 1rem', boxSizing: 'border-box',
+        background: PZ.bg, border: '1.5px solid rgba(255,255,255,0.12)',
+        borderRadius: '4px', color: PZ.white, fontSize: '1rem', outline: 'none',
         fontFamily: 'inherit',
     },
-    sectionTitle: { margin: '0 0 1rem', color: '#0f172a', fontWeight: 800, fontSize: '1.25rem' },
+    sectionTitle: { margin: '0 0 1rem', color: PZ.white, fontSize: '1.25rem', lineHeight: 1.2 },
     backBtn: {
-        background: '#ffffff', border: '1px solid #e2e8f0',
-        color: '#475569', borderRadius: '10px', padding: '0.5rem 1rem',
-        fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', marginBottom: '1.25rem',
+        padding: '0.6rem 1rem', fontSize: '0.8125rem', cursor: 'pointer',
+        minHeight: '44px', marginBottom: '1.25rem',
         position: 'relative', zIndex: 1,
     },
-    btnPrimary: {
-        background: '#4f46e5', color: '#fff',
-        border: 'none', borderRadius: '12px',
-        fontSize: '0.9375rem', fontWeight: 700, cursor: 'pointer',
-    },
-    btnSecondary: {
-        background: '#f1f5f9', border: '1px solid #e2e8f0',
-        color: '#0f172a', borderRadius: '12px',
-        fontSize: '0.9375rem', fontWeight: 700, cursor: 'pointer',
-    },
     label: {
-        display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#64748b', fontWeight: 600
+        display: 'block', marginBottom: '0.5rem', fontSize: '0.75rem',
+        color: PZ.muted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em',
     }
 };
 

@@ -34,3 +34,9 @@ dist-ssr
 
 # Next.js build output (abandoned fun-n-fit-v2 experiment)
 .next
+
+# Purchased design templates (licensed, not distributed)
+TEMPLATES/
+
+# Supabase CLI temp
+supabase/.temp/

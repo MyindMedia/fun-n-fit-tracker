@@ -12,6 +12,9 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+// Pubzi theme: small notched cut-corner shape for inline elements
+const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
+
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   // HashRouter puts route in hash, not pathname. Check both for compatibility.
@@ -236,21 +239,25 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <nav
         className={`
-          bg-brand-blue text-white shadow-xl z-[201] transition-all duration-500 ease-in-out
+          pz-scope text-white z-[201] transition-all duration-500 ease-in-out
           ${isProjectorMode ? 'fixed top-0 left-0 w-full' : 'relative h-16'}
           ${isProjectorMode && !isHoveringNav ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'}
         `}
+        style={{ background: 'var(--pz-bg)', borderBottom: '1px solid var(--pz-border)' }}
         onMouseEnter={() => isProjectorMode && setIsHoveringNav(true)}
         onMouseLeave={() => isProjectorMode && setIsHoveringNav(false)}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-          <div className="flex items-center justify-between h-full gap-4">
+          <div className="flex items-center justify-between h-full gap-4 py-2">
             <div className="flex items-center gap-2 shrink-0">
               <Link to="/live" className="flex items-center gap-3 group">
-                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md overflow-hidden transition-transform group-hover:scale-105">
+                <div
+                  className="w-10 h-10 bg-white flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105"
+                  style={{ clipPath: NOTCH_SM }}
+                >
                   <img src={settings.app_logo || APP_LOGO_URL} alt="Logo" className="w-full h-full object-contain p-1" />
                 </div>
-                <span className="font-display font-bold text-lg md:text-xl tracking-wide truncate hidden sm:block">Fun N' Fit</span>
+                <span className="pz-display text-base md:text-lg tracking-wide truncate hidden sm:block">Fun N' Fit</span>
               </Link>
             </div>
 
@@ -258,30 +265,32 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Find Athlete..."
+                  placeholder="Find a player..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/20 hover:bg-white/30 border border-white/20 rounded-2xl px-5 py-2.5 font-black text-xs uppercase tracking-widest placeholder-white/70 focus:bg-white focus:text-slate-900 focus:placeholder-slate-400 outline-none transition-all shadow-inner"
+                  className="w-full bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-2.5 font-bold text-xs uppercase tracking-widest text-white placeholder-white/40 focus:border-[#CBFE1C] outline-none transition-all"
+                  style={{ clipPath: NOTCH_SM }}
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm pointer-events-none opacity-60 group-focus-within:opacity-100 group-focus-within:text-brand-blue">🔍</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm pointer-events-none opacity-50 group-focus-within:opacity-100">🔍</span>
               </div>
 
               {filteredStudents.length > 0 && (
-                <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-slide-up text-slate-900 z-[300]">
+                <div className="pz-card absolute top-full mt-2 left-0 right-0 overflow-hidden animate-slide-up z-[300]">
                   {filteredStudents.map(s => (
                     <div
                       key={s.id}
                       onClick={() => { setSelectedProfile(s); setSearchQuery(''); }}
-                      className="flex items-center gap-4 p-4 hover:bg-slate-50 cursor-pointer border-b last:border-0 transition-colors"
+                      className="flex items-center gap-4 p-4 hover:bg-white/5 cursor-pointer transition-colors"
+                      style={{ borderBottom: '1px solid var(--pz-border)' }}
                     >
-                      <img src={s.avatarUrl} className="w-10 h-10 rounded-full border-2 border-slate-100 object-cover" />
+                      <img src={s.avatarUrl} className="w-10 h-10 rounded-full border-2 object-cover" style={{ borderColor: HOUSES[s.houseId].colorHex }} />
                       <div className="flex-grow">
-                        <div className="text-xs font-black text-slate-800">{s.fullName}</div>
-                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                        <div className="text-xs font-black text-white">{s.fullName}</div>
+                        <div className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>
                           <span style={{ color: HOUSES[s.houseId].colorHex }}>{HOUSES[s.houseId].name}</span> • {s.points} pts
                         </div>
                       </div>
-                      <span className="text-brand-blue font-black text-xs">VIEW</span>
+                      <span className="font-black text-xs" style={{ color: 'var(--pz-volt)' }}>VIEW</span>
                     </div>
                   ))}
                 </div>
@@ -292,16 +301,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {!isProjectorMode && (
                 <button
                   onClick={toggleProjectorMode}
-                  className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all border border-white/10"
+                  className="pz-btn-ghost flex items-center gap-2 px-4 py-2 text-xs"
                 >
-                  <span className="text-lg">🗖</span>
+                  <span className="text-lg leading-none">🗖</span>
                   <span className="hidden lg:inline">Projector</span>
                 </button>
               )}
 
-              <Link to="/live" className={`px-4 py-2 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${isLive ? 'bg-white/20' : ''}`}>Live</Link>
-              <Link to="/admin" className={`px-4 py-2 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${!isLive ? 'bg-white/20' : ''}`}>Admin</Link>
-              <a href="/#/parent-login" className="px-4 py-2 rounded-xl text-xs font-black transition-all uppercase tracking-widest bg-indigo-500/30 hover:bg-indigo-500/50 border border-indigo-300/30">👨‍👩‍👧 Parents</a>
+              <Link to="/live" className={`relative px-3 md:px-4 py-2 text-xs font-bold transition-colors uppercase tracking-widest ${isLive ? 'text-white' : 'text-white/60 hover:text-white'}`}>
+                Live
+                {isLive && <span className="absolute left-3 right-3 md:left-4 md:right-4 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
+              </Link>
+              <Link to="/admin" className={`relative px-3 md:px-4 py-2 text-xs font-bold transition-colors uppercase tracking-widest ${!isLive ? 'text-white' : 'text-white/60 hover:text-white'}`}>
+                Admin
+                {!isLive && <span className="absolute left-3 right-3 md:left-4 md:right-4 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
+              </Link>
+              <a href="/#/parent-login" className="pz-btn-ghost px-3 md:px-4 py-2 text-xs">Parents</a>
             </div>
           </div>
         </div>
@@ -314,7 +329,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         )}
 
         {isLive && pointBubbles.length > 0 && (
-          <div className="fixed inset-0 z-[800] pointer-events-none overflow-hidden">
+          <div className="fixed inset-0 z-[800] pointer-events-none overflow-hidden pz-scope">
             {pointBubbles.map((b, index) => (
               <div
                 key={b.id}
@@ -322,45 +337,27 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 style={{
                   top: b.amount >= 0 ? '60%' : '20%',
                   left: `${50 + (index - 2) * 15}%`,
-                  transform: 'translateX(-50%)'
+                  transform: 'translateX(-50%)',
+                  filter: b.amount >= 0
+                    ? 'drop-shadow(0 0 18px rgba(16, 185, 129, 0.45))'
+                    : 'drop-shadow(0 0 18px rgba(239, 68, 68, 0.45))'
                 }}
               >
-                <div className={`
-                  backdrop-blur-md shadow-2xl rounded-3xl px-6 py-4 border-4
-                  ${b.amount >= 0
-                    ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 border-emerald-300 animate-sparkle-burst'
-                    : 'bg-gradient-to-br from-red-500 to-red-700 border-red-400 animate-red-pulse'
-                  }
-                `}>
-                  {/* Sparkles for positive points */}
-                  {b.amount >= 0 && (
-                    <>
-                      <div className="absolute -top-2 -left-2 text-2xl animate-ping">✨</div>
-                      <div className="absolute -top-1 -right-2 text-xl animate-ping" style={{ animationDelay: '0.1s' }}>⭐</div>
-                      <div className="absolute -bottom-1 -left-1 text-lg animate-ping" style={{ animationDelay: '0.2s' }}>💫</div>
-                    </>
-                  )}
-                  {/* Crack lines for negative points */}
-                  {b.amount < 0 && (
-                    <div className="absolute inset-0 opacity-30">
-                      <div className="absolute top-1/4 left-1/3 w-8 h-0.5 bg-white rotate-45"></div>
-                      <div className="absolute top-1/2 right-1/4 w-6 h-0.5 bg-white -rotate-12"></div>
-                      <div className="absolute bottom-1/3 left-1/2 w-4 h-0.5 bg-white rotate-90"></div>
-                    </div>
-                  )}
+                <div
+                  className="pz-card relative px-6 py-4"
+                  style={{ borderColor: b.amount >= 0 ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.7)' }}
+                >
+                  <span
+                    className="absolute left-0 top-0 bottom-0 w-1.5"
+                    style={{ background: b.amount >= 0 ? '#10b981' : '#ef4444' }}
+                  />
                   <div className="flex items-center gap-4 relative">
-                    <div className="text-white text-lg font-black uppercase tracking-wider drop-shadow-lg">{b.name}</div>
-                    <div className={`
-                      px-4 py-1.5 rounded-full text-base font-black border-2
-                      ${b.amount >= 0
-                        ? 'bg-white/30 border-white/50 text-white'
-                        : 'bg-black/20 border-white/30 text-white'
-                      }
-                    `}>
+                    <div className="pz-display text-white text-lg tracking-wider">{b.name}</div>
+                    <div className={`pz-display text-2xl ${b.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {b.amount >= 0 ? '+' : ''}{b.amount} pts
                     </div>
                   </div>
-                  <div className="text-white/90 text-sm font-bold mt-2 text-center drop-shadow">{b.message}</div>
+                  <div className="text-sm font-bold mt-1.5 text-center" style={{ color: 'var(--pz-text)' }}>{b.message}</div>
                 </div>
               </div>
             ))}

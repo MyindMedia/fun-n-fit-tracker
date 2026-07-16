@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { Student, PartnerBusiness, SpecialTask, TaskSubmission } from '../../types';
 import { gameCenter, CheckInResult } from '../../services/gameCenter';
 import QRScanSheet from './QRScanSheet';
-import { extractScanParam, cleanErr, fmtDateTime, pStyles, KidSelect, StatusChip } from './shared';
+import { extractScanParam, cleanErr, fmtDateTime, pStyles, KidSelect, StatusChip, PZ } from './shared';
 
 interface EarnAroundTownProps {
     students: Student[];
@@ -146,7 +146,7 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                 studentId: taskKid[0],
                 note: taskNote.trim() || undefined,
             });
-            setTaskSuccess(`Sent! The team will review "${task.title}" soon. 🎉`);
+            setTaskSuccess(`Sent! The team will review "${task.title}" soon.`);
             setOpenTaskId(null);
             loadAll();
         } catch (e: any) {
@@ -159,12 +159,16 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-            {/* ── Visit outcome (per-kid results) ─────────────────────────────── */}
+            {/* ── Visit outcome (per-kid results) — volt celebration ──────────── */}
             {visitOutcome && (
-                <div style={{ ...pStyles.card, background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1px solid #bbf7d0' }}>
+                <div style={{
+                    ...pStyles.card,
+                    background: `linear-gradient(180deg, rgba(203,254,28,0.12), ${PZ.panel})`,
+                    border: `1px solid ${PZ.voltDim}`,
+                }}>
                     <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
                         <div style={{ fontSize: '2.5rem' }}>🌟</div>
-                        <h3 style={{ margin: 0, fontWeight: 900, color: '#0f172a', fontSize: '1.125rem' }}>
+                        <h3 className="pz-display" style={{ margin: 0, color: PZ.white, fontSize: '1.125rem' }}>
                             Visit to {visitOutcome.businessName} logged!
                         </h3>
                     </div>
@@ -172,21 +176,21 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                         {visitOutcome.results.map(r => (
                             <div key={r.studentId} style={{
                                 display: 'flex', alignItems: 'center', gap: '0.6rem',
-                                background: '#ffffff', border: '1px solid #e2e8f0',
-                                borderRadius: '12px', padding: '0.6rem 0.875rem',
+                                background: PZ.panel2, border: `1px solid ${PZ.border}`,
+                                clipPath: PZ.notchSm, padding: '0.6rem 0.875rem', minHeight: '44px',
                             }}>
                                 <span style={{ fontSize: '1.25rem' }}>{r.status === 'OK' ? '🎉' : '✅'}</span>
-                                <span style={{ flex: 1, fontWeight: 800, color: '#0f172a', fontSize: '0.875rem' }}>{r.fullName}</span>
+                                <span style={{ flex: 1, fontWeight: 700, color: PZ.white, fontSize: '0.875rem' }}>{r.fullName}</span>
                                 <span style={{
-                                    fontWeight: 800, fontSize: '0.8125rem',
-                                    color: r.status === 'OK' ? '#15803d' : '#64748b',
+                                    fontWeight: 700, fontSize: '0.8125rem',
+                                    color: r.status === 'OK' ? PZ.volt : PZ.muted,
                                 }}>
                                     {r.status === 'OK' ? `+${r.points ?? 0} pts` : 'already visited today'}
                                 </span>
                             </div>
                         ))}
                     </div>
-                    <button onClick={() => setVisitOutcome(null)} style={{ ...pStyles.btnPrimary, width: '100%', marginTop: '0.875rem' }}>
+                    <button onClick={() => setVisitOutcome(null)} className="pz-btn" style={{ ...pStyles.btnPrimary, width: '100%', marginTop: '0.875rem' }}>
                         Done
                     </button>
                 </div>
@@ -194,21 +198,22 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
 
             {/* ── Visit confirm (after scan/deep link) ────────────────────────── */}
             {visitPreview && (
-                <div style={{ ...pStyles.card, border: '2px solid #c7d2fe' }}>
-                    <h3 style={{ ...pStyles.subTitle, fontSize: '1.125rem' }}>
-                        🏙️ Confirm visit to {visitPreview.name}
+                <div style={{ ...pStyles.card, border: `2px solid ${PZ.voltDim}` }}>
+                    <h3 className="pz-display" style={{ ...pStyles.subTitle, fontSize: '1.125rem' }}>
+                        Confirm visit to {visitPreview.name}
                     </h3>
                     {visitPreview.description && (
                         <p style={{ ...pStyles.mutedText, marginBottom: '0.75rem' }}>{visitPreview.description}</p>
                     )}
                     <div style={{ marginBottom: '1rem' }}>
-                        <span style={pStyles.pointsPill}>⭐ +{visitPreview.pointsReward} pts each</span>
+                        <span style={pStyles.pointsPill}>+{visitPreview.pointsReward} pts each</span>
                     </div>
                     <KidSelect students={students} selected={visitSelected} onChange={setVisitSelected} />
-                    {visitError && <div style={{ ...pStyles.errorBox, marginTop: '0.875rem' }}>⚠️ {visitError}</div>}
+                    {visitError && <div style={{ ...pStyles.errorBox, marginTop: '0.875rem' }}>{visitError}</div>}
                     <div style={{ display: 'flex', gap: '0.6rem', marginTop: '1rem' }}>
                         <button
                             onClick={() => { setVisitPreview(null); setVisitError(null); }}
+                            className="pz-btn-ghost"
                             style={{ ...pStyles.btnSecondary, flex: 1 }}
                             disabled={visitSubmitting}
                         >
@@ -217,12 +222,13 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                         <button
                             onClick={confirmVisit}
                             disabled={visitSubmitting || visitSelected.length === 0}
+                            className="pz-btn"
                             style={{
                                 ...pStyles.btnPrimary, flex: 2,
                                 opacity: visitSubmitting || visitSelected.length === 0 ? 0.6 : 1,
                             }}
                         >
-                            {visitSubmitting ? 'Recording…' : `⭐ Confirm Visit (${visitSelected.length})`}
+                            {visitSubmitting ? 'Recording…' : `Confirm Visit (${visitSelected.length})`}
                         </button>
                     </div>
                 </div>
@@ -230,17 +236,18 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
 
             {/* ── Earn Around Town ────────────────────────────────────────────── */}
             <div style={pStyles.card}>
-                <h2 style={{ ...pStyles.sectionTitle, marginBottom: '0.35rem' }}>🏙️ Earn Around Town</h2>
+                <div className="pz-eyebrow" style={pStyles.eyebrow}>Earn Around Town</div>
+                <h2 className="pz-display" style={{ ...pStyles.sectionTitle, marginBottom: '0.35rem' }}>Points Around Town</h2>
                 <p style={{ ...pStyles.mutedText, marginBottom: '1rem' }}>
                     Visit our partner businesses, scan the QR at their counter, and your kids earn points!
                 </p>
 
-                <button onClick={() => setScannerOpen(true)} style={pStyles.bigActionBtn} disabled={resolving}>
-                    {resolving ? '⏳ Checking that QR…' : '📷 Scan Business QR'}
+                <button onClick={() => setScannerOpen(true)} className="pz-btn" style={{ ...pStyles.bigActionBtn, opacity: resolving ? 0.6 : 1 }} disabled={resolving}>
+                    {resolving ? 'Checking that QR…' : 'Scan Business QR'}
                 </button>
 
                 {visitError && !visitPreview && (
-                    <div style={{ ...pStyles.errorBox, marginTop: '0.875rem' }}>⚠️ {visitError}</div>
+                    <div style={{ ...pStyles.errorBox, marginTop: '0.875rem' }}>{visitError}</div>
                 )}
 
                 <div style={{ marginTop: '1.125rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
@@ -250,15 +257,12 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                         <p style={pStyles.mutedText}>Partner businesses are coming soon — check back!</p>
                     ) : (
                         partners.map(p => (
-                            <div key={p.id} style={{
-                                border: '1px solid #e2e8f0', borderRadius: '14px', padding: '0.875rem 1rem',
-                                background: '#f8fafc',
-                            }}>
+                            <div key={p.id} style={pStyles.innerPanel}>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9375rem' }}>{p.name}</div>
+                                        <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.9375rem' }}>{p.name}</div>
                                         {p.category && (
-                                            <div style={{ color: '#4f46e5', fontSize: '0.6875rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: '0.1rem' }}>
+                                            <div style={{ color: PZ.volt, fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '0.1rem' }}>
                                                 {p.category}
                                             </div>
                                         )}
@@ -266,10 +270,10 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                                     <span style={pStyles.pointsPill}>+{p.pointsReward} pts / visit</span>
                                 </div>
                                 {p.description && (
-                                    <p style={{ margin: '0.4rem 0 0', color: '#64748b', fontSize: '0.8125rem', fontWeight: 500 }}>{p.description}</p>
+                                    <p style={{ margin: '0.4rem 0 0', color: PZ.muted, fontSize: '0.8125rem', fontWeight: 500 }}>{p.description}</p>
                                 )}
                                 {p.address && (
-                                    <p style={{ margin: '0.35rem 0 0', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600 }}>📍 {p.address}</p>
+                                    <p style={{ margin: '0.35rem 0 0', color: PZ.faint, fontSize: '0.75rem', fontWeight: 600 }}>📍 {p.address}</p>
                                 )}
                             </div>
                         ))
@@ -279,12 +283,12 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
 
             {/* ── Special Tasks ───────────────────────────────────────────────── */}
             <div style={pStyles.card}>
-                <h2 style={{ ...pStyles.sectionTitle, marginBottom: '0.35rem' }}>🏅 Special Tasks</h2>
+                <div className="pz-eyebrow" style={pStyles.eyebrow}>Special Tasks</div>
                 <p style={{ ...pStyles.mutedText, marginBottom: '1rem' }}>
                     Off-site challenges — mark them complete and the team awards points after review.
                 </p>
 
-                {taskSuccess && <div style={{ ...pStyles.successBox, marginBottom: '0.875rem' }}>✅ {taskSuccess}</div>}
+                {taskSuccess && <div style={{ ...pStyles.successBox, marginBottom: '0.875rem' }}>✓ {taskSuccess}</div>}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                     {loading ? (
@@ -294,19 +298,20 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                     ) : (
                         tasks.map(task => (
                             <div key={task.id} style={{
-                                border: openTaskId === task.id ? '2px solid #c7d2fe' : '1px solid #e2e8f0',
-                                borderRadius: '14px', padding: '0.875rem 1rem', background: '#ffffff',
+                                ...pStyles.innerPanel,
+                                border: openTaskId === task.id ? `2px solid ${PZ.voltDim}` : `1px solid ${PZ.border}`,
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9375rem' }}>{task.title}</div>
-                                        <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.8125rem', fontWeight: 500 }}>{task.description}</p>
+                                        <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.9375rem' }}>{task.title}</div>
+                                        <p style={{ margin: '0.25rem 0 0', color: PZ.muted, fontSize: '0.8125rem', fontWeight: 500 }}>{task.description}</p>
                                         {task.requiresProof && (
                                             <span style={{
                                                 display: 'inline-block', marginTop: '0.4rem',
-                                                background: '#eef2ff', border: '1px solid #c7d2fe', color: '#4f46e5',
-                                                borderRadius: '999px', padding: '0.15rem 0.6rem',
-                                                fontSize: '0.6875rem', fontWeight: 800,
+                                                background: PZ.voltFaint, border: `1px solid ${PZ.voltDim}`, color: PZ.volt,
+                                                borderRadius: '3px', padding: '0.15rem 0.6rem',
+                                                fontSize: '0.6875rem', fontWeight: 700,
+                                                textTransform: 'uppercase', letterSpacing: '0.06em',
                                             }}>
                                                 📸 needs proof
                                             </span>
@@ -316,7 +321,7 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                                 </div>
 
                                 {openTaskId === task.id ? (
-                                    <div style={{ marginTop: '0.875rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.875rem' }}>
+                                    <div style={{ marginTop: '0.875rem', borderTop: `1px solid ${PZ.border}`, paddingTop: '0.875rem' }}>
                                         <label style={pStyles.label}>Who completed it?</label>
                                         <KidSelect students={students} selected={taskKid} onChange={setTaskKid} single />
                                         <label style={{ ...pStyles.label, marginTop: '0.75rem' }}>
@@ -331,26 +336,28 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                                             rows={3}
                                             style={{ ...pStyles.input, resize: 'vertical' }}
                                         />
-                                        {taskError && <div style={{ ...pStyles.errorBox, marginTop: '0.6rem' }}>⚠️ {taskError}</div>}
+                                        {taskError && <div style={{ ...pStyles.errorBox, marginTop: '0.6rem' }}>{taskError}</div>}
                                         <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.75rem' }}>
-                                            <button onClick={() => setOpenTaskId(null)} style={{ ...pStyles.btnSecondary, flex: 1 }} disabled={taskSubmitting}>
+                                            <button onClick={() => setOpenTaskId(null)} className="pz-btn-ghost" style={{ ...pStyles.btnSecondary, flex: 1 }} disabled={taskSubmitting}>
                                                 Cancel
                                             </button>
                                             <button
                                                 onClick={() => submitTask(task)}
                                                 disabled={taskSubmitting}
+                                                className="pz-btn"
                                                 style={{ ...pStyles.btnPrimary, flex: 2, opacity: taskSubmitting ? 0.6 : 1 }}
                                             >
-                                                {taskSubmitting ? 'Submitting…' : '📨 Submit for Review'}
+                                                {taskSubmitting ? 'Submitting…' : 'Submit for Review'}
                                             </button>
                                         </div>
                                     </div>
                                 ) : (
                                     <button
                                         onClick={() => openTaskForm(task.id)}
-                                        style={{ ...pStyles.btnSecondary, width: '100%', marginTop: '0.75rem', padding: '0.65rem' }}
+                                        className="pz-btn-ghost"
+                                        style={{ ...pStyles.btnSecondary, width: '100%', marginTop: '0.75rem' }}
                                     >
-                                        ✅ Mark Complete
+                                        Mark Complete
                                     </button>
                                 )}
                             </div>
@@ -361,15 +368,15 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                 {/* My submissions */}
                 {submissions.length > 0 && (
                     <div style={{ marginTop: '1.25rem' }}>
-                        <h3 style={pStyles.subTitle}>📨 My Submissions</h3>
+                        <div className="pz-eyebrow" style={{ margin: '0 0 0.5rem' }}>My Submissions</div>
                         {submissions.map(row => (
                             <div key={row.submission.id} style={pStyles.listRow}>
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.875rem' }}>
-                                        {row.taskTitle} <span style={{ color: '#94a3b8', fontWeight: 600 }}>· {row.studentName}</span>
+                                    <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.875rem' }}>
+                                        {row.taskTitle} <span style={{ color: PZ.faint, fontWeight: 600 }}>· {row.studentName}</span>
                                     </div>
-                                    <div style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>
-                                        {fmtDateTime(row.submission.createdAt)} · +{row.points} pts
+                                    <div style={{ color: PZ.muted, fontSize: '0.75rem', fontWeight: 600 }}>
+                                        {fmtDateTime(row.submission.createdAt)} · <span style={{ color: PZ.volt }}>+{row.points} pts</span>
                                     </div>
                                 </div>
                                 <StatusChip status={row.submission.status} />
@@ -381,7 +388,7 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
 
             {/* ── Recent visits ───────────────────────────────────────────────── */}
             <div style={pStyles.card}>
-                <h3 style={pStyles.subTitle}>🗺️ Recent Visits</h3>
+                <div className="pz-eyebrow" style={pStyles.eyebrow}>Recent Visits</div>
                 {loading ? (
                     <p style={pStyles.mutedText}>Loading…</p>
                 ) : visits.length === 0 ? (
@@ -390,10 +397,10 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                     visits.map((row, i) => (
                         <div key={row.visit?._id ?? i} style={pStyles.listRow}>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.875rem' }}>
-                                    {row.businessName} <span style={{ color: '#94a3b8', fontWeight: 600 }}>· {row.studentName}</span>
+                                <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.875rem' }}>
+                                    {row.businessName} <span style={{ color: PZ.faint, fontWeight: 600 }}>· {row.studentName}</span>
                                 </div>
-                                <div style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>{row.visit?.date}</div>
+                                <div style={{ color: PZ.muted, fontSize: '0.75rem', fontWeight: 600 }}>{row.visit?.date}</div>
                             </div>
                             <span style={pStyles.pointsPill}>+{row.visit?.points ?? 0} pts</span>
                         </div>
@@ -404,7 +411,7 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
             {scannerOpen && (
                 <QRScanSheet
                     title="Scan Business QR"
-                    hint="Point your camera at the partner's QR code"
+                    hint="Line up the partner's QR code inside the brackets"
                     onScan={(text) => {
                         setScannerOpen(false);
                         handleSecret(text);

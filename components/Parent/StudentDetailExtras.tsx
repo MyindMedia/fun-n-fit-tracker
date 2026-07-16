@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckIn, Redemption } from '../../types';
 import { gameCenter } from '../../services/gameCenter';
-import { fmtTime, fmtDateTime, pStyles, StatusChip } from './shared';
+import { fmtTime, fmtDateTime, pStyles, StatusChip, PZ } from './shared';
 
 interface StudentDetailExtrasProps {
     studentId: string;
@@ -39,7 +39,7 @@ const StudentDetailExtras: React.FC<StudentDetailExtrasProps> = ({ studentId }) 
     if (loading) {
         return (
             <div style={{ ...pStyles.card, marginBottom: '1.25rem', textAlign: 'center' }}>
-                <p style={pStyles.mutedText}>⏳ Loading activity…</p>
+                <p style={pStyles.mutedText}>Loading activity…</p>
             </div>
         );
     }
@@ -48,20 +48,20 @@ const StudentDetailExtras: React.FC<StudentDetailExtrasProps> = ({ studentId }) 
         <>
             {/* Check-in history */}
             <div style={{ ...pStyles.card, marginBottom: '1.25rem' }}>
-                <h3 style={pStyles.subTitle}>🕐 Check-In History</h3>
+                <div className="pz-eyebrow" style={pStyles.eyebrow}>Check-In History</div>
                 {checkIns.length === 0 ? (
                     <p style={pStyles.mutedText}>No check-ins yet.</p>
                 ) : (
                     checkIns.slice(0, MAX_ROWS).map(c => (
                         <div key={c.id} style={pStyles.listRow}>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.875rem' }}>{c.date}</div>
-                                <div style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>
+                                <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.875rem' }}>{c.date}</div>
+                                <div style={{ color: PZ.muted, fontSize: '0.75rem', fontWeight: 600 }}>
                                     in {fmtTime(c.checkedInAt)}
                                     {c.checkedOutAt ? ` · out ${fmtTime(c.checkedOutAt)}` : ''}
                                 </div>
                             </div>
-                            <span style={{ fontSize: '1.1rem' }}>
+                            <span style={{ fontSize: '1.1rem' }} aria-hidden="true">
                                 {c.method === 'NFC' ? '📶' : c.method === 'MANUAL' ? '🖐️' : '📷'}
                             </span>
                         </div>
@@ -71,15 +71,15 @@ const StudentDetailExtras: React.FC<StudentDetailExtrasProps> = ({ studentId }) 
 
             {/* Business visits */}
             <div style={{ ...pStyles.card, marginBottom: '1.25rem' }}>
-                <h3 style={pStyles.subTitle}>🏙️ Business Visits</h3>
+                <div className="pz-eyebrow" style={pStyles.eyebrow}>Business Visits</div>
                 {visits.length === 0 ? (
                     <p style={pStyles.mutedText}>No partner-business visits yet.</p>
                 ) : (
                     visits.slice(0, MAX_ROWS).map((row, i) => (
                         <div key={row.visit?._id ?? i} style={pStyles.listRow}>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.875rem' }}>{row.businessName}</div>
-                                <div style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>{row.visit?.date}</div>
+                                <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.875rem' }}>{row.businessName}</div>
+                                <div style={{ color: PZ.muted, fontSize: '0.75rem', fontWeight: 600 }}>{row.visit?.date}</div>
                             </div>
                             <span style={pStyles.pointsPill}>+{row.visit?.points ?? 0} pts</span>
                         </div>
@@ -89,7 +89,7 @@ const StudentDetailExtras: React.FC<StudentDetailExtrasProps> = ({ studentId }) 
 
             {/* Redemptions */}
             <div style={{ ...pStyles.card, marginBottom: '1.25rem' }}>
-                <h3 style={pStyles.subTitle}>🎁 Perk Redemptions</h3>
+                <div className="pz-eyebrow" style={pStyles.eyebrow}>Perk Redemptions</div>
                 {redemptions.length === 0 ? (
                     <p style={pStyles.mutedText}>No perks redeemed yet.</p>
                 ) : (
@@ -97,9 +97,9 @@ const StudentDetailExtras: React.FC<StudentDetailExtrasProps> = ({ studentId }) 
                         <div key={r.id} style={pStyles.listRow}>
                             <div style={{ fontSize: '1.35rem', flexShrink: 0 }}>{r.rewardIcon || '🎁'}</div>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.875rem' }}>{r.rewardName}</div>
-                                <div style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>
-                                    {fmtDateTime(r.createdAt)} · ⭐ {r.cost.toLocaleString()} pts
+                                <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.875rem' }}>{r.rewardName}</div>
+                                <div style={{ color: PZ.muted, fontSize: '0.75rem', fontWeight: 600 }}>
+                                    {fmtDateTime(r.createdAt)} · <span style={{ color: PZ.volt }}>{r.cost.toLocaleString()} pts</span>
                                 </div>
                             </div>
                             <StatusChip status={r.status} />

@@ -25,32 +25,49 @@ const CurrentMatchups: React.FC = () => {
 
   if (activeSessions.length === 0) return null;
 
+  // Pubzi theme: small notched cut-corner shape for inline elements
+  const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
+
   return (
-    <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-[40] flex flex-col gap-2 pointer-events-none w-full max-w-lg px-6">
+    <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-[40] flex flex-col gap-2 pointer-events-none w-full max-w-lg px-6 pz-scope">
       {activeSessions.map((session, idx) => {
         const sessionRoster = students.filter(s => session.roster.includes(s.id));
-        
+
         return (
-          <div key={session.id} className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-2xl border-b-4 border-brand-blue flex items-center justify-between pointer-events-auto animate-slide-up">
+          <div
+            key={session.id}
+            className="pz-card relative p-4 flex items-center justify-between pointer-events-auto animate-slide-up"
+            style={{ background: 'rgba(18, 22, 31, 0.96)' }}
+          >
+            <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: 'var(--pz-volt)' }} />
             <div className="flex items-center gap-4">
-              <div className="bg-slate-900 text-white w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs shrink-0">{idx + 1}</div>
+              <div
+                className="pz-display w-8 h-8 flex items-center justify-center text-xs shrink-0 bg-white/10 text-white"
+                style={{ clipPath: NOTCH_SM }}
+              >
+                {idx + 1}
+              </div>
               <div>
-                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Live Game</div>
-                <div className="text-sm font-black text-slate-800 leading-tight truncate max-w-[140px]">{session.title}</div>
+                <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest leading-none mb-1" style={{ color: 'var(--pz-volt)' }}>
+                  <span className="w-1.5 h-1.5 rounded-full pz-live shrink-0" style={{ background: 'var(--pz-volt)' }} />
+                  Live Game
+                </div>
+                <div className="text-sm font-bold text-white leading-tight truncate max-w-[140px]">{session.title}</div>
               </div>
             </div>
-            
+
             <div className="flex -space-x-2 overflow-hidden px-2">
               {sessionRoster.slice(0, 4).map(s => (
-                <img 
-                  key={s.id} 
-                  src={s.avatarUrl} 
-                  className="w-8 h-8 rounded-full border-2 border-white shadow-sm ring-1 ring-slate-100" 
+                <img
+                  key={s.id}
+                  src={s.avatarUrl}
+                  className="w-8 h-8 rounded-full border-2 shadow-sm"
+                  style={{ borderColor: 'var(--pz-panel-2)' }}
                   title={s.fullName}
                 />
               ))}
               {sessionRoster.length > 4 && (
-                <div className="w-8 h-8 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-[8px] font-black text-slate-500">
+                <div className="w-8 h-8 rounded-full bg-white/10 border-2 flex items-center justify-center text-[8px] font-black text-white/70" style={{ borderColor: 'var(--pz-panel-2)' }}>
                   +{sessionRoster.length - 4}
                 </div>
               )}
