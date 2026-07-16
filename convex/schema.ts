@@ -279,6 +279,21 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_student", ["studentId"]),
 
+  // Player-to-player trades: badges and avatar items, both-sides consent.
+  trades: defineTable({
+    fromStudentId: v.id("students"),
+    toStudentId: v.id("students"),
+    giveKind: v.string(), // BADGE | ITEM (avatar wearable)
+    giveKey: v.string(),
+    wantKind: v.string(),
+    wantKey: v.string(),
+    status: v.string(), // PENDING | ACCEPTED | DECLINED | CANCELLED
+    createdAt: v.number(),
+    resolvedAt: v.optional(v.number()),
+  })
+    .index("by_to", ["toStudentId", "status"])
+    .index("by_from", ["fromStudentId", "status"]),
+
   // Owned gear items (bought or earned via achievements).
   studentGear: defineTable({
     studentId: v.id("students"),

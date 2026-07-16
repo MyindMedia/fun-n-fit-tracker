@@ -7,6 +7,7 @@ import AvatarStudio from './avatar/AvatarStudio';
 import AvatarRig from './avatar/AvatarRig';
 import LootCrates from './avatar/LootCrates';
 import GearShop from './avatar/GearShop';
+import PlayerCard, { thingName } from './Student/PlayerCard';
 import GameCenterStats from './Student/GameCenterStats';
 import TrophyCase from './TrophyCase';
 import LevelPath from './LevelPath';
@@ -46,11 +47,44 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
   const [showAvatarCreator, setShowAvatarCreator] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Player inspection + trades
+  const [inspecting, setInspecting] = useState<Student | null>(null);
+  const [trades, setTrades] = useState<{ incoming: any[]; outgoing: any[] }>({ incoming: [], outgoing: [] });
+  const [tradeBusy, setTradeBusy] = useState<string | null>(null);
+
+  const loadTrades = async () => {
+    try { setTrades(await gameCenter.tradesFor(student.id)); }
+    catch (err) { console.warn('Failed to load trades:', err); }
+  };
+
+  const respondTrade = async (tradeId: string, accept: boolean) => {
+    setTradeBusy(tradeId);
+    try {
+      await gameCenter.respondTrade(tradeId, accept);
+      await loadTrades();
+      if (accept && onRefresh) onRefresh();
+      await loadData();
+    } catch (err: any) {
+      alert(err?.message || 'Trade failed');
+      await loadTrades();
+    } finally {
+      setTradeBusy(null);
+    }
+  };
+
+  const cancelTrade = async (tradeId: string) => {
+    setTradeBusy(tradeId);
+    try { await gameCenter.cancelTrade(tradeId, student.id); await loadTrades(); }
+    catch (err: any) { alert(err?.message || 'Could not cancel'); }
+    finally { setTradeBusy(null); }
+  };
+
   useEffect(() => {
     setGamerTag(student.gamerTag || '');
     setBio(student.bio || '');
     setDisplayPreference(student.displayPreference || (student.gamerTag ? 'GAMER_TAG' : 'FULL_NAME'));
     loadData();
+    loadTrades();
   }, [student]);
 
   const loadData = async () => {
@@ -420,6 +454,47 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
   const renderFriendsTab = () => (
     <div className="space-y-4">
+      {/* Trade inbox */}
+      {(trades.incoming.length > 0 || trades.outgoing.length > 0) && (
+        <div className="pz-card p-4" style={{ borderColor: 'rgba(203,254,28,0.35)' }}>
+          <div className="pz-eyebrow mb-2">Trades</div>
+          <div className="space-y-2">
+            {trades.incoming.map(t => (
+              <div key={t._id} className="pz-card-sm p-3" style={{ background: 'var(--pz-panel-2)' }}>
+                <div className="text-xs font-bold text-white leading-snug">
+                  <span style={{ color: 'var(--pz-volt)' }}>{t.fromName.split(' ')[0]}</span> offers their{' '}
+                  {thingName(t.giveKind, t.giveKey)} for your {thingName(t.wantKind, t.wantKey)}
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <button onClick={() => respondTrade(t._id, true)} disabled={tradeBusy === t._id}
+                    className="pz-btn flex-1 py-2 text-[10px] touch-btn min-h-[40px]">
+                    {tradeBusy === t._id ? '…' : 'Accept'}
+                  </button>
+                  <button onClick={() => respondTrade(t._id, false)} disabled={tradeBusy === t._id}
+                    className="touch-btn flex-1 py-2 text-[10px] font-black uppercase bg-white/5 border border-white/10 text-white/60 min-h-[40px]"
+                    style={{ clipPath: NOTCH_SM }}>
+                    Decline
+                  </button>
+                </div>
+              </div>
+            ))}
+            {trades.outgoing.map(t => (
+              <div key={t._id} className="pz-card-sm p-3 flex items-center gap-2" style={{ background: 'var(--pz-panel-2)' }}>
+                <div className="text-xs font-bold flex-grow leading-snug" style={{ color: 'var(--pz-text)' }}>
+                  Waiting on <span className="text-white">{t.toName.split(' ')[0]}</span>: your{' '}
+                  {thingName(t.giveKind, t.giveKey)} for their {thingName(t.wantKind, t.wantKey)}
+                </div>
+                <button onClick={() => cancelTrade(t._id)} disabled={tradeBusy === t._id}
+                  className="touch-btn text-[9px] font-black uppercase px-2 py-1.5 bg-white/5 border border-white/10 text-white/50 shrink-0"
+                  style={{ clipPath: NOTCH_SM }}>
+                  Cancel
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Add Friend Button */}
       <button
         onClick={() => setShowAddFriend(true)}
@@ -444,7 +519,15 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
             {friends.map(friend => {
               const friendDisplayName = getStudentDisplayName(friend);
               return (
-                <div key={friend.id} className="pz-card-sm p-4 flex items-center gap-3" style={{ background: 'var(--pz-panel-2)' }}>
+                <div
+                  key={friend.id}
+                  onClick={() => setInspecting(friend)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setInspecting(friend); } }}
+                  className="pz-card-sm p-4 flex items-center gap-3 cursor-pointer hover:border-[#CBFE1C] transition-all active:scale-[0.99]"
+                  style={{ background: 'var(--pz-panel-2)' }}
+                >
                   <img
                     src={friend.avatarUrl}
                     className="w-12 h-12 rounded-full border-2 object-cover flex-shrink-0"
@@ -469,7 +552,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
                     </div>
                   </div>
                   <button
-                    onClick={() => handleRemoveFriend(friend.id)}
+                    onClick={(e) => { e.stopPropagation(); handleRemoveFriend(friend.id); }}
                     className="touch-btn w-8 h-8 bg-red-500/10 border border-red-500/40 text-red-400 flex items-center justify-center"
                     style={{ clipPath: NOTCH_SM }}
                   >
@@ -580,13 +663,57 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
         )}
       </div>
 
+      {/* Top players academy-wide — tap to inspect their card */}
+      {(() => {
+        const top5 = [...allStudents, student].sort((a, b) => b.points - a.points).slice(0, 5);
+        return (
+          <div>
+            <h3 className="text-sm text-white uppercase tracking-wide mb-3">Top Players</h3>
+            <div className="space-y-2">
+              {top5.map((s, idx) => {
+                const dn = getStudentDisplayName(s);
+                const isMe = s.id === student.id;
+                return (
+                  <div
+                    key={s.id}
+                    onClick={() => { if (!isMe) setInspecting(s); }}
+                    role={isMe ? undefined : 'button'}
+                    tabIndex={isMe ? undefined : 0}
+                    onKeyDown={e => { if (!isMe && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setInspecting(s); } }}
+                    className={`pz-card-sm p-3 flex items-center gap-3 transition-all ${isMe ? '' : 'cursor-pointer hover:border-[#CBFE1C] active:scale-[0.99]'}`}
+                    style={{ background: 'var(--pz-panel-2)', borderColor: isMe ? 'rgba(203,254,28,0.35)' : undefined }}
+                  >
+                    <span className="pz-display text-xs w-6 h-6 flex items-center justify-center shrink-0"
+                      style={idx === 0 ? { background: 'var(--pz-volt)', color: '#0B0E13', clipPath: NOTCH_SM } : { background: 'var(--pz-panel)', color: '#fff', border: '1px solid var(--pz-border)', clipPath: NOTCH_SM }}>
+                      {idx + 1}
+                    </span>
+                    <img src={s.avatarUrl} className="w-9 h-9 rounded-full border-2 object-cover shrink-0" style={{ borderColor: HOUSES[s.houseId].colorHex }} alt="" />
+                    <div className="flex-grow min-w-0">
+                      <div className="font-black text-xs text-white truncate">{dn.primary}{isMe ? ' (you)' : ''}</div>
+                      <div className="text-[9px] font-bold uppercase" style={{ color: HOUSES[s.houseId].colorHex }}>{HOUSES[s.houseId].name}</div>
+                    </div>
+                    <div className="pz-display text-sm text-white shrink-0">{s.points.toLocaleString()}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Top Scorer */}
       {teamStats?.topScorer && (() => {
         const topScorerDisplay = getStudentDisplayName(teamStats.topScorer);
+        const scorer = teamStats.topScorer;
+        const scorerIsMe = scorer.id === student.id;
         return (
           <div>
             <h3 className="text-sm text-white uppercase tracking-wide mb-3">Top Scorer</h3>
-            <div className="pz-card-sm p-4 flex items-center gap-4" style={{ background: 'var(--pz-panel-2)' }}>
+            <div
+              onClick={() => { if (!scorerIsMe) setInspecting(scorer); }}
+              role={scorerIsMe ? undefined : 'button'}
+              className={`pz-card-sm p-4 flex items-center gap-4 ${scorerIsMe ? '' : 'cursor-pointer hover:border-[#CBFE1C] transition-all active:scale-[0.99]'}`}
+              style={{ background: 'var(--pz-panel-2)' }}>
               <div style={{ color: 'var(--pz-volt)' }}><Ic.Trophy size={28} /></div>
               <img
                 src={teamStats.topScorer.avatarUrl}
@@ -755,6 +882,16 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           {activeTab === 'FRIENDS' && renderFriendsTab()}
           {activeTab === 'TEAM' && renderTeamTab()}
         </div>
+
+        {/* Player inspection card */}
+        {inspecting && (
+          <PlayerCard
+            viewer={student}
+            player={inspecting}
+            canTrade={friends.some(f => f.id === inspecting.id)}
+            onClose={() => { setInspecting(null); loadTrades(); }}
+          />
+        )}
       </div>
     </div>
   );

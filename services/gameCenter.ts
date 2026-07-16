@@ -602,6 +602,55 @@ class GameCenterService {
     })) as { ok: boolean; reason: 'DISABLED' | 'WRONG_PIN' | null };
   }
 
+  // ── Trades (badges + avatar items) ─────────────────────────────────────────
+
+  public async tradableInventory(studentId: string): Promise<{
+    badges: string[];
+    items: Array<{ key: string; upgradeLevel: number }>;
+  }> {
+    return (await this.client.query(api.trades.tradable, {
+      studentId: studentId as Id<'students'>,
+    })) as any;
+  }
+
+  public async proposeTrade(args: {
+    fromStudentId: string;
+    toStudentId: string;
+    giveKind: 'BADGE' | 'ITEM';
+    giveKey: string;
+    wantKind: 'BADGE' | 'ITEM';
+    wantKey: string;
+  }): Promise<void> {
+    await this.client.mutation(api.trades.propose, {
+      fromStudentId: args.fromStudentId as Id<'students'>,
+      toStudentId: args.toStudentId as Id<'students'>,
+      giveKind: args.giveKind,
+      giveKey: args.giveKey,
+      wantKind: args.wantKind,
+      wantKey: args.wantKey,
+    });
+  }
+
+  public async respondTrade(tradeId: string, accept: boolean): Promise<void> {
+    await this.client.mutation(api.trades.respond, {
+      tradeId: tradeId as Id<'trades'>,
+      accept,
+    });
+  }
+
+  public async cancelTrade(tradeId: string, byStudentId: string): Promise<void> {
+    await this.client.mutation(api.trades.cancel, {
+      tradeId: tradeId as Id<'trades'>,
+      byStudentId: byStudentId as Id<'students'>,
+    });
+  }
+
+  public async tradesFor(studentId: string): Promise<{ incoming: any[]; outgoing: any[] }> {
+    return (await this.client.query(api.trades.listFor, {
+      studentId: studentId as Id<'students'>,
+    })) as any;
+  }
+
   // ── Gear shop (boost items) ────────────────────────────────────────────────
 
   public async gearShop(studentId: string): Promise<{
