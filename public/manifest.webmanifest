@@ -1,0 +1,36 @@
+{
+  "name": "Fun 'N Fit Academy",
+  "short_name": "Fun N Fit",
+  "description": "Fun 'N Fit Academy tracker — live leaderboard, student portal, and parent portal.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#0ea5e9",
+  "icons": [
+    {
+      "src": "/fnfa-logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Parent Portal",
+      "url": "/#/parent-login",
+      "description": "Sign in to view your athletes"
+    },
+    {
+      "name": "Student Portal",
+      "url": "/#/login",
+      "description": "Student login"
+    },
+    {
+      "name": "Live Leaderboard",
+      "url": "/#/live",
+      "description": "Live house leaderboard"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "Fun N' Fit Tracker",
+  "description": "A gamified point-tracking system for a children's fitness academy featuring real-time house leaderboards, live game management, and Google Fit integration simulation.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

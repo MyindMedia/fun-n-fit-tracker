@@ -1,0 +1,150 @@
+
+import { Rank, House, HouseId, GameDefinition, Badge, Reward } from './types';
+
+// NOTE: the old Supabase storage bucket is gone. Rank/house art now ships with the
+// app (public/assets/...). Audio still points at the dead bucket and fails silently —
+// replace with local files or Convex storage URLs when new sounds are available.
+const BASE_STORAGE_URL = 'https://odsyoxopcvtgxylmnapk.supabase.co/storage/v1/object/public/Assets';
+const LEVELS_URL = '/assets/rankings';
+const TEAMS_URL = '/assets/team';
+
+export const APP_LOGO_URL = '/fnfa-logo.png';
+export const POINT_SPARKLE_SOUNDS: string[] = [
+  `${BASE_STORAGE_URL}/audio_files/point-sparkle/Sparkle%20Pop%2001.mp3`,
+  `${BASE_STORAGE_URL}/audio_files/point-sparkle/Sparkle%20Pop%2002.mp3`,
+  `${BASE_STORAGE_URL}/audio_files/point-sparkle/Sparkle%20Pop%2003.mp3`,
+  `${BASE_STORAGE_URL}/audio_files/point-sparkle/Sparkle%20Pop%2004.mp3`
+];
+export const POINT_LOST_SOUND: string = `${BASE_STORAGE_URL}/audio_files/point-lost/lose-points.wav`;
+export const GAME_COUNTDOWN_10_SOUND: string = `${BASE_STORAGE_URL}/audio_files/game-over-countdown/game-over-countdown.wav`;
+export const GAME_START_SOUND: string = `${BASE_STORAGE_URL}/audio_files/game-start/game-start.wav`;
+export const GAME_WINNER_SOUND: string = `${BASE_STORAGE_URL}/audio_files/game-winner/game-winner.wav`;
+export const GAME_OVER_LOGO_SOUND: string = `${BASE_STORAGE_URL}/audio_files/game-over-screen/game-over-Logo.wav`;
+export const LEVEL_UP_SOUND: string = `${BASE_STORAGE_URL}/audio_files/level-up/level-up.wav`;
+
+export const BADGES: Badge[] = [
+  { id: 'b_first_drill', name: 'First Game', icon: '🚀', description: 'Completed your very first academy game!', color: '#60a5fa' },
+  { id: 'b_powerhouse', name: 'Powerhouse', icon: '⚡', description: 'Earned 50+ points in a single session.', color: '#fbbf24' },
+  { id: 'b_consistency', name: 'Early Bird', icon: '🌅', description: 'Marked present for 3 consecutive days.', color: '#4ade80' },
+  { id: 'b_mvp', name: 'Game MVP', icon: '🏆', description: 'Awarded MVP status by a coach.', color: '#f43f5e' },
+  { id: 'b_team_player', name: 'Team Spirit', icon: '🤝', description: 'Participated in 5 group challenges.', color: '#a78bfa' },
+];
+
+export const REWARDS: Reward[] = [
+  { id: 'r_aura', name: 'Golden Aura', cost: 100, icon: '✨', category: 'Virtual', description: 'Give your profile a shimmering gold border.' },
+  { id: 'r_shades', name: 'Cool Shades', cost: 250, icon: '😎', category: 'Virtual', description: 'Avatar item: Epic sunglasses for your profile.' },
+  { id: 'r_water', name: 'Premium Bottle', cost: 500, icon: '💧', category: 'Real', description: 'Claim a branded academy water bottle.' },
+  { id: 'r_shirt', name: 'House Jersey', cost: 2000, icon: '👕', category: 'Real', description: 'Unlock your official House colored training jersey.' },
+  { id: 'r_coach', name: 'Coach for a Game', cost: 5000, icon: '🧢', category: 'Real', description: 'Lead the next game alongside the coaching staff.' },
+];
+
+export const HOUSES: Record<HouseId, House> = {
+  [HouseId.UNITY]: { id: HouseId.UNITY, name: 'Unity', colorHex: '#0ea5e9', mascot: 'Wolf', totalPoints: 0, customIcon: `${TEAMS_URL}/unity.svg` },
+  [HouseId.SAGE]: { id: HouseId.SAGE, name: 'Sage', colorHex: '#10b981', mascot: 'Owl', totalPoints: 0, customIcon: `${TEAMS_URL}/sage.svg` },
+  [HouseId.SPARK]: { id: HouseId.SPARK, name: 'Spark', colorHex: '#f97316', mascot: 'Fox', totalPoints: 0, customIcon: `${TEAMS_URL}/spark.svg` },
+  [HouseId.VALOR]: { id: HouseId.VALOR, name: 'Valor', colorHex: '#8b5cf6', mascot: 'Honey Badger', totalPoints: 0, customIcon: `${TEAMS_URL}/valor.svg` },
+};
+
+export const GAME_LIBRARY: GameDefinition[] = [
+  {
+    gameKey: 'HSC_01',
+    displayName: 'Head Shoulder Cone',
+    category: 'Reaction',
+    houseTraitFocus: HouseId.SPARK,
+    minPlayers: 2, maxPlayers: 40, recommendedAgeBand: '6-12',
+    durationDefaultSeconds: 120,
+    equipmentChecklist: ['1 cone per pair'],
+    setupSteps: ['Face partner', 'Cone in middle'],
+    rules: ['Touch body parts called', 'Grab cone on signal'],
+    scoringRules: '10 points per win',
+    penalties: '-5 for false start',
+    tieBreaker: 'Sudden death round',
+    safetyNotes: 'Watch head collisions',
+    accessibilityVariants: 'Visual flags for hearing impaired',
+    coachScriptShort: 'Head... Shoulders... CONE!',
+    dataCaptureFields: ['winner_id'],
+    leaderboardMetric: 'score',
+    templateId: 'TEMPLATE_H2H_ROUNDS'
+  },
+  {
+    gameKey: 'RELAY_01',
+    displayName: 'Relay Races',
+    category: 'Speed',
+    houseTraitFocus: HouseId.VALOR,
+    minPlayers: 4, maxPlayers: 100, recommendedAgeBand: '5-15',
+    durationDefaultSeconds: 300,
+    equipmentChecklist: ['Cones', 'Baton'],
+    setupSteps: ['Equal teams', 'Mark start/end'],
+    rules: ['Pass baton', 'Stay in lane'],
+    scoringRules: 'Top 3 houses get scaled points',
+    penalties: '-10 for dropping baton',
+    tieBreaker: 'Photo finish/Timer',
+    safetyNotes: 'Clear running lanes',
+    accessibilityVariants: 'Shortened lanes',
+    coachScriptShort: 'Ready, set, GO!',
+    dataCaptureFields: ['finish_time'],
+    leaderboardMetric: 'time',
+    templateId: 'TEMPLATE_TIME_TRIAL'
+  },
+  {
+    gameKey: 'YNJ_01',
+    displayName: 'Yes No Line Jump',
+    category: 'Cognitive',
+    houseTraitFocus: HouseId.SAGE,
+    minPlayers: 2, maxPlayers: 60, recommendedAgeBand: '5-15',
+    durationDefaultSeconds: 180,
+    equipmentChecklist: ['Tape line'],
+    setupSteps: ['Stand on line'],
+    rules: ['Jump left for Yes', 'Jump right for No'],
+    scoringRules: '10 points for correct side',
+    penalties: 'None',
+    tieBreaker: 'Rapid fire questions',
+    safetyNotes: 'Flat ground only',
+    accessibilityVariants: 'Use hand signals',
+    coachScriptShort: 'Is fire hot? Jump!',
+    dataCaptureFields: ['question_text', 'correct_side'],
+    leaderboardMetric: 'accuracy',
+    templateId: 'TEMPLATE_QUIZ'
+  },
+  { gameKey: 'SIMON_01', displayName: 'Simon Says', category: 'Focus', houseTraitFocus: HouseId.SAGE, minPlayers: 2, maxPlayers: 50, recommendedAgeBand: '5-12', durationDefaultSeconds: 240, equipmentChecklist: [], setupSteps: ['Circle formation'], rules: ['Only move on Simon Says'], scoringRules: 'Last ones standing win', penalties: 'Out on wrong move', tieBreaker: 'Double speed', safetyNotes: 'Personal space', accessibilityVariants: 'Visual signs', coachScriptShort: 'Simon says touch your toes!', dataCaptureFields: ['eliminated_ids'], leaderboardMetric: 'accuracy', templateId: 'TEMPLATE_ACCURACY' },
+  { gameKey: 'SQUAT_01', displayName: 'Squat With Numbers', category: 'Strength', houseTraitFocus: HouseId.UNITY, minPlayers: 1, maxPlayers: 50, recommendedAgeBand: '6-15', durationDefaultSeconds: 120, equipmentChecklist: [], setupSteps: ['Open space'], rules: ['Squat on called number'], scoringRules: '10 points per clean rep', penalties: 'None', tieBreaker: 'Hold squat contest', safetyNotes: 'Back straight', accessibilityVariants: 'Supported squats', coachScriptShort: 'Number 3! Squat!', dataCaptureFields: ['rep_count'], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  { gameKey: 'FLIP_01', displayName: 'Flip Cup', category: 'Skill', houseTraitFocus: HouseId.SPARK, minPlayers: 4, maxPlayers: 20, recommendedAgeBand: '7-15', durationDefaultSeconds: 300, equipmentChecklist: ['Cups', 'Tables'], setupSteps: ['Teams face each other'], rules: ['Drink/Flip in order'], scoringRules: '50 points for winning team', penalties: 'False start restart', tieBreaker: 'Captain vs Captain', safetyNotes: 'No plastic shards', accessibilityVariants: 'Larger cups', coachScriptShort: 'Go go go!', dataCaptureFields: ['winner_house'], leaderboardMetric: 'score', templateId: 'TEMPLATE_H2H_ROUNDS' },
+  { gameKey: 'MTOSS_01', displayName: 'Marshmallow Toss', category: 'Accuracy', houseTraitFocus: HouseId.UNITY, minPlayers: 2, maxPlayers: 20, recommendedAgeBand: '5-12', durationDefaultSeconds: 180, equipmentChecklist: ['Marshmallows', '3 Bowls'], setupSteps: ['Set bowls at distance'], rules: ['Toss into bowls'], scoringRules: '10, 20, 30 points per bowl', penalties: 'Stepping over line', tieBreaker: 'Distance toss', safetyNotes: 'No eating during play', accessibilityVariants: 'Closer bowls', coachScriptShort: 'Aim for the back bowl!', dataCaptureFields: ['bowl_index'], leaderboardMetric: 'accuracy', templateId: 'TEMPLATE_ACCURACY' },
+  { gameKey: 'CCH_01', displayName: 'Candy Cane Hook', category: 'Finesse', houseTraitFocus: HouseId.SAGE, minPlayers: 2, maxPlayers: 10, recommendedAgeBand: '6-15', durationDefaultSeconds: 180, equipmentChecklist: ['Candy canes', 'String'], setupSteps: ['Pile canes on table'], rules: ['Hook canes with mouth-string'], scoringRules: '20 points per cane', penalties: 'Hands touch', tieBreaker: 'One minute dash', safetyNotes: 'Watch string tangles', accessibilityVariants: 'Shallow pile', coachScriptShort: 'No hands!', dataCaptureFields: ['hook_count'], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  { gameKey: 'MPU_01', displayName: 'Marshmallow Pick Up', category: 'Agility', houseTraitFocus: HouseId.VALOR, minPlayers: 2, maxPlayers: 20, recommendedAgeBand: '6-12', durationDefaultSeconds: 120, equipmentChecklist: ['Giant marshmallows', 'Red cups'], setupSteps: ['Scatter marshmallows'], rules: ['Pick up with cup only'], scoringRules: '10 points per marshmallow', penalties: 'Hands touch', tieBreaker: 'Fastest 5', safetyNotes: 'Avoid collisions', accessibilityVariants: 'Larger target', coachScriptShort: 'Cup scoop only!', dataCaptureFields: ['pickup_count'], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  { gameKey: 'MFC_01', displayName: 'Marshmallow Flip Cup', category: 'Skill', houseTraitFocus: HouseId.SPARK, minPlayers: 4, maxPlayers: 20, recommendedAgeBand: '7-15', durationDefaultSeconds: 300, equipmentChecklist: ['Cups', 'Marshmallows'], setupSteps: ['Cups upside down'], rules: ['Flip cup then place marshmallow'], scoringRules: '10 points per successful flip', penalties: 'Dropping marshmallow', tieBreaker: 'Speed flip', safetyNotes: 'Wash hands first', accessibilityVariants: 'Weighted cups', coachScriptShort: 'Flip and place!', dataCaptureFields: ['flip_count'], leaderboardMetric: 'score', templateId: 'TEMPLATE_H2H_ROUNDS' },
+  { gameKey: 'MSPU_01', displayName: 'Marshmallow Straw Pick Up', category: 'Focus', houseTraitFocus: HouseId.SAGE, minPlayers: 2, maxPlayers: 15, recommendedAgeBand: '6-15', durationDefaultSeconds: 120, equipmentChecklist: ['Mini marshmallows', 'Straws', 'Bowls'], setupSteps: ['Marshmallows in pile'], rules: ['Suction with straw only'], scoringRules: '5 points per marshmallow', penalties: 'Hands touch straw', tieBreaker: '30 sec sprint', safetyNotes: 'No inhaling marshmallows!', accessibilityVariants: 'Shorter straw', coachScriptShort: 'Deep breath and lift!', dataCaptureFields: ['suction_count'], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  { gameKey: 'CCPM_01', displayName: 'Candy Cane Pick Up Mouth', category: 'Coordination', houseTraitFocus: HouseId.VALOR, minPlayers: 2, maxPlayers: 10, recommendedAgeBand: '7-15', durationDefaultSeconds: 120, equipmentChecklist: ['Candy canes'], setupSteps: ['Pile canes'], rules: ['Hook cane using mouth cane'], scoringRules: '15 points per hook', penalties: 'Hands touch', tieBreaker: 'Longest chain', safetyNotes: 'Beware of sharp edges', accessibilityVariants: 'Thick canes', coachScriptShort: 'Careful hooks!', dataCaptureFields: ['hook_count'], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  { gameKey: 'BCR_01', displayName: 'Balloon Cup Race', category: 'Speed', houseTraitFocus: HouseId.SPARK, minPlayers: 2, maxPlayers: 20, recommendedAgeBand: '5-12', durationDefaultSeconds: 180, equipmentChecklist: ['Balloons', 'Red cups'], setupSteps: ['Blow cup across line with balloon air'], rules: ['Only use balloon exhaust'], scoringRules: 'First house across line wins', penalties: 'Blowing with mouth', tieBreaker: 'Balloon size check', safetyNotes: 'Latex allergy warning', accessibilityVariants: 'Larger target cups', coachScriptShort: 'Deflate to propel!', dataCaptureFields: ['finish_time'], leaderboardMetric: 'time', templateId: 'TEMPLATE_TIME_TRIAL' },
+  { gameKey: 'TTRW_01', displayName: 'Toilet Tissue Race Water', category: 'Stealth', houseTraitFocus: HouseId.VALOR, minPlayers: 2, maxPlayers: 20, recommendedAgeBand: '6-15', durationDefaultSeconds: 240, equipmentChecklist: ['TP rolls', 'Dixie cups', 'Water'], setupSteps: ['Unroll TP across floor', 'Cup on end'], rules: ['Roll TP back without spilling'], scoringRules: '50 points for driest winner', penalties: 'TP break restart', tieBreaker: 'Remaining water volume', safetyNotes: 'Wet floor hazard', accessibilityVariants: 'Dry cup race', coachScriptShort: 'Slow and steady!', dataCaptureFields: ['water_remaining'], leaderboardMetric: 'accuracy', templateId: 'TEMPLATE_ACCURACY' },
+  { gameKey: 'BBM_01', displayName: 'Blind Box Match', category: 'Sensory', houseTraitFocus: HouseId.SAGE, minPlayers: 2, maxPlayers: 12, recommendedAgeBand: '6-15', durationDefaultSeconds: 300, equipmentChecklist: ['4 Medium boxes', 'Assorted items'], setupSteps: ['Hide items in boxes'], rules: ['Match items by feel only'], scoringRules: '20 points per match', penalties: 'Peeking', tieBreaker: 'Fastest match', safetyNotes: 'Safe objects only', accessibilityVariants: 'Vibrant colors for low vision', coachScriptShort: 'No peeking!', dataCaptureFields: ['match_count'], leaderboardMetric: 'accuracy', templateId: 'TEMPLATE_ACCURACY' },
+  { gameKey: 'RIBBON_01', displayName: 'Ribbon Relay', category: 'Teamwork', houseTraitFocus: HouseId.UNITY, minPlayers: 6, maxPlayers: 40, recommendedAgeBand: '5-15', durationDefaultSeconds: 300, equipmentChecklist: ['Ribbons'], setupSteps: ['Teams tied together'], rules: ['Run together as a unit'], scoringRules: 'Points for top finish', penalties: 'Ribbon break', tieBreaker: 'Synchronization score', safetyNotes: 'Flat area only', accessibilityVariants: 'Elastic ribbons', coachScriptShort: 'Stay together!', dataCaptureFields: ['finish_time'], leaderboardMetric: 'time', templateId: 'TEMPLATE_TIME_TRIAL' },
+  { gameKey: 'LASER_01', displayName: 'Laser Eyes', category: 'Focus', houseTraitFocus: HouseId.SAGE, minPlayers: 2, maxPlayers: 20, recommendedAgeBand: '6-15', durationDefaultSeconds: 180, equipmentChecklist: [], setupSteps: ['Faring partners'], rules: ['Staring contest while moving'], scoringRules: 'Points for longest focus', penalties: 'Blinking', tieBreaker: 'Mirror contest', safetyNotes: 'Don\'t walk into walls', accessibilityVariants: 'No motion required', coachScriptShort: 'Don\'t blink!', dataCaptureFields: ['focus_duration'], leaderboardMetric: 'accuracy', templateId: 'TEMPLATE_ACCURACY' },
+  { gameKey: 'DODGE_01', displayName: 'Dodgeball', category: 'Teamwork', houseTraitFocus: HouseId.VALOR, minPlayers: 8, maxPlayers: 40, recommendedAgeBand: '6-15', durationDefaultSeconds: 600, equipmentChecklist: ['Foam balls', 'Boundary lines'], setupSteps: ['Split into houses', 'Place balls at center line'], rules: ['Hits below shoulders', 'If hit, move to sidelines'], scoringRules: '1 point per elimination; 25 points winning house', penalties: 'Headshots -10 and warning', tieBreaker: 'Sudden death with 2 balls', safetyNotes: 'Use foam balls only; watch collisions', accessibilityVariants: 'Walk-only variant', coachScriptShort: 'Ready... Dodge!', dataCaptureFields: ['winner_house'], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  // Dodgeball Season Games
+  { gameKey: 'DBS_CLASSIC', displayName: 'Classic Dodgeball Match', category: 'Dodgeball Season', houseTraitFocus: HouseId.VALOR, minPlayers: 8, maxPlayers: 40, recommendedAgeBand: '6-15', durationDefaultSeconds: 900, equipmentChecklist: ['6 Foam balls', 'Boundary cones', 'Center line tape'], setupSteps: ['Divide into houses', 'Place 3 balls each side of center line', 'Players start at back wall'], rules: ['Hit below shoulders to eliminate', 'Catch a ball to bring teammate back', 'No crossing center line', 'Deflected balls are still live'], scoringRules: '10 pts per elimination; 50 pts winning house; 5 pts per catch save', penalties: 'Headshots -15 and warning', tieBreaker: 'Golden ball sudden death', safetyNotes: 'Foam balls only; no face shots', accessibilityVariants: 'Safe zone corners', coachScriptShort: 'Dodge, duck, dip, dive, and dodge!', dataCaptureFields: ['winner_house', 'eliminations', 'catches'], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  { gameKey: 'DBS_MEDIC', displayName: 'Medic Dodgeball', category: 'Dodgeball Season', houseTraitFocus: HouseId.UNITY, minPlayers: 10, maxPlayers: 50, recommendedAgeBand: '6-15', durationDefaultSeconds: 900, equipmentChecklist: ['6 Foam balls', 'Medic vests/bands', 'Boundary cones'], setupSteps: ['Each house selects 1-2 medics secretly', 'Medics wear hidden band', 'Standard dodgeball setup'], rules: ['Standard dodgeball rules apply', 'Medics can revive eliminated players by tagging', 'Game ends when all medics eliminated', 'Medic identity revealed on first revive'], scoringRules: '10 pts per elimination; 75 pts winning house; 20 pts per successful revive', penalties: 'Revealing medic early -25', tieBreaker: 'Medic vs medic duel', safetyNotes: 'Tag gently for revives', accessibilityVariants: 'Walking medics', coachScriptShort: 'Protect your medic!', dataCaptureFields: ['winner_house', 'revives', 'medic_eliminations'], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  { gameKey: 'DBS_JAILBREAK', displayName: 'Jailbreak Dodgeball', category: 'Dodgeball Season', houseTraitFocus: HouseId.SPARK, minPlayers: 12, maxPlayers: 50, recommendedAgeBand: '6-15', durationDefaultSeconds: 1200, equipmentChecklist: ['8 Foam balls', 'Jail zone cones', 'Target pins'], setupSteps: ['Set up jail zone behind each team', 'Place target pin in each jail', 'Eliminated players go to opposing jail'], rules: ['Hit below shoulders to eliminate', 'Eliminated go to opponent jail', 'Jailed players can catch balls thrown to them', 'Catch while jailed = freedom + thrower jailed', 'Knock down target pin = all jailed teammates freed'], scoringRules: '10 pts per elimination; 100 pts winning house; 25 pts per jailbreak', penalties: 'Stepping out of jail -10', tieBreaker: 'Pin knockdown shootout', safetyNotes: 'Clear jail zone of obstacles', accessibilityVariants: 'Seated jail throws', coachScriptShort: 'Break them out!', dataCaptureFields: ['winner_house', 'jailbreaks', 'pin_knockdowns'], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  { gameKey: 'DBS_GAUNTLET', displayName: 'Dodgeball Gauntlet', category: 'Dodgeball Season', houseTraitFocus: HouseId.VALOR, minPlayers: 6, maxPlayers: 30, recommendedAgeBand: '7-15', durationDefaultSeconds: 600, equipmentChecklist: ['10 Foam balls', 'Running lane cones'], setupSteps: ['Create narrow running lane', 'Throwers line both sides', 'Runners start at one end'], rules: ['Runners must cross gauntlet without being hit', 'Throwers cannot enter lane', 'Runners cannot catch (just dodge)', 'Each successful cross = 1 point for house'], scoringRules: '20 pts per successful cross; Best house total wins', penalties: 'Lane violation -5', tieBreaker: 'Speed run finals', safetyNotes: 'One runner at a time', accessibilityVariants: 'Wider lane option', coachScriptShort: 'Run the gauntlet!', dataCaptureFields: ['successful_crosses', 'winner_house'], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  { gameKey: 'DBS_KINGPIN', displayName: 'King Pin Dodgeball', category: 'Dodgeball Season', houseTraitFocus: HouseId.SAGE, minPlayers: 8, maxPlayers: 40, recommendedAgeBand: '6-15', durationDefaultSeconds: 900, equipmentChecklist: ['6 Foam balls', 'King pin/bowling pin per team', 'Pin stands'], setupSteps: ['Place king pin at back of each side', 'Standard dodgeball setup', 'Assign 1-2 guards per team'], rules: ['Standard elimination rules apply', 'Knock down opponent pin = instant win', 'Guards can block pin but are regular players', 'Pin can only be hit directly (no deflections)'], scoringRules: '10 pts per elimination; Pin knockdown = 150 pts + win', penalties: 'Blocking with hands -20', tieBreaker: 'Closest pin hit wins', safetyNotes: 'Stable pin placement', accessibilityVariants: 'Larger pin target', coachScriptShort: 'Guard the pin!', dataCaptureFields: ['winner_house', 'pin_status', 'eliminations'], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  { gameKey: 'DBS_ALLSTAR', displayName: 'All-Star Elimination', category: 'Dodgeball Season', houseTraitFocus: HouseId.UNITY, minPlayers: 16, maxPlayers: 60, recommendedAgeBand: '6-15', durationDefaultSeconds: 1500, equipmentChecklist: ['8 Foam balls', 'Score board', 'All-Star bands'], setupSteps: ['Each house nominates 4 All-Stars', 'All-Stars wear special bands', 'Round robin format'], rules: ['All-Stars worth double points when eliminated', 'Best of 3 rounds per matchup', 'House with most total points wins season game'], scoringRules: 'Regular elimination 10 pts; All-Star elimination 25 pts; Round win 50 pts', penalties: 'All-Star headshot -30', tieBreaker: 'All-Star vs All-Star showdown', safetyNotes: 'Extra caution with All-Stars', accessibilityVariants: 'Protected All-Star zones', coachScriptShort: 'Take out their stars!', dataCaptureFields: ['winner_house', 'allstar_eliminations', 'round_scores'], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  { gameKey: 'DBS_CHAMPIONSHIP', displayName: 'Dodgeball Championship', category: 'Dodgeball Season', houseTraitFocus: HouseId.VALOR, minPlayers: 16, maxPlayers: 60, recommendedAgeBand: '6-15', durationDefaultSeconds: 1800, equipmentChecklist: ['10 Foam balls', 'Trophy', 'Championship banner'], setupSteps: ['Bracket-style tournament', 'Semi-finals then finals', 'Best of 5 games'], rules: ['Standard dodgeball with all season rule variants', 'Coach can call 1 timeout per game', 'MVP voted after each game'], scoringRules: 'Win = 100 pts; Final win = 300 pts; Season MVP = 200 pts bonus', penalties: 'Unsportsmanlike -50', tieBreaker: 'Penalty shootout', safetyNotes: 'Full safety protocols for championship', accessibilityVariants: 'Inclusive seating', coachScriptShort: 'This is it! Championship time!', dataCaptureFields: ['champion_house', 'mvp_id', 'game_scores'], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  { gameKey: 'CUSTOM_POINTS', displayName: 'Custom Points Game', category: 'Custom', houseTraitFocus: 'Mixed', minPlayers: 1, maxPlayers: 200, recommendedAgeBand: '5-18', durationDefaultSeconds: 300, equipmentChecklist: [], setupSteps: [], rules: ['Coach awards points manually'], scoringRules: 'Buttons: +10, +25; penalties -10', penalties: 'Coach correction -10', tieBreaker: 'Highest points wins', safetyNotes: 'General safety', accessibilityVariants: 'Flexible rules', coachScriptShort: 'Work hard, earn points!', dataCaptureFields: [], leaderboardMetric: 'score', templateId: 'TEMPLATE_REP_COUNTER' },
+  { gameKey: 'CUSTOM_LAP', displayName: 'Custom Lap Stopwatch', category: 'Custom', houseTraitFocus: 'Mixed', minPlayers: 1, maxPlayers: 200, recommendedAgeBand: '5-18', durationDefaultSeconds: 600, equipmentChecklist: [], setupSteps: [], rules: ['Coach runs stopwatch and records laps'], scoringRules: 'Lap button records time and points', penalties: 'None', tieBreaker: 'Fastest lap', safetyNotes: 'Clear running path', accessibilityVariants: 'Shorter laps', coachScriptShort: 'Ready, set, GO!', dataCaptureFields: ['lap_time'], leaderboardMetric: 'time', templateId: 'TEMPLATE_TIME_TRIAL' },
+];
+
+// Rank thresholds based on XP system from documentation
+export const RANKS: Rank[] = [
+  { id: 'r_noob', name: 'Noob', threshold: 10, icon: `${LEVELS_URL}/Noob.jpg`, color: '#94a3b8', description: 'Just hatching!' },
+  { id: 'r_rookie', name: 'Rookie', threshold: 85, icon: `${LEVELS_URL}/Rookie.jpg`, color: '#4ade80', description: 'Growing strong.' },
+  { id: 'r_challenger', name: 'Challenger', threshold: 250, icon: `${LEVELS_URL}/Challenger.jpg`, color: '#fb923c', description: 'Stepping up!' },
+  { id: 'r_striker', name: 'Striker', threshold: 450, icon: `${LEVELS_URL}/Striker.jpg`, color: '#22d3ee', description: 'Fast as lightning.' },
+  { id: 'r_warrior', name: 'Warrior', threshold: 750, icon: `${LEVELS_URL}/Warrior.jpg`, color: '#f87171', description: 'Battle ready.' },
+  { id: 'r_captain', name: 'Captain', threshold: 1200, icon: `${LEVELS_URL}/Captain.jpg`, color: '#60a5fa', description: 'Leading the way.' },
+  { id: 'r_elite', name: 'Elite', threshold: 3500, icon: `${LEVELS_URL}/Elite.jpg`, color: '#818cf8', description: 'Top tier talent.' },
+  { id: 'r_champion', name: 'Champion', threshold: 5000, icon: `${LEVELS_URL}/Champion.jpg`, color: '#fbbf24', description: 'Victory is yours.' },
+  { id: 'r_legend', name: 'Legend', threshold: 8500, icon: `${LEVELS_URL}/Legend.jpg`, color: '#a78bfa', description: 'Simply legendary.' },
+  { id: 'r_apex', name: 'Apex', threshold: 15000, icon: `${LEVELS_URL}/Apex.jpg`, color: '#f43f5e', description: 'The pinnacle of fitness.' },
+];
+
+export const DEMOTION_PENALTY_POINTS = 10;
