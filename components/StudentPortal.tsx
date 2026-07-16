@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Student, Rank, Trophy, HouseId, BlogPost, Wearable } from '../types';
+import { Student, Rank, Trophy, HouseId, BlogPost } from '../types';
 import { HOUSES } from '../constants';
 import { supabaseService } from '../services/supabaseService';
-import AvatarCreator from './v2/AvatarCreator';
+import { gameCenter } from '../services/gameCenter';
+import AvatarStudio from './avatar/AvatarStudio';
+import AvatarRig from './avatar/AvatarRig';
+import LootCrates from './avatar/LootCrates';
 import PerkShop from './Student/PerkShop';
 import GameCenterStats from './Student/GameCenterStats';
 import TrophyCase from './TrophyCase';
@@ -29,8 +32,6 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
   // New V2 Data
   const [news, setNews] = useState<BlogPost[]>([]);
-  const [wearables, setWearables] = useState<Wearable[]>([]);
-  const [inventory, setInventory] = useState<string[]>([]);
 
   // Edit states
   const [gamerTag, setGamerTag] = useState(student.gamerTag || '');
@@ -53,15 +54,13 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
   }, [student]);
 
   const loadData = async () => {
-    const [ranksData, trophiesData, friendsData, studentsData, statsData, newsData, wearablesData, inventoryData] = await Promise.all([
+    const [ranksData, trophiesData, friendsData, studentsData, statsData, newsData] = await Promise.all([
       supabaseService.getRanks(),
       supabaseService.getTrophies(),
       supabaseService.getFriends(student.id),
       supabaseService.getStudents(),
       supabaseService.getTeamStats(student.houseId),
-      supabaseService.getBlogPosts(),
-      supabaseService.getWearables(),
-      supabaseService.getStudentInventory(student.id)
+      supabaseService.getBlogPosts()
     ]);
     setRanks(ranksData);
     setTrophies(trophiesData.filter(t => t.isActive));
@@ -69,8 +68,6 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
     setAllStudents(studentsData.filter(s => s.id !== student.id));
     setTeamStats(statsData);
     setNews(newsData);
-    setWearables(wearablesData);
-    setInventory(inventoryData);
   };
 
   const currentRankIndex = ranks.findIndex(r => r.id === student.rankId);
@@ -141,25 +138,22 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       (s.gamerTag && s.gamerTag.toLowerCase().includes(searchQuery.toLowerCase())))
   );
 
-  const handlePurchase = async (item: Wearable) => {
-    if (!window.confirm(`Purchase ${item.name} for ${item.xpCost} points?`)) return;
+  const handleSetAvatarMode = async (mode: 'PHOTO' | 'AVATAR') => {
     try {
-      await supabaseService.purchaseWearable(student.id, item.id, item.xpCost);
-      await loadData();
+      await gameCenter.setAvatarMode(student.id, mode);
       if (onRefresh) onRefresh();
-      alert('Purchased successfully!');
     } catch (err: any) {
-      alert(err.userMessage || 'Purchase failed');
+      alert(err?.message || 'Failed to switch avatar mode');
     }
   };
 
   if (showAvatarCreator) {
     return (
-      <div className="fixed inset-0 z-[250] bg-white animate-fade-in">
-        <AvatarCreator
-          studentId={student.id}
+      <div className="fixed inset-0 z-[250] animate-fade-in" style={{ background: 'var(--pz-bg)' }}>
+        <AvatarStudio
+          student={student}
           onClose={() => setShowAvatarCreator(false)}
-          onSave={() => {
+          onSaved={() => {
             if (onRefresh) onRefresh();
           }}
         />
@@ -174,13 +168,46 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       <div className="pz-card relative grid grid-cols-2 gap-4 p-4">
         <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: HOUSES[student.houseId].colorHex }} />
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
-          <img
-            src={student.avatarUrl}
-            onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${student.id}`; }}
-            className="w-32 h-32 rounded-full border-4 object-cover flex-shrink-0"
-            style={{ borderColor: HOUSES[student.houseId].colorHex }}
-            alt=""
-          />
+          <div className="flex flex-col items-center gap-2 flex-shrink-0">
+            {student.avatarMode === 'AVATAR' ? (
+              <div
+                className="w-32 h-32 rounded-full border-4 overflow-hidden flex items-end justify-center"
+                style={{ borderColor: HOUSES[student.houseId].colorHex, background: 'radial-gradient(circle at 50% 30%, #232B3B 0%, #14171E 80%)' }}
+              >
+                <AvatarRig look={student.avatarLook} size="100%" />
+              </div>
+            ) : (
+              <img
+                src={student.avatarUrl}
+                onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${student.id}`; }}
+                className="w-32 h-32 rounded-full border-4 object-cover"
+                style={{ borderColor: HOUSES[student.houseId].colorHex }}
+                alt=""
+              />
+            )}
+            <button
+              onClick={() => setShowAvatarCreator(true)}
+              className="touch-btn pz-btn px-3 py-1.5 text-[10px] inline-flex items-center gap-1.5"
+            >
+              <Ic.Shirt size={14} /> Avatar Studio
+            </button>
+            <div className="flex gap-1">
+              {([['PHOTO', 'Photo'], ['AVATAR', 'Avatar']] as const).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  onClick={() => handleSetAvatarMode(mode)}
+                  className="touch-btn px-2.5 py-1 text-[9px] font-black uppercase tracking-wide transition-all"
+                  style={{
+                    clipPath: NOTCH_SM,
+                    background: (student.avatarMode ?? 'PHOTO') === mode ? 'var(--pz-volt)' : 'var(--pz-panel-2)',
+                    color: (student.avatarMode ?? 'PHOTO') === mode ? '#0B0E13' : 'var(--pz-text)',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="min-w-0 flex flex-col justify-center h-full">
             {(() => {
               const displayName = getProfileDisplayName();
@@ -623,47 +650,22 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
         <div style={{ color: 'var(--pz-volt)' }}><Ic.Store size={28} /></div>
       </div>
 
-      {['HAIRSTYLE', 'TOP', 'ACCESSORY', 'BASE_FACE'].map(slot => {
-        const items = wearables.filter(w => w.slot === slot);
-        if (items.length === 0) return null;
+      {/* Loot crates — random drops for the avatar */}
+      <LootCrates student={student} onRefresh={onRefresh} />
 
-        return (
-          <div key={slot}>
-            <h3 className="text-sm text-white uppercase tracking-wide mb-3">{slot.replace('_', ' ')}</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {items.map(item => {
-                const isOwned = inventory.includes(item.id) || item.isDefault;
-                const canAfford = student.points >= item.xpCost;
-
-                return (
-                  <div key={item.id} className="pz-card-sm p-3 flex flex-col">
-                    <div className="bg-white/5 border border-white/10 p-2 mb-2 h-24 flex items-center justify-center" style={{ clipPath: NOTCH_SM }}>
-                      <img src={item.filePath} alt={item.name} className="h-full object-contain" />
-                    </div>
-                    <div className="font-bold text-xs text-white mb-1">{item.name}</div>
-                    <div className="flex items-center justify-between mt-auto">
-                      <span className="text-[10px] font-bold" style={{ color: 'var(--pz-volt)' }}>{item.xpCost} pts</span>
-                      {isOwned ? (
-                        <span className="text-[10px] font-black text-emerald-400 uppercase">Owned</span>
-                      ) : (
-                        <button
-                          onClick={() => handlePurchase(item)}
-                          disabled={!canAfford}
-                          className={`touch-btn min-h-[48px] px-4 py-1.5 text-[10px] font-black uppercase ${canAfford ? 'pz-btn' : 'bg-white/5 text-slate-500'
-                            }`}
-                          style={!canAfford ? { clipPath: NOTCH_SM } : undefined}
-                        >
-                          Buy
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+      {/* Direct route: browse + buy exact items in the studio */}
+      <button
+        onClick={() => setShowAvatarCreator(true)}
+        className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+        style={{ borderColor: 'rgba(203,254,28,0.35)' }}
+      >
+        <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Shirt size={24} /></span>
+        <div className="text-left flex-grow">
+          <div className="font-black text-white uppercase tracking-wide text-[15px]">Avatar Studio</div>
+          <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Equip your drops, unlock exact items, change your look</div>
+        </div>
+        <Ic.ChevronRight size={18} className="shrink-0" style={{ color: 'var(--pz-text)' }} />
+      </button>
     </div>
   );
 

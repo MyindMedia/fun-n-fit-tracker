@@ -1,5 +1,6 @@
 import React from 'react';
 import { Student, Rank } from '../types';
+import AvatarRig from './avatar/AvatarRig';
 
 interface StudentAvatarProps {
   student: Student;
@@ -37,13 +38,24 @@ const StudentAvatar: React.FC<StudentAvatarProps> = ({
     xl: 'w-8 h-8 -bottom-1 -right-1'
   };
 
+  const useRig = student.avatarMode === 'AVATAR';
+
   return (
     <div className={`relative shrink-0 ${className}`}>
-      <img
-        src={student.avatarUrl}
-        alt={student.fullName}
-        className={`${sizeClasses[size]} rounded-full object-cover border-4 border-white shadow-md`}
-      />
+      {useRig ? (
+        <div
+          className={`${sizeClasses[size]} rounded-full border-4 border-white shadow-md overflow-hidden flex items-end justify-center`}
+          style={{ background: 'radial-gradient(circle at 50% 30%, #232B3B 0%, #14171E 80%)' }}
+        >
+          <AvatarRig look={student.avatarLook} size="100%" />
+        </div>
+      ) : (
+        <img
+          src={student.avatarUrl}
+          alt={student.fullName}
+          className={`${sizeClasses[size]} rounded-full object-cover border-4 border-white shadow-md`}
+        />
+      )}
 
       {rank && rank.icon && (
         <div className={`absolute ${rankIconSizes[size]} rounded-full bg-white border-2 border-white shadow-lg overflow-hidden`}>

@@ -1,5 +1,6 @@
 import { mutation } from "./_generated/server";
 import { RANKS, BADGES, REWARDS, GAME_LIBRARY } from "../constants";
+import { AVATAR_ITEMS } from "../avatarCatalog";
 
 // Idempotent catalog seed: ranks, badges, rewards, and the game library from
 // the bundled constants. Safe to run repeatedly (skips existing keys).
@@ -100,6 +101,39 @@ export const catalog = mutation({
 // Upsert the game library from the bundled constants — unlike `catalog`,
 // existing games are UPDATED, so rule/scoring edits (e.g. NFC variants)
 // propagate. Run after changing GAME_LIBRARY: npx convex run seed:refreshGames
+// Upsert the avatar item catalog into the wearables table (keeps the legacy
+// list/purchase surfaces working; the SVG rig renders by key, filePath unused).
+export const wearables = mutation({
+  args: {},
+  handler: async (ctx) => {
+    let inserted = 0;
+    let updated = 0;
+    for (const item of AVATAR_ITEMS) {
+      const fields = {
+        key: item.key,
+        name: item.name,
+        slot: item.slot,
+        filePath: "",
+        rarity: item.rarity,
+        xpCost: item.cost,
+        isDefault: item.isDefault ?? false,
+      };
+      const existing = await ctx.db
+        .query("wearables")
+        .withIndex("by_key", (q) => q.eq("key", item.key))
+        .unique();
+      if (existing) {
+        await ctx.db.patch(existing._id, fields);
+        updated++;
+      } else {
+        await ctx.db.insert("wearables", fields);
+        inserted++;
+      }
+    }
+    return { inserted, updated };
+  },
+});
+
 export const refreshGames = mutation({
   args: {},
   handler: async (ctx) => {

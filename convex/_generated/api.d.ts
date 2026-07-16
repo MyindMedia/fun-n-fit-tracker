@@ -9,6 +9,7 @@
  */
 
 import type * as activity from "../activity.js";
+import type * as avatar from "../avatar.js";
 import type * as blog from "../blog.js";
 import type * as catalog from "../catalog.js";
 import type * as checkins from "../checkins.js";
@@ -18,6 +19,7 @@ import type * as events from "../events.js";
 import type * as files from "../files.js";
 import type * as games from "../games.js";
 import type * as helpers from "../helpers.js";
+import type * as lootBoxes from "../lootBoxes.js";
 import type * as medals from "../medals.js";
 import type * as messaging from "../messaging.js";
 import type * as migration from "../migration.js";
@@ -45,6 +47,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   activity: typeof activity;
+  avatar: typeof avatar;
   blog: typeof blog;
   catalog: typeof catalog;
   checkins: typeof checkins;
@@ -54,6 +57,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   games: typeof games;
   helpers: typeof helpers;
+  lootBoxes: typeof lootBoxes;
   medals: typeof medals;
   messaging: typeof messaging;
   migration: typeof migration;

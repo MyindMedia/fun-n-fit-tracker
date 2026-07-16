@@ -104,8 +104,13 @@ export async function applyPoints(
   if (!student) throw new Error("Student not found");
 
   // Global point multiplier (2x Fridays etc.) — set from the admin dashboard.
-  // Only boosts positive earnings; spends/refunds stay 1:1.
-  if (amount > 0 && sourceType !== "REDEMPTION" && sourceType !== "STORE_PURCHASE") {
+  // Only boosts positive earnings; spends, refunds, and system credits stay 1:1.
+  if (
+    amount > 0 &&
+    sourceType !== "REDEMPTION" &&
+    sourceType !== "STORE_PURCHASE" &&
+    sourceType !== "SYSTEM"
+  ) {
     const multRow = await ctx.db
       .query("appSettings")
       .withIndex("by_key", (q) => q.eq("key", "point_multiplier"))

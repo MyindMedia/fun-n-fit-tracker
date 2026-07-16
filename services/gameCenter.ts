@@ -541,6 +541,57 @@ class GameCenterService {
     });
   }
 
+  // ── Avatar studio + loot crates ────────────────────────────────────────────
+
+  public async ownedWearables(studentId: string): Promise<Array<{ key: string; upgradeLevel: number }>> {
+    return (await this.client.query(api.avatar.ownedWearables, {
+      studentId: studentId as Id<'students'>,
+    })) as Array<{ key: string; upgradeLevel: number }>;
+  }
+
+  public async saveAvatarLook(
+    studentId: string,
+    look: { skin?: string; hairColor?: string; hair?: string; top?: string; acc?: string | null }
+  ): Promise<void> {
+    await this.client.mutation(api.avatar.saveLook, {
+      studentId: studentId as Id<'students'>,
+      look,
+    });
+  }
+
+  public async setAvatarMode(studentId: string, mode: 'PHOTO' | 'AVATAR'): Promise<void> {
+    await this.client.mutation(api.avatar.setMode, {
+      studentId: studentId as Id<'students'>,
+      mode,
+    });
+  }
+
+  public async openLootBox(
+    studentId: string,
+    box: 'STANDARD' | 'PREMIUM'
+  ): Promise<{
+    outcome: 'NEW' | 'UPGRADE' | 'SHARDS';
+    item: { key: string; name: string; slot: string; rarity: string };
+    upgradeLevel: number;
+    refund?: number;
+    balance: number;
+    opensToday: number;
+    capPerDay: number;
+  }> {
+    return (await this.client.mutation(api.lootBoxes.open, {
+      studentId: studentId as Id<'students'>,
+      box,
+      localDate: localDate(),
+    })) as any;
+  }
+
+  public async lootTodayStatus(studentId: string): Promise<{ opensToday: number; capPerDay: number }> {
+    return (await this.client.query(api.lootBoxes.todayStatus, {
+      studentId: studentId as Id<'students'>,
+      localDate: localDate(),
+    })) as { opensToday: number; capPerDay: number };
+  }
+
   // Live multiplier updates — fires immediately and on every settings change.
   public subscribePointMultiplier(cb: (mult: number) => void): () => void {
     return this.client.onUpdate(api.settings.all, {}, (rows) => {

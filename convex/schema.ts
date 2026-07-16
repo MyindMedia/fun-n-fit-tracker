@@ -40,6 +40,18 @@ export default defineSchema({
     bio: v.optional(v.string()),
     friendIds: v.optional(v.array(v.string())), // student _ids
     totalXp: v.optional(v.number()),
+    // Layered avatar (components/avatar/AvatarRig): photo vs avatar choice +
+    // the equipped look, denormalized here so boards render without joins.
+    avatarMode: v.optional(v.union(v.literal("PHOTO"), v.literal("AVATAR"))),
+    avatarLook: v.optional(
+      v.object({
+        skin: v.optional(v.string()),
+        hairColor: v.optional(v.string()),
+        hair: v.optional(v.string()),
+        top: v.optional(v.string()),
+        acc: v.optional(v.union(v.string(), v.null())),
+      })
+    ),
     createdAt: v.number(),
   })
     .index("by_house", ["houseId"])
@@ -233,7 +245,23 @@ export default defineSchema({
     studentId: v.id("students"),
     wearableId: v.string(), // wearables.key or wearable _id
     acquiredAt: v.number(),
+    upgradeLevel: v.optional(v.number()), // 0 base → 3 volt (duplicates upgrade)
   }).index("by_student", ["studentId"]),
+
+  // One row per crate opened — the loot ledger (odds audit + daily cap).
+  lootBoxOpens: defineTable({
+    studentId: v.id("students"),
+    box: v.string(), // STANDARD | PREMIUM
+    cost: v.number(),
+    itemKey: v.string(),
+    rarity: v.string(), // common | uncommon | legendary
+    outcome: v.string(), // NEW | UPGRADE | SHARDS
+    refund: v.optional(v.number()),
+    date: v.string(), // YYYY-MM-DD (kid's local day, for the daily cap)
+    createdAt: v.number(),
+  })
+    .index("by_student_date", ["studentId", "date"])
+    .index("by_createdAt", ["createdAt"]),
 
   studentAvatars: defineTable({
     studentId: v.id("students"),

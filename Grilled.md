@@ -164,8 +164,38 @@ Fourth /goal directive (Lawrence's feature list; session ran autonomously, defau
    `displayPreference` (FULL_NAME / GAMER_TAG / INITIALS); previously the gamer tag always
    won. Unset preference keeps legacy tag-first behavior. Applied on live board, portals,
    and parent cards.
-9. **Avatar + loot boxes** — NOT built (research first, per directive): see
-   `AVATAR_RESEARCH.md` for the options and recommendation.
+9. **Avatar + loot boxes** — researched first (`AVATAR_RESEARCH.md`), then approved
+   and built same day (see next section).
+
+# Avatar system + loot crates (2026-07-16)
+
+Lawrence approved the research direction with one steer: use the current design
+aesthetic, multiple skin colors on a base silhouette, layered hair / clothes /
+accessories / merch. Decisions:
+
+1. **Art = code-drawn SVG rig** (`components/avatar/AvatarRig.tsx`), not AI raster
+   layers — perfectly aligned layers, recolorable, crisp at any size, zero assets.
+   Flat esports style matching the Pubzi theme (volt accents, notch motifs).
+   6 skin tones, 8 hair colors (free pickers), 8 hairstyles, 9 tops (incl. 4 house
+   jerseys as merch + legendary volt Champion Jacket), 9 accessories (incl.
+   legendary Legend Crown). Registry: `avatarCatalog.ts` (shared client/Convex).
+2. **Look storage** — denormalized on `students.avatarLook` (boards render without
+   joins); `students.avatarMode: PHOTO | AVATAR` picks photo vs avatar everywhere
+   `StudentAvatar` renders. Legacy `studentAvatars` table left dormant.
+3. **Avatar Studio** (student portal, Profile + Store tabs) — character-select
+   stage with CSS idle loop + spotlight + podium; skin/hair-color pickers; item
+   grids with mini-rig previews; locked items buyable in place (existing
+   `purchaseWearable`). Saving a look opts the kid into AVATAR mode; parents get a
+   Photo/Avatar switch in their detail view too.
+4. **Loot crates** (`convex/lootBoxes.ts`) — points-only, kid-safe by structure:
+   odds printed on the crate and enforced server-side (Standard 100 pts:
+   70/25/5; Premium 250 pts: 40/45/15), 3 opens/day cap, duplicates upgrade the
+   item tier (base→Silver→Gold→Volt) and maxed duplicates refund 40% as shards —
+   no dead rolls, no money path ever. New pulls auto-equip. Legendary pulls fire a
+   big-board celebration. Ledger table `lootBoxOpens` (odds audit + cap).
+5. **Multiplier guard** — SYSTEM source added to the point-boost exclusions so
+   shard refunds can't be amplified.
+6. Wearables catalog seeded via `seed:wearables` (26 items, upsert by key).
 
 ## Open questions from E2E verification (2026-07-15)
 - **Spending can demote.** Ranks are computed from *current* points (pre-existing

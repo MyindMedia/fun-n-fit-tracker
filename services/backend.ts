@@ -64,6 +64,8 @@ type StudentDoc = {
   bio?: string;
   friendIds?: string[];
   totalXp?: number;
+  avatarMode?: "PHOTO" | "AVATAR";
+  avatarLook?: Student["avatarLook"];
 };
 
 export const mapStudent = (s: StudentDoc): Student => ({
@@ -84,6 +86,8 @@ export const mapStudent = (s: StudentDoc): Student => ({
   bio: s.bio,
   friendIds: s.friendIds || [],
   totalXp: s.totalXp ?? 0,
+  avatarMode: s.avatarMode,
+  avatarLook: s.avatarLook,
 });
 
 type SessionDoc = {

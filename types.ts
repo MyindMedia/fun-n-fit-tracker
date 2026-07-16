@@ -215,6 +215,15 @@ export interface Student {
   bio?: string;
   friendIds?: string[];
   totalXp?: number;
+  // Layered avatar (components/avatar): photo vs avatar + equipped look
+  avatarMode?: 'PHOTO' | 'AVATAR';
+  avatarLook?: {
+    skin?: string;
+    hairColor?: string;
+    hair?: string;
+    top?: string;
+    acc?: string | null;
+  };
 }
 
 export interface GameResult {

@@ -14,6 +14,7 @@ import StudentDetailExtras from './Parent/StudentDetailExtras';
 import KidPassSheet from './Parent/KidPassSheet';
 import TrophyCase from './TrophyCase';
 import LevelPath from './LevelPath';
+import AvatarRig from './avatar/AvatarRig';
 import { PZ, PzPortalCss, pStyles } from './Parent/shared';
 import { getStudentDisplayName } from '../utils/studentDisplay';
 import { Ic, DataIcon, IconProps } from './icons';
@@ -381,6 +382,18 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const [currentAvatarUrl, setCurrentAvatarUrl] = useState(student.avatarUrl);
+    const [avatarMode, setAvatarMode] = useState<'PHOTO' | 'AVATAR'>(student.avatarMode ?? 'PHOTO');
+
+    const handleModeSwitch = async (mode: 'PHOTO' | 'AVATAR') => {
+        setAvatarMode(mode);
+        try {
+            await gameCenter.setAvatarMode(student.id, mode);
+            (student as Student).avatarMode = mode;
+        } catch (error) {
+            console.error('Failed to switch avatar mode:', error);
+            setAvatarMode(student.avatarMode ?? 'PHOTO');
+        }
+    };
 
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -452,12 +465,44 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                     {/* Left Column: Avatar and Info */}
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', flex: '1 1 220px', minWidth: 0 }}>
                         <div style={{ position: 'relative', flexShrink: 0 }}>
+                            {avatarMode === 'AVATAR' ? (
+                                <div style={{
+                                    width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden',
+                                    border: `4px solid ${house.colorHex}`,
+                                    boxShadow: `0 0 16px ${house.colorHex}50`,
+                                    background: 'radial-gradient(circle at 50% 30%, #232B3B 0%, #14171E 80%)',
+                                    display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+                                }}>
+                                    <AvatarRig look={student.avatarLook} size="100%" />
+                                </div>
+                            ) : (
                             <img src={currentAvatarUrl} alt="" onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${student.id}`; }} style={{
                                 width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover',
                                 border: `4px solid ${house.colorHex}`,
                                 boxShadow: `0 0 16px ${house.colorHex}50`,
                                 opacity: uploadingAvatar ? 0.5 : 1
                             }} />
+                            )}
+
+                            {/* Photo vs game avatar switch */}
+                            <div style={{ display: 'flex', gap: '4px', marginTop: '0.6rem', justifyContent: 'center' }}>
+                                {(['PHOTO', 'AVATAR'] as const).map(mode => (
+                                    <button
+                                        key={mode}
+                                        onClick={() => handleModeSwitch(mode)}
+                                        style={{
+                                            padding: '4px 8px', fontSize: '0.55rem', fontWeight: 900,
+                                            textTransform: 'uppercase', letterSpacing: '0.06em', cursor: 'pointer',
+                                            clipPath: 'polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px)',
+                                            background: avatarMode === mode ? PZ.volt : PZ.panel2,
+                                            color: avatarMode === mode ? PZ.bg : PZ.muted,
+                                            border: 'none',
+                                        }}
+                                    >
+                                        {mode === 'PHOTO' ? 'Photo' : 'Avatar'}
+                                    </button>
+                                ))}
+                            </div>
 
                             {/* Upload button overlay */}
                             <button
