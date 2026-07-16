@@ -85,11 +85,16 @@ class GameCenterService {
     });
   }
 
-  public async manualCheckIn(studentId: string, adminName: string): Promise<CheckInResult> {
+  public async manualCheckIn(
+    studentId: string,
+    adminName: string,
+    method: "QR" | "NFC" | "MANUAL" = "MANUAL"
+  ): Promise<CheckInResult> {
     return await this.client.mutation(api.checkins.manualCheckIn, {
       studentId: studentId as Id<"students">,
       adminName,
       localDate: localDate(),
+      method,
     });
   }
 

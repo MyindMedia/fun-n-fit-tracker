@@ -176,6 +176,7 @@ export const manualCheckIn = mutation({
     studentId: v.id("students"),
     adminName: v.string(),
     localDate: v.optional(v.string()),
+    method: v.optional(v.union(v.literal("QR"), v.literal("NFC"), v.literal("MANUAL"))),
   },
   handler: async (ctx, args) => {
     const date = resolveLocalDate(args.localDate);
@@ -183,7 +184,7 @@ export const manualCheckIn = mutation({
       ctx,
       args.studentId,
       date,
-      "MANUAL",
+      args.method ?? "MANUAL",
       args.adminName,
       undefined,
       args.adminName

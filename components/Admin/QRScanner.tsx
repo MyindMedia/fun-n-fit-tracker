@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import jsQR from 'jsqr';
 import { supabaseService } from '../../services/supabaseService';
+import { gameCenter } from '../../services/gameCenter';
 import { Student } from '../../types';
 import { Ic } from '../icons';
 
@@ -160,7 +161,10 @@ const QRScanner: React.FC<QRScannerProps> = ({ onClose, onStudentCheckedIn }) =>
       const student = students.find(s => s.id === studentId);
 
       if (student) {
-        await supabaseService.markPresent(student.id, true);
+        // Full check-in ledger flow (board, Roll Call, scan log, daily bonus),
+        // not a raw presence flag — a pass scan is a real QR check-in. Absent
+        // kids (including checked-out-earlier) flip back to present.
+        await gameCenter.manualCheckIn(student.id, 'QR Scanner', 'QR');
         setLastScanned(student);
         setError(null);
         onStudentCheckedIn();
