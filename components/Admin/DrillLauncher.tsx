@@ -15,6 +15,128 @@ interface DrillLauncherProps {
   students: Student[];
 }
 
+// Games driven by wristband taps — badge them so coaches spot them instantly.
+const isNfcGame = (g: GameDefinition): boolean =>
+  g.category === 'NFC Arena' || (g.dataCaptureFields ?? []).some(f => f.startsWith('nfc'));
+
+const NfcBadge: React.FC<{ size?: 'sm' | 'md' }> = ({ size = 'sm' }) => (
+  <span
+    className={`inline-flex items-center gap-1 font-black uppercase tracking-widest text-[#CBFE1C] bg-[#CBFE1C]/10 border border-[#CBFE1C]/40 ${
+      size === 'sm' ? 'text-[8px] px-1.5 py-0.5' : 'text-[10px] px-2 py-1'
+    }`}
+  >
+    <Ic.Nfc size={size === 'sm' ? 10 : 13} /> NFC
+  </span>
+);
+
+/* Mobile-first rules & guide sheet: every game's full playbook in native
+   <details> accordions — no JS state per section, taps huge, reads clean. */
+const GameGuideSheet: React.FC<{ game: GameDefinition; onClose: () => void }> = ({ game, onClose }) => {
+  const Section: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; open?: boolean }> = ({ title, icon, children, open }) => (
+    <details open={open} className="pz-card-sm group" style={{ background: 'var(--pz-panel-2)' }}>
+      <summary className="flex items-center justify-between gap-3 p-4 min-h-[52px] cursor-pointer list-none select-none">
+        <span className="flex items-center gap-2.5 text-white font-black uppercase tracking-wider text-xs">
+          <span className="text-[#CBFE1C]">{icon}</span> {title}
+        </span>
+        <span className="text-white/40 transition-transform group-open:rotate-90"><Ic.ChevronRight size={16} /></span>
+      </summary>
+      <div className="px-4 pb-4 text-sm leading-relaxed" style={{ color: 'var(--pz-text)' }}>
+        {children}
+      </div>
+    </details>
+  );
+
+  const List: React.FC<{ items: string[] }> = ({ items }) => (
+    <ul className="space-y-2">
+      {items.map((item, i) => (
+        <li key={i} className="flex gap-2.5">
+          <span className="text-[#CBFE1C] flex-shrink-0 mt-0.5"><Ic.ChevronRight size={13} /></span>
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+
+  return createPortal(
+    <div className="pz-scope fixed inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex flex-col" style={{ height: '100dvh' }}>
+      <div className="flex-shrink-0 px-4 py-3 flex items-center justify-between gap-3" style={{ background: 'var(--pz-panel)', borderBottom: '1px solid var(--pz-border)' }}>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[9px] font-black text-[#CBFE1C] uppercase tracking-widest">{game.category}</span>
+            {isNfcGame(game) && <NfcBadge />}
+          </div>
+          <h2 className="pz-display text-base text-white truncate">{game.displayName}</h2>
+        </div>
+        <button onClick={onClose} aria-label="Close guide" className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 active:scale-95 flex-shrink-0">
+          <Ic.XMark size={20} />
+        </button>
+      </div>
+
+      <div className="flex-grow overflow-y-auto p-4 space-y-3 pb-8" style={{ background: 'var(--pz-bg)' }}>
+        {/* At-a-glance chips */}
+        <div className="flex flex-wrap gap-2">
+          {[
+            { icon: <Ic.Users size={12} />, text: `${game.minPlayers}–${game.maxPlayers} players` },
+            { icon: <Ic.User size={12} />, text: `Ages ${game.recommendedAgeBand}` },
+            { icon: <Ic.Timer size={12} />, text: `${Math.round(game.durationDefaultSeconds / 60)} min` },
+            { icon: <Ic.Trophy size={12} />, text: game.leaderboardMetric },
+          ].map((chip, i) => (
+            <span key={i} className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-white/80 bg-white/5 border border-white/10 px-2.5 py-1.5">
+              {chip.icon} {chip.text}
+            </span>
+          ))}
+        </div>
+
+        {/* Coach script — the one-liner to yell */}
+        <div className="pz-card-sm p-4 border-[#CBFE1C]/40" style={{ background: 'rgba(203,254,28,0.06)' }}>
+          <div className="text-[9px] font-black uppercase tracking-widest text-[#CBFE1C] mb-1 flex items-center gap-1.5"><Ic.Megaphone size={12} /> Coach says</div>
+          <div className="text-white font-bold text-sm">“{game.coachScriptShort}”</div>
+        </div>
+
+        <Section title="How to play" icon={<Ic.Controller size={16} />} open>
+          <List items={game.rules} />
+        </Section>
+
+        <Section title="Setup" icon={<Ic.ClipboardCheck size={16} />}>
+          {game.setupSteps.length > 0 ? <List items={game.setupSteps} /> : <p>No setup needed — just gather the players.</p>}
+          {game.equipmentChecklist.length > 0 && (
+            <div className="mt-3">
+              <div className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">Equipment</div>
+              <List items={game.equipmentChecklist} />
+            </div>
+          )}
+        </Section>
+
+        <Section title="Scoring" icon={<Ic.Bolt size={16} />}>
+          <p>{game.scoringRules}</p>
+        </Section>
+
+        <Section title="Penalties & tie-breaker" icon={<Ic.Warning size={16} />}>
+          <p><span className="text-white/80 font-bold">Penalties:</span> {game.penalties}</p>
+          <p className="mt-2"><span className="text-white/80 font-bold">Tie-breaker:</span> {game.tieBreaker}</p>
+        </Section>
+
+        <Section title="Safety & accessibility" icon={<Ic.CheckCircle size={16} />}>
+          <p><span className="text-white/80 font-bold">Safety:</span> {game.safetyNotes}</p>
+          <p className="mt-2"><span className="text-white/80 font-bold">Adaptations:</span> {game.accessibilityVariants}</p>
+        </Section>
+
+        {isNfcGame(game) && (
+          <Section title="NFC bands" icon={<Ic.Nfc size={16} />}>
+            <p>
+              This game uses wristband taps. Open <span className="text-white/80 font-bold">NFC Bands</span>, pick{' '}
+              <span className="text-white/80 font-bold">Timing</span> (laps/splits) or{' '}
+              <span className="text-white/80 font-bold">Points</span> (score per tap), and select this game under
+              “Recording for” once it's launched — every tap then counts automatically.
+            </p>
+          </Section>
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+};
+
 // Session Timer Component
 const SessionTimer: React.FC<{ session: GameSession }> = ({ session }) => {
   const [timeDisplay, setTimeDisplay] = useState('');
@@ -55,6 +177,7 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
 
   // Drill Configuration State
   const [pendingGame, setPendingGame] = useState<GameDefinition | null>(null);
+  const [guideGame, setGuideGame] = useState<GameDefinition | null>(null);
   const [selectedRoster, setSelectedRoster] = useState<Set<string>>(new Set());
   const [customDuration, setCustomDuration] = useState<string>('10');
 
@@ -333,9 +456,23 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
                     onClick={() => openDrillConfig(g)}
                     className="pz-card-sm p-4 active:border-[#CBFE1C] active:bg-white/5 transition-all"
                   >
-                    <div className="text-[9px] font-black text-[#CBFE1C] uppercase mb-1 tracking-widest">{g.category}</div>
-                    <div className="pz-display text-base text-white mb-1">{g.displayName}</div>
-                    <p className="text-xs line-clamp-1" style={{ color: 'var(--pz-text)' }}>{g.rules[0]}</p>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="text-[9px] font-black text-[#CBFE1C] uppercase tracking-widest">{g.category}</span>
+                          {isNfcGame(g) && <NfcBadge />}
+                        </div>
+                        <div className="pz-display text-base text-white mb-1">{g.displayName}</div>
+                        <p className="text-xs line-clamp-1" style={{ color: 'var(--pz-text)' }}>{g.rules[0]}</p>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setGuideGame(g); }}
+                        aria-label={`Rules & guide for ${g.displayName}`}
+                        className="touch-btn flex-shrink-0 w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 active:scale-95 active:text-[#CBFE1C]"
+                      >
+                        <Ic.Note size={18} />
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
@@ -350,17 +487,28 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
         <div className="pz-scope fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex flex-col">
           {/* Fixed Header */}
           <div className="flex-shrink-0 px-4 py-4 flex items-center justify-between" style={{ background: 'var(--pz-panel)', borderBottom: '1px solid var(--pz-border)' }}>
-            <div>
+            <div className="min-w-0">
               <h2 className="text-lg text-white tracking-tight">Configure Game</h2>
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#CBFE1C]">{pendingGame.displayName}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#CBFE1C] flex items-center gap-2">
+                {pendingGame.displayName}
+                {isNfcGame(pendingGame) && <NfcBadge />}
+              </p>
             </div>
-            <button
-              onClick={() => setPendingGame(null)}
-              aria-label="Close"
-              className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 active:scale-95"
-            >
-              <Ic.XMark size={20} />
-            </button>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => setGuideGame(pendingGame)}
+                className="touch-btn min-h-[44px] px-3 bg-white/5 border border-white/10 text-white/70 text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 active:scale-95"
+              >
+                <Ic.Note size={14} /> Rules
+              </button>
+              <button
+                onClick={() => setPendingGame(null)}
+                aria-label="Close"
+                className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 active:scale-95"
+              >
+                <Ic.XMark size={20} />
+              </button>
+            </div>
           </div>
 
           {/* Scrollable Content */}
@@ -443,6 +591,9 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
         </div>,
         document.body
       )}
+
+      {/* Rules & guide sheet (opens over the library or config views) */}
+      {guideGame && <GameGuideSheet game={guideGame} onClose={() => setGuideGame(null)} />}
     </section>
   );
 };
