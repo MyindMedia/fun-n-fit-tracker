@@ -484,6 +484,84 @@ class GameCenterService {
   > {
     return await this.client.action(api.staff.listStaff, {});
   }
+
+  // ── NFC tags / wristbands ──────────────────────────────────────────────────
+
+  public async nfcTagRoster(): Promise<
+    Array<{ studentId: string; fullName: string; houseId: string; avatarUrl?: string; tagUid: string | null }>
+  > {
+    return (await this.client.query(api.nfc.tagRoster, {})) as any[];
+  }
+
+  public async nfcResolveTag(tagUid: string): Promise<any | null> {
+    return await this.client.query(api.nfc.resolveTag, { tagUid });
+  }
+
+  public async nfcAssignTag(studentId: string, tagUid: string, adminName: string) {
+    return await this.client.mutation(api.nfc.assignTag, {
+      studentId: studentId as Id<'students'>,
+      tagUid,
+      adminName,
+    });
+  }
+
+  public async nfcUnassignTag(studentId: string, adminName: string) {
+    return await this.client.mutation(api.nfc.unassignTag, {
+      studentId: studentId as Id<'students'>,
+      adminName,
+    });
+  }
+
+  public async nfcCheckInByTag(tagUid: string, adminName: string): Promise<{
+    status: 'OK' | 'ALREADY' | 'UNKNOWN_TAG';
+    tagUid?: string;
+    studentId?: string;
+    fullName?: string;
+    houseId?: string;
+    avatarUrl?: string;
+  }> {
+    return await this.client.mutation(api.nfc.checkInByTag, {
+      tagUid,
+      adminName,
+      localDate: localDate(),
+    });
+  }
+
+  public async nfcAwardByTag(
+    tagUid: string,
+    amount: number,
+    description: string,
+    adminName: string
+  ): Promise<{
+    status: 'OK' | 'UNKNOWN_TAG';
+    tagUid?: string;
+    studentId?: string;
+    fullName?: string;
+    houseId?: string;
+    avatarUrl?: string;
+    amount?: number;
+    finalPoints?: number;
+    didRankUp?: boolean;
+  }> {
+    return await this.client.mutation(api.nfc.awardByTag, {
+      tagUid,
+      amount,
+      description,
+      adminName,
+    });
+  }
+
+  public async nfcGameScanByTag(tagUid: string, adminName: string): Promise<{
+    status: 'OK' | 'UNKNOWN_TAG';
+    tagUid?: string;
+    studentId?: string;
+    fullName?: string;
+    houseId?: string;
+    avatarUrl?: string;
+    ts: number;
+  }> {
+    return await this.client.mutation(api.nfc.gameScanByTag, { tagUid, adminName });
+  }
 }
 
 export const gameCenter = new GameCenterService();

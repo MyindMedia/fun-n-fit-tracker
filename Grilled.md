@@ -121,6 +121,17 @@ completed Convex migration:
   `CLERK_JWT_ISSUER`. Legacy PBKDF2 sign-in code remains in `convex/parents.ts` but the UI
   now goes through Clerk only. Production Clerk instance not yet configured (dev keys).
 
+# NFC tags & wristbands (2026-07-15)
+
+Third /goal directive: USB NFC reader at the front desk + tags/wristbands per student.
+Strategy of record: `NFC_STRATEGY.md`. Key decisions: keyboard-wedge USB readers (no
+drivers, detected by typing-burst signature) + Web NFC on Android as the two input
+paths; tag UIDs stored in the pre-existing `students.deviceId` field (uppercase hex,
+unique across students, enforced server-side); all scan actions run through the same
+check-in ledger / event bus as QR (`convex/nfc.ts`); admin "NFC Tags" sub-page carries
+assign flows (scan-first and student-first), tag roster, fullscreen Check-In Mode, and
+a Game/Timing mode built on `lap_time` scan events.
+
 ## Open questions from E2E verification (2026-07-15)
 - **Spending can demote.** Ranks are computed from *current* points (pre-existing
   mechanic), so a big perk purchase that drops a kid below a rank threshold triggers the

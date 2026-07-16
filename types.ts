@@ -255,7 +255,9 @@ export interface NotificationEvent {
     | 'CHECKIN'
     | 'CHECKOUT'
     | 'PARTNER_VISIT'
-    | 'SPECIAL_TASK';
+    | 'SPECIAL_TASK'
+    | 'NFC_ASSIGN'
+    | 'LAP_TIME';
   studentId?: string;
   studentName?: string;
   avatarUrl?: string;

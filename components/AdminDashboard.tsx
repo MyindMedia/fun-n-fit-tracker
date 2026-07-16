@@ -25,10 +25,11 @@ import PartnerManager from './Admin/PartnerManager';
 import TaskManager from './Admin/TaskManager';
 import RedemptionQueue from './Admin/RedemptionQueue';
 import StaffManager from './Admin/StaffManager';
+import NfcManager from './Admin/NfcManager';
 import { Ic } from './icons';
 
 // Sub-pages that swap the tab switcher for a back button + page title
-const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF'];
+const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF', 'NFC'];
 
 // Pubzi theme: small notched cut-corner shape for inline elements
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
@@ -133,7 +134,7 @@ const QuickActionButton: React.FC<{
 const AdminDashboard: React.FC = () => {
   const [adminName, setAdminName] = useState<string>('');
   const [showLoginModal, setShowLoginModal] = useState(true);
-  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS' | 'STAFF'>('GAMES');
+  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS' | 'STAFF' | 'NFC'>('GAMES');
   const [students, setStudents] = useState<Student[]>([]);
   const [gameHistory, setGameHistory] = useState<GameSession[]>([]);
   const [globalActivity, setGlobalActivity] = useState<NotificationEvent[]>([]);
@@ -401,6 +402,17 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
+            onClick={() => { setShowMoreMenu(false); setActiveTab('NFC'); }}
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+          >
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Nfc size={24} /></span>
+            <div className="text-left">
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">NFC Bands</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Assign wristbands · tap to check in, score & time</div>
+            </div>
+          </button>
+
+          <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('PARTNERS'); }}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
@@ -604,6 +616,7 @@ const AdminDashboard: React.FC = () => {
                 {activeTab === 'TASKS' && <><Ic.Star size={20} /><span className="text-white">Special Tasks</span></>}
                 {activeTab === 'REDEMPTIONS' && <><Ic.Gift size={20} /><span className="text-white">Redemptions</span></>}
                 {activeTab === 'STAFF' && <><Ic.Users size={20} /><span className="text-white">Staff & Coaches</span></>}
+                {activeTab === 'NFC' && <><Ic.Nfc size={20} /><span className="text-white">NFC Bands</span></>}
               </h1>
             </div>
           ) : (
@@ -735,6 +748,10 @@ const AdminDashboard: React.FC = () => {
 
           {activeTab === 'REDEMPTIONS' && (
             <RedemptionQueue adminName={adminName} />
+          )}
+
+          {activeTab === 'NFC' && (
+            <NfcManager adminName={adminName} />
           )}
 
           {activeTab === 'STAFF' && (

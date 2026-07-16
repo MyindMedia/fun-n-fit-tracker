@@ -77,7 +77,7 @@ export const rotateNfcSecret = mutation({
 
 // ── Check-in / check-out ─────────────────────────────────────────────────────
 
-async function checkInStudent(
+export async function checkInStudent(
   ctx: any,
   studentId: Id<"students">,
   date: string,
