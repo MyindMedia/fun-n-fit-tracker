@@ -227,7 +227,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, [searchQuery, allStudents]);
 
   return (
-    <div className="h-screen bg-neutral-50 flex flex-col overflow-hidden">
+    // 100dvh tracks iOS Safari's collapsing toolbars; 100vh overdraws behind them
+    <div className="h-screen bg-neutral-50 flex flex-col overflow-hidden" style={{ height: '100dvh' }}>
       {selectedProfile && (
         <StudentProfileModal
           student={selectedProfile}

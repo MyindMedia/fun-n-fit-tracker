@@ -46,47 +46,41 @@ const MobileModal: React.FC<{
   icon: React.ReactNode;
   children: React.ReactNode;
   fullHeight?: boolean;
-}> = ({ isOpen, onClose, title, icon, children, fullHeight = true }) => {
+}> = ({ isOpen, onClose, title, icon, children }) => {
   if (!isOpen) return null;
 
-  // Prevent body scroll when modal is open
-  React.useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
-
+  // In-layout panel (absolute inside the admin root, which already sits
+  // below the site header). No position:fixed anywhere — iOS Safari
+  // misplaces fixed layers, which buried the title bar over the content
+  // and lost the action bar on phones. Structure: opaque flex column,
+  // title bar in flow on top, content scrolling below — overlap is
+  // impossible, and closing reveals the untouched screen underneath.
   return (
-    <div className="mobile-modal pz-scope animate-fade-in" style={{ zIndex: 'var(--z-modal)', background: 'transparent' }}>
-      {/* Backdrop */}
+    <div
+      className="pz-scope animate-fade-in flex flex-col"
+      style={{ position: 'absolute', inset: 0, zIndex: 60, background: 'var(--pz-bg)' }}
+      role="dialog"
+      aria-label={title}
+    >
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Modal Content */}
-      <div className={`relative flex flex-col w-full ${fullHeight ? 'h-full' : 'max-h-[90vh] mt-auto rounded-t-3xl'} animate-slide-up`} style={{ background: 'var(--pz-bg)' }}>
-        {/* Header - always sticky */}
-        <div className="mobile-modal-header" style={{ background: 'var(--pz-panel)', borderBottom: '1px solid var(--pz-border)' }}>
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="flex-shrink-0 text-[#CBFE1C] flex items-center">{icon}</span>
-            <h2 className="pz-display text-sm sm:text-lg text-white tracking-tight truncate">{title}</h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="touch-btn w-11 h-11 rounded-full bg-white/5 border border-white/10 text-white/60 active:scale-95 transition-transform flex-shrink-0 focus-ring"
-            aria-label="Close modal"
-          >
-            <Ic.XMark size={20} />
-          </button>
+        className="mobile-modal-header"
+        style={{ position: 'static', flexShrink: 0, background: 'var(--pz-panel)', borderBottom: '1px solid var(--pz-border)' }}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="flex-shrink-0 text-[#CBFE1C] flex items-center">{icon}</span>
+          <h2 className="pz-display text-sm sm:text-lg text-white tracking-tight truncate">{title}</h2>
         </div>
+        <button
+          onClick={onClose}
+          className="touch-btn w-11 h-11 rounded-full bg-white/5 border border-white/10 text-white/60 active:scale-95 transition-transform flex-shrink-0 focus-ring"
+          aria-label="Close"
+        >
+          <Ic.XMark size={20} />
+        </button>
+      </div>
 
-        {/* Scrollable Content */}
-        <div className="mobile-modal-content">
-          {children}
-        </div>
+      <div className="mobile-modal-content" style={{ flex: 1, overflowY: 'auto' }}>
+        {children}
       </div>
     </div>
   );
@@ -370,7 +364,7 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col pz-scope overflow-hidden" style={{ background: 'var(--pz-bg)' }}>
+    <div className="relative h-full flex flex-col pz-scope overflow-hidden" style={{ background: 'var(--pz-bg)' }}>
       {/* Modals */}
       {editingStudent && (
         <StudentProfileModal
@@ -733,7 +727,7 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Main Content Area - Mobile optimized with proper bottom padding */}
-      <main className="flex-grow overflow-y-auto mobile-content-with-bar custom-scrollbar">
+      <main className="flex-grow min-h-0 overflow-y-auto custom-scrollbar" style={{ paddingBottom: '1rem' }}>
         <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
           {activeTab === 'GAMES' && (
             <DrillLauncher adminName={adminName} students={students} />
@@ -831,7 +825,9 @@ const AdminDashboard: React.FC = () => {
       </main>
 
       {/* Bottom Quick Action Bar - Mobile First */}
-      <nav className="mobile-action-bar" role="navigation" aria-label="Quick actions" style={{ background: 'var(--pz-panel)', borderTop: '1px solid var(--pz-border)', boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.4)' }}>
+      {/* In-flow (not fixed): iOS Safari misplaces fixed bars. As the last
+          flex row of the h-full column it's always glued to the bottom. */}
+      <nav className="mobile-action-bar shrink-0" role="navigation" aria-label="Quick actions" style={{ position: 'static', background: 'var(--pz-panel)', borderTop: '1px solid var(--pz-border)', boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.4)' }}>
         <div className="flex items-center justify-around px-1 sm:px-2 py-1.5 sm:py-2 max-w-lg mx-auto">
           <QuickActionButton
             icon={<Ic.ClipboardCheck size={25} />}
