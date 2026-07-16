@@ -109,7 +109,7 @@ const GAME_CENTER_FEATURES: Array<{ text: string; icon: React.FC<IconProps> }> =
   { text: 'Live house leaderboard on the gym projector', icon: Ic.Projector },
   { text: 'Check in at the door with a parent QR code', icon: Ic.QrCode },
   { text: 'Kids earn points at partner businesses around Upland', icon: Ic.Store },
-  { text: 'A perk shop where points turn into real rewards', icon: Ic.Gift },
+  { text: 'An item shop where points unlock ranked power gear', icon: Ic.Gift },
 ];
 
 const FALL_HOURS = [

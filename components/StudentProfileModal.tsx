@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Student, Rank, Badge, Reward, HouseId } from '../types';
+import { Student, Rank, Badge, HouseId } from '../types';
 import { HOUSES } from '../constants';
 import { GoogleGenAI } from "@google/genai";
 import { supabaseService } from '../services/supabaseService';
@@ -22,10 +22,9 @@ interface StudentProfileModalProps {
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
 
 const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onClose, adminName, onRefresh, isAdminMode = false }) => {
-  const [activeTab, setActiveTab] = useState<'TROPHY' | 'SHOP' | 'PEPTALK' | 'QRCODE' | 'EDIT' | 'POINTS'>('TROPHY');
+  const [activeTab, setActiveTab] = useState<'TROPHY' | 'PEPTALK' | 'QRCODE' | 'EDIT' | 'POINTS'>('TROPHY');
   const [aiFeedback, setAiFeedback] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [redeemError, setRedeemError] = useState<string | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -52,12 +51,10 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
 
   // Dynamic Data State
   const [availableBadges, setAvailableBadges] = useState<Badge[]>([]);
-  const [availableRewards, setAvailableRewards] = useState<Reward[]>([]);
   const [ranks, setRanks] = useState<Rank[]>([]);
 
   useEffect(() => {
     supabaseService.getBadges().then(setAvailableBadges);
-    supabaseService.getRewards().then(setAvailableRewards);
     supabaseService.getRanks().then(setRanks);
 
     // Generate QR code for student check-in
@@ -124,17 +121,6 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
       setAiFeedback("Coach is currently unavailable, but he says: You're doing amazing! Keep at it!");
     }
     setIsAiLoading(false);
-  };
-
-  const handleRedeem = async (reward: Reward) => {
-    setRedeemError(null);
-    try {
-      await supabaseService.redeemReward(student.id, reward.id);
-      alert(`Redeemed ${reward.name}!`);
-    } catch (err: any) {
-      setRedeemError(err.message || "Failed to redeem reward.");
-      setTimeout(() => setRedeemError(null), 3000);
-    }
   };
 
   // Edit mode functions
@@ -524,7 +510,6 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
            <div className="p-4 md:p-8 pb-0 flex justify-between items-center z-10" style={{ borderBottom: '1px solid var(--pz-border)' }}>
               <div className="flex gap-2 md:gap-4 overflow-x-auto no-scrollbar pb-1">
                  <button onClick={() => setActiveTab('TROPHY')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'TROPHY' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Trophy Case</button>
-                 <button onClick={() => setActiveTab('SHOP')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'SHOP' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Rewards Shop</button>
                  <button onClick={() => setActiveTab('PEPTALK')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'PEPTALK' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Coach Pep Talk</button>
                  <button onClick={() => setActiveTab('QRCODE')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap inline-flex items-center gap-1.5 ${activeTab === 'QRCODE' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}><Ic.QrCode size={14} /> QR Code</button>
                  {isAdminMode && (
@@ -553,41 +538,6 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                           </div>
                        ))
                     )}
-                 </div>
-              )}
-
-              {activeTab === 'SHOP' && (
-                 <div className="space-y-4">
-                    {redeemError && <div className="bg-red-500/10 border border-red-500/40 text-red-300 p-4 text-xs font-black uppercase text-center" style={{ clipPath: NOTCH_SM }}>{redeemError}</div>}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                       {availableRewards.map(r => {
-                          const canAfford = student.points >= r.cost;
-                          const isOwned = student.inventory?.includes(r.id);
-                          return (
-                             <div key={r.id} className={`pz-card-sm p-6 flex items-center justify-between gap-4 transition-all ${isOwned ? 'opacity-60' : ''}`} style={{ background: 'var(--pz-panel-2)' }}>
-                                <div className="flex items-center gap-4">
-                                   <div className="text-white"><DataIcon glyph={r.icon} size={28} /></div>
-                                   <div>
-                                      <div className="font-black text-white text-sm">{r.name}</div>
-                                      <div className="text-[10px] font-black" style={{ color: 'var(--pz-volt)' }}>{r.cost} PTS</div>
-                                   </div>
-                                </div>
-                                {isOwned ? (
-                                   <span className="text-[10px] font-black uppercase" style={{ color: 'var(--pz-text)' }}>Owned</span>
-                                ) : (
-                                   <button
-                                     onClick={() => handleRedeem(r)}
-                                     disabled={!canAfford}
-                                     className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest ${canAfford ? 'pz-btn' : 'bg-white/5 text-slate-500'}`}
-                                     style={!canAfford ? { clipPath: NOTCH_SM } : undefined}
-                                   >
-                                     Buy
-                                   </button>
-                                )}
-                             </div>
-                          );
-                       })}
-                    </div>
                  </div>
               )}
 
