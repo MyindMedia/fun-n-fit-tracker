@@ -235,6 +235,28 @@ NFC Bands page, no picking Timing/Points modes. Decisions:
    work when open, but gameplay no longer needs it. Verified on prod: timed game
    (lap 1 → split 1140ms), Gold Rush (+10/tap), no-game fallback to check-in.
 
+# Parent invites (2026-07-16)
+
+Invite links parents can sign up from, sendable by admins and by the GoHighLevel
+automation after an enrollment purchase:
+
+1. **Mechanics** — creating an invite PRE-creates the parent row (email-matched,
+   same key clerkBridge uses) and links the athlete(s), then emails a branded
+   invite (Resend) with `/#/parent-login?invite=<token>`. The link personalizes
+   the sign-in gate ("You're invited — Sienna is already linked"); the email
+   address does the actual linking, so the kid is on screen at first sign-in.
+   Signing in flips the invite to ACCEPTED (clerkBridge hook).
+2. **Admin UI** — Parent Accounts → "Invite Parent": name, email, athlete
+   multi-select → sends the email + shows a copyable link (for texting);
+   recent invites list with Pending / Signed up chips.
+3. **GHL webhook** — `POST https://dependable-spoonbill-535.convex.site/parent-invite`
+   with header `x-invite-secret` (INVITE_WEBHOOK_SECRET on the prod env) and JSON
+   `{email, fullName, studentName}` (or studentNames[]). Students matched by
+   exact full name; unmatched names returned in the response for front-desk
+   follow-up. Wrong secret → 401.
+4. Tables: `parentInvites` (by_token/by_email). Legacy "+ New Parent"
+   password wizard kept as the secondary path.
+
 # Parent guide page (2026-07-16)
 
 Shareable branded walkthrough at `/#/parents` (`components/ParentGuide.tsx`,

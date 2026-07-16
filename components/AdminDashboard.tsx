@@ -833,7 +833,7 @@ const AdminDashboard: React.FC = () => {
           )}
 
           {activeTab === 'PARENTS' && (
-            <ParentManager students={students} />
+            <ParentManager students={students} adminName={adminName} />
           )}
 
           {activeTab === 'CHECKIN' && (

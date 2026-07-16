@@ -2,6 +2,7 @@ import { action, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { randomToken } from "./helpers";
+import { acceptInvitesForEmail } from "./invites";
 
 // Bridges Clerk authentication to the app's existing parent-session system.
 // The client sends its Clerk session JWT; we verify the signature against the
@@ -128,6 +129,9 @@ export const upsertParentSession = internalMutation({
       await ctx.db.patch(parent._id, { fullName });
       parent = (await ctx.db.get(parent._id))!;
     }
+
+    // Signing in fulfills any pending portal invites for this email.
+    await acceptInvitesForEmail(ctx, email);
 
     const token = randomToken(32);
     await ctx.db.insert("parentSessions", {

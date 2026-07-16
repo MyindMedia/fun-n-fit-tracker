@@ -251,6 +251,22 @@ export default defineSchema({
     upgradeLevel: v.optional(v.number()), // 0 base → 3 volt (duplicates upgrade)
   }).index("by_student", ["studentId"]),
 
+  // Parent sign-up invites: pre-creates the parent + athlete links so the kid
+  // is already there at first sign-in. Sent by admins or the GHL webhook.
+  parentInvites: defineTable({
+    email: v.string(), // lowercase
+    fullName: v.string(),
+    studentIds: v.array(v.string()),
+    token: v.string(),
+    status: v.string(), // PENDING | ACCEPTED
+    invitedBy: v.string(), // admin name or "GHL"
+    createdAt: v.number(),
+    acceptedAt: v.optional(v.number()),
+  })
+    .index("by_token", ["token"])
+    .index("by_email", ["email"])
+    .index("by_createdAt", ["createdAt"]),
+
   // Kid self-login: parent-granted portal access + PIN. Separate table so the
   // PIN never travels with the public students list.
   portalAccess: defineTable({

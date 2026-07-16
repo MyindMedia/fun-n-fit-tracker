@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Student } from '../../types';
 import { HOUSES } from '../../constants';
 import { parentAuth } from '../../services/parentAuth';
+import { gameCenter } from '../../services/gameCenter';
 import { Ic } from '../icons';
 
 interface ParentRecord {
@@ -23,10 +24,10 @@ const STEPS = [
 ];
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-const ParentManager: React.FC<{ students: Student[] }> = ({ students }) => {
+const ParentManager: React.FC<{ students: Student[]; adminName?: string }> = ({ students, adminName = 'Coach' }) => {
     const [parents, setParents] = useState<ParentRecord[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeView, setActiveView] = useState<'list' | 'create'>('list');
+    const [activeView, setActiveView] = useState<'list' | 'create' | 'invite'>('list');
     const [selectedParent, setSelectedParent] = useState<ParentRecord | null>(null);
 
     // Link form
@@ -170,6 +171,17 @@ const ParentManager: React.FC<{ students: Student[] }> = ({ students }) => {
         );
     }
 
+    // ─── Invite ─────────────────────────────────────────────────────────────
+    if (activeView === 'invite') {
+        return (
+            <InvitePanel
+                students={students}
+                adminName={adminName}
+                onBack={async () => { await loadParents(); setActiveView('list'); }}
+            />
+        );
+    }
+
     // ─── Parent list ─────────────────────────────────────────────────────────
     return (
         <div className="pz-scope space-y-4">
@@ -178,10 +190,16 @@ const ParentManager: React.FC<{ students: Student[] }> = ({ students }) => {
                     <h2 className="text-white text-base inline-flex items-center gap-2"><Ic.Family size={20} className="text-[#CBFE1C]" /> Parent Accounts</h2>
                     <p className="text-[#ABABAB] text-xs">{parents.length} registered</p>
                 </div>
-                <button onClick={() => setActiveView('create')}
-                    className="touch-btn pz-btn min-h-[44px] px-4 py-2 text-sm">
-                    + New Parent
-                </button>
+                <div className="flex gap-2">
+                    <button onClick={() => setActiveView('invite')}
+                        className="touch-btn pz-btn min-h-[44px] px-4 py-2 text-sm inline-flex items-center gap-1.5">
+                        <Ic.Mail size={16} /> Invite Parent
+                    </button>
+                    <button onClick={() => setActiveView('create')}
+                        className="touch-btn pz-btn-ghost min-h-[44px] px-4 py-2 text-sm">
+                        + New Parent
+                    </button>
+                </div>
             </div>
 
             {loading ? (
@@ -225,6 +243,142 @@ const ParentManager: React.FC<{ students: Student[] }> = ({ students }) => {
                             <Ic.ChevronRight size={18} className="text-white/30 flex-shrink-0" />
                         </button>
                     ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ─── Invite panel ─────────────────────────────────────────────────────────────
+// Sends a branded sign-up invite: pre-creates the parent, links the athletes,
+// and emails a link to /#/parent-login?invite=<token>. The same flow the GHL
+// webhook uses after an enrollment purchase.
+const InvitePanel: React.FC<{ students: Student[]; adminName: string; onBack: () => void }> = ({ students, adminName, onBack }) => {
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [selected, setSelected] = useState<Set<string>>(new Set());
+    const [sending, setSending] = useState(false);
+    const [result, setResult] = useState<{ url: string; email: string; kidNames: string[] } | null>(null);
+    const [copied, setCopied] = useState(false);
+    const [recent, setRecent] = useState<any[]>([]);
+
+    const loadRecent = async () => {
+        try { setRecent(await gameCenter.recentParentInvites()); }
+        catch (err) { console.warn('Failed to load invites:', err); }
+    };
+    useEffect(() => { loadRecent(); }, []);
+
+    const toggle = (id: string) => setSelected(prev => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        return next;
+    });
+
+    const handleSend = async () => {
+        if (!email.trim()) { alert('Enter the parent email first.'); return; }
+        setSending(true);
+        try {
+            const res = await gameCenter.createParentInvite({
+                email: email.trim(),
+                fullName: fullName.trim(),
+                studentIds: Array.from(selected),
+                adminName,
+            });
+            setResult({ url: res.url, email: res.email, kidNames: res.kidNames });
+            setFullName(''); setEmail(''); setSelected(new Set());
+            await loadRecent();
+        } catch (err: any) {
+            alert(err?.message || 'Failed to send the invite');
+        } finally {
+            setSending(false);
+        }
+    };
+
+    const copyLink = async (url: string) => {
+        try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+        catch { window.prompt('Copy the invite link:', url); }
+    };
+
+    return (
+        <div className="pz-scope space-y-4">
+            <button onClick={onBack}
+                className="touch-btn flex items-center gap-2 text-sm font-black text-[#ABABAB] hover:text-white transition-colors">
+                <Ic.ArrowLeft size={16} /> Back to Parents
+            </button>
+
+            <div className="pz-card p-5">
+                <h2 className="text-white text-base inline-flex items-center gap-2 mb-1"><Ic.Mail size={20} className="text-[#CBFE1C]" /> Invite a Parent</h2>
+                <p className="text-[#ABABAB] text-xs mb-4">
+                    Their account and athlete links are set up before they even open the email —
+                    they just sign in and everything is waiting.
+                </p>
+
+                <label className="text-[10px] text-[#ABABAB] uppercase tracking-widest mb-1 block">Parent name</label>
+                <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Alex Johnson"
+                    className="w-full min-h-[48px] px-3 py-2 mb-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder-white/30 focus:border-[#CBFE1C] outline-none" />
+
+                <label className="text-[10px] text-[#ABABAB] uppercase tracking-widest mb-1 block">Parent email</label>
+                <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="parent@email.com"
+                    className="w-full min-h-[48px] px-3 py-2 mb-4 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder-white/30 focus:border-[#CBFE1C] outline-none" />
+
+                <label className="text-[10px] text-[#ABABAB] uppercase tracking-widest mb-2 block">
+                    Link athletes ({selected.size} selected)
+                </label>
+                <div className="grid grid-cols-2 gap-2 mb-4 max-h-56 overflow-y-auto custom-scrollbar pr-1">
+                    {students.map(s => {
+                        const isSel = selected.has(s.id);
+                        const house = HOUSES[s.houseId];
+                        return (
+                            <button key={s.id} onClick={() => toggle(s.id)}
+                                className={`p-2 border-2 rounded-xl flex items-center gap-2 text-left transition-all active:scale-[0.98] ${isSel ? 'border-[#CBFE1C] bg-[#CBFE1C]/10' : 'border-white/10 bg-white/5'}`}>
+                                <img src={s.avatarUrl || `https://api.dicebear.com/7.x/adventurer/svg?seed=${s.id}`}
+                                    className="w-8 h-8 rounded-full object-cover border-2 shrink-0" style={{ borderColor: house.colorHex }} alt="" />
+                                <span className="text-xs font-black text-white truncate">{s.fullName}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                <button onClick={handleSend} disabled={sending || !email.trim()}
+                    className="touch-btn pz-btn w-full min-h-[52px] py-3 text-sm disabled:opacity-40">
+                    {sending ? 'Sending…' : `Send Invite${selected.size > 0 ? ` · ${selected.size} athlete${selected.size > 1 ? 's' : ''} linked` : ''}`}
+                </button>
+
+                {result && (
+                    <div className="mt-4 p-4 rounded-xl border" style={{ borderColor: 'rgba(203,254,28,0.45)', background: 'rgba(203,254,28,0.06)' }}>
+                        <p className="text-sm font-bold text-white m-0 flex items-center gap-2">
+                            <Ic.CheckCircle size={16} className="text-[#CBFE1C]" /> Invite emailed to {result.email}
+                            {result.kidNames.length > 0 && ` — ${result.kidNames.join(' and ')} linked`}
+                        </p>
+                        <div className="flex gap-2 mt-3">
+                            <input readOnly value={result.url}
+                                className="flex-grow min-h-[44px] px-3 rounded-xl border border-white/10 bg-[#171C27] text-xs font-mono text-[#ABABAB] outline-none" />
+                            <button onClick={() => copyLink(result.url)}
+                                className="touch-btn pz-btn-ghost min-h-[44px] px-4 text-xs whitespace-nowrap">
+                                {copied ? 'Copied!' : 'Copy link'}
+                            </button>
+                        </div>
+                        <p className="text-[10px] text-[#ABABAB] mt-2 m-0">Send this link by text too — same sign-up, their kid is already linked.</p>
+                    </div>
+                )}
+            </div>
+
+            {recent.length > 0 && (
+                <div className="pz-card p-5">
+                    <h3 className="text-[10px] text-[#ABABAB] uppercase tracking-widest mb-3">Recent invites</h3>
+                    <div className="space-y-2">
+                        {recent.map((inv: any) => (
+                            <div key={inv._id} className="pz-card-sm flex items-center gap-3 p-3" style={{ background: 'var(--pz-panel-2)' }}>
+                                <div className="flex-grow min-w-0">
+                                    <div className="text-sm font-black text-white truncate">{inv.fullName || inv.email}</div>
+                                    <div className="text-[10px] text-[#ABABAB] truncate">{inv.email} · {new Date(inv.createdAt).toLocaleDateString()} · by {inv.invitedBy}</div>
+                                </div>
+                                <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-full shrink-0 ${inv.status === 'ACCEPTED' ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/40' : 'text-[#CBFE1C] bg-[#CBFE1C]/10 border border-[#CBFE1C]/40'}`}>
+                                    {inv.status === 'ACCEPTED' ? 'Signed up' : 'Pending'}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>

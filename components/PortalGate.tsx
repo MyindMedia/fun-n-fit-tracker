@@ -44,6 +44,22 @@ const PortalGate: React.FC = () => {
 
   const isAdmin = isAdminUser(user);
 
+  // Invite links land as #/parent-login?invite=<token> — personalize the gate.
+  const [invite, setInvite] = useState<{ fullName: string; kidNames: string[] } | null>(null);
+  useEffect(() => {
+    const hash = window.location.hash || '';
+    const qIndex = hash.indexOf('?');
+    if (qIndex === -1) return;
+    const token = new URLSearchParams(hash.slice(qIndex + 1)).get('invite');
+    if (!token) return;
+    const client = new ConvexClient(CONVEX_URL);
+    client
+      .query(api.invites.byToken, { token })
+      .then((inv: any) => { if (inv) setInvite({ fullName: inv.fullName, kidNames: inv.kidNames ?? [] }); })
+      .catch(() => { /* bad/expired token — plain sign-in still works */ })
+      .finally(() => void client.close());
+  }, []);
+
   // Exchange the Clerk session for the app's parent session, then enter the
   // parent dashboard. Used automatically for parents; on demand for admins
   // (who are often parents too).
@@ -129,6 +145,25 @@ const PortalGate: React.FC = () => {
           Parents and coaches sign in here — email or Google.
         </p>
       </div>
+
+      {invite && !isSignedIn && (
+        <div
+          className="pz-card-sm"
+          style={{
+            padding: '0.9rem 1.25rem', marginBottom: '1.25rem', maxWidth: 380, width: '100%',
+            textAlign: 'center', borderColor: 'rgba(203,254,28,0.45)', background: 'rgba(203,254,28,0.07)',
+          }}
+        >
+          <div className="pz-eyebrow" style={{ marginBottom: 4 }}>You're invited</div>
+          <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem', lineHeight: 1.45 }}>
+            Welcome{invite.fullName ? `, ${invite.fullName.split(' ')[0]}` : ''}!
+            {invite.kidNames.length > 0
+              ? ` ${invite.kidNames.join(' and ')} ${invite.kidNames.length > 1 ? 'are' : 'is'} already linked — `
+              : ' Your account is ready — '}
+            sign in with the email your invite was sent to.
+          </div>
+        </div>
+      )}
 
       {!isLoaded && (
         <div style={{ color: 'var(--pz-text)', fontSize: '0.9rem' }}>Loading…</div>

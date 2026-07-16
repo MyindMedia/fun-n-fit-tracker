@@ -61,6 +61,87 @@ function welcomeHtml(firstName: string): string {
   </table></body></html>`;
 }
 
+function inviteHtml(firstName: string, kidLine: string, inviteUrl: string): string {
+  return `<!doctype html><html><body style="margin:0;padding:0;background:#0B0E13">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0B0E13">
+    <tr><td align="center" style="padding:32px 16px">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%">
+        <tr><td style="padding-bottom:24px;text-align:center">
+          <div style="color:#CBFE1C;font-family:Arial,sans-serif;font-size:12px;letter-spacing:4px;text-transform:uppercase">// Fun 'n Fit Academy</div>
+          <div style="color:#ffffff;font-family:Arial,sans-serif;font-weight:800;font-size:26px;margin-top:6px;text-transform:uppercase">You're invited${firstName ? ", " + firstName : ""}!</div>
+        </td></tr>
+        <tr><td style="background:#12161F;border:1px solid rgba(255,255,255,0.08);padding:24px">
+          <div style="color:#ABABAB;font-family:Arial,sans-serif;font-size:15px;line-height:1.6">
+            Your Fun 'n Fit <b style="color:#ffffff">Parent Portal</b> is ready${kidLine}.
+            Track points and levels live, check in from your phone, message the coaches,
+            and let your kid build their player avatar — all free with enrollment.
+          </div>
+          <div style="color:#ABABAB;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;margin-top:12px">
+            Tap the button and sign in with <b style="color:#ffffff">this email address</b>
+            (or Google) — your account is already set up and your athlete is already linked.
+          </div>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px auto 4px" align="center">
+            <tr><td style="background:#CBFE1C;padding:14px 26px">
+              <a href="${inviteUrl}" style="color:#0B0E13;font-family:Arial,sans-serif;font-weight:700;font-size:14px;text-decoration:none;text-transform:uppercase;letter-spacing:1px">Activate My Portal</a>
+            </td></tr>
+          </table>
+          <div style="color:#6b7280;font-family:Arial,sans-serif;font-size:12px;text-align:center;margin-top:14px">
+            Curious first? See everything the portal does: <a href="https://fnffinal.netlify.app/#/parents" style="color:#CBFE1C;text-decoration:none">the parent guide</a>.
+          </div>
+        </td></tr>
+        <tr><td style="padding:20px 8px;text-align:center">
+          <div style="color:#6b7280;font-family:Arial,sans-serif;font-size:12px;line-height:1.6">
+            Fun 'n Fit Academy · 167 S Third Ave, Upland, CA 91786 · (951) 612-8233<br/>
+            Where Fitness Meets Fun and Leadership
+          </div>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table></body></html>`;
+}
+
+export const sendParentInvite = internalAction({
+  args: {
+    email: v.string(),
+    fullName: v.string(),
+    inviteUrl: v.string(),
+    kidNames: v.array(v.string()),
+  },
+  handler: async (_ctx, { email, fullName, inviteUrl, kidNames }) => {
+    const apiKey = process.env.RESEND_API_KEY;
+    const from = process.env.EMAIL_FROM;
+    if (!apiKey || !from) {
+      console.log("RESEND_API_KEY/EMAIL_FROM not set — skipping invite email to", email);
+      return { sent: false };
+    }
+    const firstName = fullName.split(" ")[0] ?? "";
+    const kidLine =
+      kidNames.length > 0
+        ? ` — ${kidNames.join(" and ")} ${kidNames.length > 1 ? "are" : "is"} already linked and waiting`
+        : "";
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: [email],
+        subject: kidNames.length > 0
+          ? `${kidNames.join(" and ")}'s Fun 'n Fit portal is ready for you`
+          : "Your Fun 'n Fit Parent Portal is ready",
+        html: inviteHtml(firstName, kidLine, inviteUrl),
+      }),
+    });
+    if (!res.ok) {
+      console.error("Invite email failed:", res.status, await res.text());
+      return { sent: false };
+    }
+    return { sent: true };
+  },
+});
+
 export const sendParentWelcome = internalAction({
   args: { email: v.string(), fullName: v.string() },
   handler: async (_ctx, { email, fullName }) => {

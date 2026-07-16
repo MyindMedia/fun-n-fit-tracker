@@ -550,6 +550,26 @@ class GameCenterService {
     });
   }
 
+  // ── Parent invites ─────────────────────────────────────────────────────────
+
+  public async createParentInvite(args: {
+    email: string;
+    fullName: string;
+    studentIds: string[];
+    adminName: string;
+  }): Promise<{ token: string; url: string; email: string; kidNames: string[] }> {
+    return (await this.client.mutation(api.invites.create, {
+      email: args.email,
+      fullName: args.fullName,
+      studentIds: args.studentIds as Id<'students'>[],
+      adminName: args.adminName,
+    })) as any;
+  }
+
+  public async recentParentInvites(): Promise<any[]> {
+    return (await this.client.query(api.invites.recent, {})) as any[];
+  }
+
   // ── Student self-login (parent-granted, PIN) ───────────────────────────────
 
   public async portalStatus(studentId: string): Promise<{ enabled: boolean }> {
