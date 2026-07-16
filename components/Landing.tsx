@@ -238,6 +238,9 @@ const LandingNav: React.FC<{ solid: boolean }> = ({ solid }) => {
 
           {/* CTAs */}
           <div className="flex items-center gap-2 md:gap-3 shrink-0">
+            <Link to="/parents" className={`hidden md:inline-flex ${FOCUS_RING}`}>
+              <span className="pz-btn-ghost inline-flex items-center px-4 py-2.5 text-xs">For Parents</span>
+            </Link>
             <Link to="/live" className={`hidden sm:inline-flex ${FOCUS_RING}`}>
               <span className="pz-btn-ghost inline-flex items-center px-4 py-2.5 text-xs">Live Board</span>
             </Link>

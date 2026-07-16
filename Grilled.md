@@ -235,6 +235,18 @@ NFC Bands page, no picking Timing/Points modes. Decisions:
    work when open, but gameplay no longer needs it. Verified on prod: timed game
    (lap 1 → split 1140ms), Gold Rush (+10/tap), no-game fallback to check-in.
 
+# Parent guide page (2026-07-16)
+
+Shareable branded walkthrough at `/#/parents` (`components/ParentGuide.tsx`,
+standalone like Landing, "For Parents" nav link on the home page). Real
+screenshots (public/assets/guide/) shot on prod with the QA parent account and
+the QA athlete temporarily renamed "Jordan Miles" so no real kid appears on a
+public page; portal-header bands cropped so the QA identity never shows.
+Sections: live tracking, level path + medals, check-in, coach messaging, earn
+around town, perk shop, kid corner (PIN login + Avatar Studio + crates,
+points-only note), live board panorama, 3-step sign-up, contact. Screenshot
+session was minted via a TEMPORARY convex mutation, deleted after the shoot.
+
 ## Open questions from E2E verification (2026-07-15)
 - **Spending can demote.** Ranks are computed from *current* points (pre-existing
   mechanic), so a big perk purchase that drops a kid below a rank threshold triggers the

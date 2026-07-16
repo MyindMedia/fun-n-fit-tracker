@@ -4,6 +4,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import Layout from './components/Layout';
 import Landing from './components/Landing';
+import ParentGuide from './components/ParentGuide';
 import Leaderboard from './components/Leaderboard';
 import AdminDashboard from './components/AdminDashboard';
 import StudentLogin from './components/StudentLogin';
@@ -37,6 +38,7 @@ const App: React.FC = () => {
         <Routes>
           {/* Public routes (no Layout wrapper needed) */}
           <Route path="/" element={<Landing />} />
+          <Route path="/parents" element={<ParentGuide />} />
           <Route path="/parent-login" element={<PortalGate />} />
           <Route path="/parent-dashboard" element={<ParentDashboard />} />
 
