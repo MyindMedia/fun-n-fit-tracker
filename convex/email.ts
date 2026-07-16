@@ -7,6 +7,16 @@ import { v } from "convex/values";
 
 const PORTAL_URL = "https://fnffinal.netlify.app/#/parent-login";
 const LIVE_URL = "https://fnffinal.netlify.app/#/live";
+const LOGO_URL = "https://fnffinal.netlify.app/fnfa-logo.png";
+
+// Academy logo on a white tile (matches the app nav treatment; the mark is
+// drawn for light backgrounds).
+const LOGO_BLOCK = `
+  <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto 12px">
+    <tr><td style="background:#ffffff;border-radius:10px;padding:7px;line-height:0">
+      <img src="${LOGO_URL}" width="54" height="54" alt="Fun 'n Fit Academy" style="display:block"/>
+    </td></tr>
+  </table>`;
 
 function welcomeHtml(firstName: string): string {
   const step = (n: string, title: string, body: string) => `
@@ -23,6 +33,7 @@ function welcomeHtml(firstName: string): string {
     <tr><td align="center" style="padding:32px 16px">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%">
         <tr><td style="padding-bottom:24px;text-align:center">
+          ${LOGO_BLOCK}
           <div style="color:#CBFE1C;font-family:Arial,sans-serif;font-size:12px;letter-spacing:4px;text-transform:uppercase">// Fun 'n Fit Academy</div>
           <div style="color:#ffffff;font-family:Arial,sans-serif;font-weight:800;font-size:26px;margin-top:6px;text-transform:uppercase">Welcome to the Academy${firstName ? ", " + firstName : ""}!</div>
         </td></tr>
@@ -67,6 +78,7 @@ function inviteHtml(firstName: string, kidLine: string, inviteUrl: string): stri
     <tr><td align="center" style="padding:32px 16px">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%">
         <tr><td style="padding-bottom:24px;text-align:center">
+          ${LOGO_BLOCK}
           <div style="color:#CBFE1C;font-family:Arial,sans-serif;font-size:12px;letter-spacing:4px;text-transform:uppercase">// Fun 'n Fit Academy</div>
           <div style="color:#ffffff;font-family:Arial,sans-serif;font-weight:800;font-size:26px;margin-top:6px;text-transform:uppercase">You're invited${firstName ? ", " + firstName : ""}!</div>
         </td></tr>

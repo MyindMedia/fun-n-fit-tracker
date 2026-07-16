@@ -613,7 +613,7 @@ const AdminDashboard: React.FC = () => {
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Family size={24} /></span>
             <div className="text-left">
               <div className="font-black text-white uppercase tracking-wide text-[15px]">Parent Accounts</div>
-              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Manage parents & link athletes</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Invite parents, link athletes & manage accounts</div>
             </div>
           </button>
 
