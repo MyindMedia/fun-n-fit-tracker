@@ -19,11 +19,28 @@ const log = (msg) => console.log(`[${new Date().toLocaleTimeString()}] ${msg}`);
 log(`Fun 'n Fit NFC Agent → ${CONVEX_URL}`);
 log("Waiting for a USB NFC reader (plug in your ACR1252U)...");
 
-const nfc = new NFC();
+let nfc = null;
 let lastUid = null;
 let lastTs = 0;
 let heartbeatTimer = null;
 let activeReaderName = null;
+let reinitTimer = null;
+
+// macOS stops the PC/SC service when the last reader unplugs, which kills the
+// NFC session. Recreate it on a loop so unplug → replug just works.
+const scheduleReinit = () => {
+  if (reinitTimer) return;
+  clearInterval(heartbeatTimer);
+  if (activeReaderName) {
+    void sendHeartbeat(false);
+    activeReaderName = null;
+  }
+  reinitTimer = setTimeout(() => {
+    reinitTimer = null;
+    log("Re-opening PC/SC session (waiting for a reader)...");
+    initNfc();
+  }, 5000);
+};
 
 const sendHeartbeat = async (online = true) => {
   if (!activeReaderName) return;
@@ -37,6 +54,8 @@ const sendHeartbeat = async (online = true) => {
   }
 };
 
+function initNfc() {
+nfc = new NFC();
 nfc.on("reader", (reader) => {
   // The ACR1252 exposes PICC (contactless) + SAM slots; track the PICC one.
   if (/SAM/i.test(reader.reader.name) && activeReaderName) return;
@@ -88,8 +107,11 @@ nfc.on("reader", (reader) => {
 
 nfc.on("error", (err) => {
   log(`PC/SC error: ${err.message}`);
-  log("If this persists: unplug/replug the reader, or check that no other NFC software is holding it.");
+  scheduleReinit();
 });
+}
+
+initNfc();
 
 process.on("SIGINT", async () => {
   clearInterval(heartbeatTimer);
