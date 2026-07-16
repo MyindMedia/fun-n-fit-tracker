@@ -102,11 +102,20 @@ const AvatarStudio: React.FC<AvatarStudioProps> = ({ student, onClose, onSaved }
     }
   };
 
-  const sections = useMemo(() => ([
-    { slot: 'HAIRSTYLE' as const, title: 'Hair', items: AVATAR_ITEMS.filter(i => i.slot === 'HAIRSTYLE') },
-    { slot: 'TOP' as const, title: 'Clothes & Merch', items: AVATAR_ITEMS.filter(i => i.slot === 'TOP') },
-    { slot: 'ACCESSORY' as const, title: 'Accessories', items: AVATAR_ITEMS.filter(i => i.slot === 'ACCESSORY') },
-  ]), []);
+  // Hair sorts by the current style: matching set first, unisex next, the
+  // rest last — everything stays wearable by everyone.
+  const sections = useMemo(() => {
+    const body = look.body ?? 'M';
+    const tagRank = (t?: string) => (t === body ? 0 : t === 'U' || !t ? 1 : 2);
+    const hair = AVATAR_ITEMS.filter(i => i.slot === 'HAIRSTYLE')
+      .slice()
+      .sort((a, b) => tagRank(a.tag) - tagRank(b.tag) || Number(!!b.isDefault) - Number(!!a.isDefault));
+    return [
+      { slot: 'HAIRSTYLE' as const, title: 'Hair', items: hair },
+      { slot: 'TOP' as const, title: 'Clothes & Merch', items: AVATAR_ITEMS.filter(i => i.slot === 'TOP') },
+      { slot: 'ACCESSORY' as const, title: 'Accessories', items: AVATAR_ITEMS.filter(i => i.slot === 'ACCESSORY') },
+    ];
+  }, [look.body]);
 
   const equippedKey = (slot: AvatarItemDef['slot']) =>
     slot === 'HAIRSTYLE' ? look.hair : slot === 'TOP' ? look.top : look.acc;

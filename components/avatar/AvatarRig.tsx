@@ -82,6 +82,32 @@ const HairBack: React.FC<{ hair: string; color: string }> = ({ hair, color }) =>
           <Shade d="M64 110 L62 150 Q61 164 72 158 Q80 172 90 160 L94 120 L64 110 Z" />
         </g>
       );
+    case 'hair_bangs':
+    case 'hair_halfup':
+      return (
+        <g>
+          <path d="M66 94 Q64 40 120 38 Q176 40 174 94 L175 158 Q175 174 160 172 L80 172 Q65 174 65 158 Z" fill={color} />
+          <Shade d="M66 116 L65 158 Q65 174 80 172 L96 172 L96 116 Z" />
+        </g>
+      );
+    case 'hair_sidebraid':
+      return (
+        <g>
+          <path d="M148 92 L166 92 L166 158 Q166 172 157 172 Q148 172 148 158 Z" fill={color} />
+          <path d="M150 112 h14 M150 130 h14 M150 148 h14" stroke="#000" opacity={0.18} strokeWidth={4} fill="none" />
+          <rect x={150} y={164} width={14} height={8} rx={4} fill="#1E2128" opacity={0.4} />
+        </g>
+      );
+    case 'hair_curlypony':
+      return (
+        <g fill={color}>
+          <circle cx={168} cy={52} r={17} />
+          <circle cx={180} cy={72} r={15} />
+          <circle cx={170} cy={92} r={14} />
+          <Shade d="M170 92 m-14 0 a14 14 0 0 0 14 14 Z" />
+          <rect x={148} y={54} width={13} height={9} rx={4.5} fill="#1E2128" opacity={0.4} />
+        </g>
+      );
     default:
       return null;
   }
@@ -204,6 +230,107 @@ const HairFront: React.FC<{ hair: string; color: string }> = ({ hair, color }) =
           <path d="M76 90 Q74 42 120 40 Q166 42 164 90 Q160 62 120 60 Q80 62 76 90 Z" />
         </g>
       );
+    case 'hair_sidepart':
+      return (
+        <g>
+          <path d="M72 92 Q70 30 120 28 Q170 30 168 92 Q168 58 146 54 L98 60 Q74 66 72 92 Z" fill={color} />
+          <path d="M98 32 L94 60" stroke="#000" opacity={0.22} strokeWidth={4} strokeLinecap="round" />
+          <Shade d="M98 60 Q74 66 72 92 Q70 30 120 28 L98 32 Z" />
+        </g>
+      );
+    case 'hair_bowl':
+      return (
+        <g>
+          <path d="M70 76 Q70 26 120 24 Q170 26 170 76 Q120 86 70 76 Z" fill={color} />
+          <Shade d="M70 76 Q70 26 120 24 L120 26 Q90 30 86 78 Q76 78 70 76 Z" />
+        </g>
+      );
+    case 'hair_slickback':
+      return (
+        <g>
+          <path d="M74 88 Q72 32 120 28 Q168 32 166 88 Q160 52 120 44 Q80 52 74 88 Z" fill={color} />
+          <path d="M96 36 Q104 32 110 33 M126 32 Q134 32 142 36" stroke="#000" opacity={0.18} strokeWidth={3.5} fill="none" strokeLinecap="round" />
+        </g>
+      );
+    case 'hair_flattop':
+      return (
+        <g>
+          <path d="M74 84 L80 34 Q82 28 92 28 L148 28 Q158 28 160 34 L166 84 Q160 62 140 58 L100 58 Q80 62 74 84 Z" fill={color} />
+          <Shade d="M74 84 L80 34 Q82 28 92 28 L100 28 L96 60 Q82 64 74 84 Z" />
+        </g>
+      );
+    case 'hair_curtains':
+      return (
+        <g>
+          <path d="M74 94 Q72 30 120 28 Q168 30 166 94 Q164 58 146 54 Q134 52 124 74 L120 78 L116 74 Q106 52 94 54 Q76 58 74 94 Z" fill={color} />
+          <path d="M120 30 L120 76" stroke="#000" opacity={0.2} strokeWidth={4} strokeLinecap="round" />
+        </g>
+      );
+    case 'hair_broccoli':
+      return (
+        <g fill={color}>
+          <circle cx={98} cy={40} r={16} />
+          <circle cx={120} cy={34} r={17} />
+          <circle cx={142} cy={40} r={16} />
+          <circle cx={108} cy={52} r={15} />
+          <circle cx={132} cy={52} r={15} />
+          <Shade d="M98 40 m-16 0 a16 16 0 0 0 16 16 Z" />
+          <path d="M78 84 Q78 60 96 54 L144 54 Q162 60 162 84 Q120 74 78 84 Z" opacity={0.5} />
+        </g>
+      );
+    case 'hair_cornrows':
+      return (
+        <g>
+          <path d="M76 90 Q74 32 120 30 Q166 32 164 90 Q160 58 120 54 Q80 58 76 90 Z" fill={color} />
+          <path d="M92 60 Q90 42 102 33 M108 57 Q106 38 114 31 M126 57 Q128 38 126 31 M140 60 Q144 42 138 33" stroke="#000" opacity={0.25} strokeWidth={3.5} fill="none" strokeLinecap="round" />
+        </g>
+      );
+    case 'hair_buns':
+      return (
+        <g fill={color}>
+          <circle cx={88} cy={32} r={16} />
+          <circle cx={152} cy={32} r={16} />
+          <Shade d="M88 32 m-16 0 a16 16 0 0 0 16 16 Z M152 32 m-16 0 a16 16 0 0 0 16 16 Z" />
+          <path d="M74 92 Q72 30 120 28 Q168 30 166 92 Q164 62 146 56 Q132 51 120 54 Q102 50 92 60 Q76 68 74 92 Z" />
+        </g>
+      );
+    case 'hair_bangs':
+      return (
+        <g>
+          <path d="M76 80 Q76 32 120 30 Q164 32 164 80 Q164 86 156 86 Q120 78 84 86 Q76 86 76 80 Z" fill={color} />
+          <Shade d="M76 80 Q76 32 120 30 L120 32 Q92 36 88 84 Q82 85 84 86 Q76 86 76 80 Z" />
+        </g>
+      );
+    case 'hair_halfup':
+      return (
+        <g fill={color}>
+          <circle cx={120} cy={26} r={14} />
+          <rect x={110} y={36} width={20} height={8} rx={4} fill="#1E2128" opacity={0.35} />
+          <path d="M74 92 Q72 32 120 30 Q168 32 166 92 Q164 62 146 56 Q132 51 120 54 Q102 50 92 60 Q76 68 74 92 Z" />
+        </g>
+      );
+    case 'hair_sidebraid':
+      return (
+        <g>
+          <path d="M72 94 Q70 28 120 26 Q170 28 168 94 Q166 58 144 54 L94 60 Q74 66 72 94 Z" fill={color} />
+          <Shade d="M94 60 Q74 66 72 94 Q70 28 120 26 L94 32 Z" />
+        </g>
+      );
+    case 'hair_curlypony':
+      return (
+        <g fill={color}>
+          <path d="M74 92 Q72 30 120 28 Q168 30 166 92 Q164 60 146 55 Q130 50 118 55 Q98 51 88 62 Q76 70 74 92 Z" />
+          <circle cx={90} cy={44} r={9} opacity={0.9} />
+          <circle cx={148} cy={42} r={9} opacity={0.9} />
+        </g>
+      );
+    case 'hair_afro':
+      return (
+        <g>
+          <circle cx={120} cy={40} r={48} fill={color} />
+          <Shade d="M120 40 m-48 0 a48 48 0 0 0 26 43 L72 40 Z" />
+        </g>
+      );
     default:
       return null;
   }
@@ -222,8 +349,72 @@ const TORSO = 'M34 240 L34 206 Q34 174 68 163 L98 152 Q120 168 142 152 L172 163 
 // Ribbed crew collar following the neckline.
 const COLLAR = 'M96 154 Q120 172 144 154 L146 163 Q120 182 94 163 Z';
 
-const TopFront: React.FC<{ top: string }> = ({ top }) => {
+const TopFront: React.FC<{ top: string; skinFill: string; skinShade: string }> = ({ top, skinFill, skinShade }) => {
+  const clipId = React.useId();
   const jersey = HOUSE_JERSEY[top];
+  if (top === 'top_tank') {
+    // Bare shoulders + narrow-strap tank
+    return (
+      <g>
+        <path d={TORSO} fill={skinFill} />
+        <path d="M34 240 L34 206 Q34 174 68 163 L78 159 L78 240 Z" fill={skinShade} opacity={0.5} />
+        <path d="M62 240 L62 196 Q62 178 88 172 L96 152 Q120 168 144 152 L152 172 Q178 178 178 196 L178 240 Z" fill="#2A3140" />
+        <path d={COLLAR} fill="#232936" />
+        <path d="M88 214 L118 194 L124 200 L94 220 Z" fill={VOLT} opacity={0.85} />
+      </g>
+    );
+  }
+  if (top === 'top_stripe') {
+    return (
+      <g>
+        <clipPath id={clipId}><path d={TORSO} /></clipPath>
+        <path d={TORSO} fill="#29313F" />
+        <g clipPath={`url(#${clipId})`}>
+          <rect x={34} y={182} width={172} height={10} fill={WHITE} opacity={0.9} />
+          <rect x={34} y={204} width={172} height={10} fill={WHITE} opacity={0.9} />
+          <rect x={34} y={226} width={172} height={10} fill={WHITE} opacity={0.9} />
+        </g>
+        <path d={COLLAR} fill={VOLT} />
+      </g>
+    );
+  }
+  if (top === 'top_polo') {
+    return (
+      <g>
+        <path d={TORSO} fill="#24455C" />
+        <path d="M94 156 L120 172 L146 156 L152 166 L120 186 L88 166 Z" fill={WHITE} />
+        <path d="M120 186 L120 214" stroke="#16303F" strokeWidth={4} />
+        <circle cx={120} cy={196} r={2.5} fill={WHITE} />
+        <circle cx={120} cy={206} r={2.5} fill={WHITE} />
+      </g>
+    );
+  }
+  if (top === 'top_varsity') {
+    return (
+      <g>
+        <path d={TORSO} fill="#232B38" />
+        <path d="M34 206 Q34 174 68 163 L82 158 L82 240 L34 240 Z" fill={WHITE} opacity={0.92} />
+        <path d="M206 206 Q206 174 172 163 L158 158 L158 240 L206 240 Z" fill={WHITE} opacity={0.92} />
+        <path d={COLLAR} fill={GRAPHITE} />
+        <path d="M120 164 L120 240" stroke="#0B0E13" strokeWidth={5} />
+        <circle cx={112} cy={190} r={2.5} fill={VOLT} />
+        <circle cx={112} cy={210} r={2.5} fill={VOLT} />
+        <rect x={82} y={230} width={76} height={10} fill={GRAPHITE} />
+        <rect x={82} y={230} width={76} height={5} fill={VOLT} opacity={0.85} />
+      </g>
+    );
+  }
+  if (top === 'top_gold') {
+    return (
+      <g>
+        <path d={TORSO} fill={GOLD} />
+        <path d="M40 200 L74 168 L84 174 L48 208 Z M200 200 L166 168 L156 174 L192 208 Z" fill={GRAPHITE} />
+        <path d={COLLAR} fill={GRAPHITE} />
+        <path d="M120 190 l5.2 10.5 11.6 1.7 -8.4 8.2 2 11.5 -10.4-5.4 -10.4 5.4 2-11.5 -8.4-8.2 11.6-1.7 Z" fill={GRAPHITE} />
+        <rect x={34} y={232} width={172} height={8} fill={GRAPHITE} />
+      </g>
+    );
+  }
   if (jersey) {
     return (
       <g>
@@ -373,6 +564,61 @@ const Accessory: React.FC<{ acc: string }> = ({ acc }) => {
           <circle cx={141} cy={30} r={3} fill={VOLT} />
         </g>
       );
+    case 'acc_bandana':
+      return (
+        <g>
+          <rect x={74} y={64} width={92} height={17} rx={8} fill="#D64541" />
+          <path d="M166 70 L182 62 L176 78 Z M166 74 L184 76 L172 86 Z" fill="#D64541" />
+          <circle cx={92} cy={72} r={2} fill="#FFFFFF" opacity={0.8} />
+          <circle cx={112} cy={72} r={2} fill="#FFFFFF" opacity={0.8} />
+          <circle cx={132} cy={72} r={2} fill="#FFFFFF" opacity={0.8} />
+          <circle cx={152} cy={72} r={2} fill="#FFFFFF" opacity={0.8} />
+        </g>
+      );
+    case 'acc_goggles':
+      return (
+        <g>
+          <rect x={70} y={94} width={100} height={11} rx={5.5} fill={GRAPHITE} />
+          <circle cx={100} cy={103} r={14} fill="#38BDF8" opacity={0.9} stroke={INK} strokeWidth={3.5} />
+          <circle cx={140} cy={103} r={14} fill="#38BDF8" opacity={0.9} stroke={INK} strokeWidth={3.5} />
+          <path d="M114 103 L126 103" stroke={INK} strokeWidth={4} />
+          <circle cx={95} cy={98} r={3.5} fill="#FFFFFF" opacity={0.85} />
+          <circle cx={135} cy={98} r={3.5} fill="#FFFFFF" opacity={0.85} />
+        </g>
+      );
+    case 'acc_eyeblack':
+      return (
+        <g fill={INK} opacity={0.85}>
+          <rect x={90} y={115} width={17} height={6.5} rx={2.5} />
+          <rect x={133} y={115} width={17} height={6.5} rx={2.5} />
+        </g>
+      );
+    case 'acc_bucket':
+      return (
+        <g>
+          <path d="M86 58 Q86 28 120 26 Q154 28 154 58 Z" fill="#4A5568" />
+          <path d="M68 72 L86 54 L154 54 L172 72 Q120 84 68 72 Z" fill="#3D4757" />
+          <path d="M88 46 L152 46" stroke={VOLT} strokeWidth={3.5} opacity={0.8} />
+        </g>
+      );
+    case 'acc_helmet':
+      return (
+        <g>
+          <path d="M70 82 Q70 18 120 16 Q170 18 170 82 L170 90 Q145 82 120 82 Q95 82 70 90 Z" fill="#E23A3A" />
+          <path d="M112 18 L112 82 L128 82 L128 18 Q120 16 112 18 Z" fill="#FFFFFF" opacity={0.9} />
+          <circle cx={88} cy={48} r={3} fill="#B02A2A" />
+          <circle cx={152} cy={48} r={3} fill="#B02A2A" />
+        </g>
+      );
+    case 'acc_volt_helmet':
+      return (
+        <g>
+          <path d="M68 96 Q68 20 120 18 Q172 20 172 96 L172 110 Q160 114 154 108 L154 96 Q138 90 120 90 Q102 90 86 96 L86 108 Q80 114 68 110 Z" fill={VOLT} />
+          <path d="M84 78 Q84 60 100 58 L140 58 Q156 60 156 78 L156 92 Q120 84 84 92 Z" fill="#14171E" />
+          <path d="M92 66 L128 66" stroke={VOLT} strokeWidth={3} opacity={0.6} />
+          <path d="M72 44 Q96 28 120 28" stroke={GRAPHITE} strokeWidth={4} fill="none" opacity={0.5} />
+        </g>
+      );
     default:
       return null;
   }
@@ -399,7 +645,7 @@ const AvatarRig: React.FC<AvatarRigProps> = ({ look, size = 96, className = '', 
       <g style={idle ? { animation: 'fnf-idle-bob 3.2s ease-in-out infinite', transformOrigin: '120px 240px' } : undefined}>
         <HairBack hair={hair} color={hairColor} />
         <TopBack top={top} />
-        <TopFront top={top} />
+        <TopFront top={top} skinFill={skin.fill} skinShade={skin.shade} />
         {/* neck */}
         <rect x={104} y={124} width={32} height={40} fill={skin.fill} />
         <rect x={104} y={124} width={32} height={14} fill={skin.shade} />
