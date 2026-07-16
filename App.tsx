@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
+import Landing from './components/Landing';
 import Leaderboard from './components/Leaderboard';
 import AdminDashboard from './components/AdminDashboard';
 import StudentLogin from './components/StudentLogin';
@@ -15,6 +16,7 @@ const App: React.FC = () => {
       <HashRouter>
         <Routes>
           {/* Public routes (no Layout wrapper needed) */}
+          <Route path="/" element={<Landing />} />
           <Route path="/parent-login" element={<ParentAuth />} />
           <Route path="/parent-dashboard" element={<ParentDashboard />} />
 
@@ -22,7 +24,6 @@ const App: React.FC = () => {
           <Route path="/*" element={
             <Layout>
               <Routes>
-                <Route path="/" element={<Navigate to="/live" replace />} />
                 <Route path="/live" element={<Leaderboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/login" element={<StudentLogin />} />

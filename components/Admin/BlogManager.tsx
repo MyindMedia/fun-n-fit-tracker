@@ -115,9 +115,9 @@ const BlogManager: React.FC = () => {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'HIGH': return 'bg-red-100 text-red-600';
-      case 'LOW': return 'bg-slate-100 text-slate-500';
-      default: return 'bg-blue-100 text-blue-600';
+      case 'HIGH': return 'bg-red-500/15 text-red-400';
+      case 'LOW': return 'bg-white/5 text-[#ABABAB]';
+      default: return 'bg-sky-500/15 text-sky-400';
     }
   };
 
@@ -137,14 +137,14 @@ const BlogManager: React.FC = () => {
   };
 
   return (
-    <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg border border-slate-100">
+    <section className="pz-scope pz-card p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">
+        <h2 className="text-xl sm:text-2xl text-white uppercase tracking-tight">
           Blog & Alerts
         </h2>
         <button
           onClick={openCreateForm}
-          className="touch-btn px-4 py-2 bg-brand-blue text-white rounded-xl text-xs font-black uppercase active:bg-blue-600"
+          className="touch-btn pz-btn px-4 py-2 text-xs"
         >
           + New Post
         </button>
@@ -152,26 +152,26 @@ const BlogManager: React.FC = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-slate-50 rounded-xl p-3 text-center">
-          <div className="text-2xl font-black text-slate-900">{posts.length}</div>
-          <div className="text-[9px] font-bold text-slate-400 uppercase">Total</div>
+        <div className="pz-card-sm p-3 text-center" style={{ background: 'var(--pz-panel-2)' }}>
+          <div className="text-2xl pz-display text-white">{posts.length}</div>
+          <div className="text-[9px] font-bold text-[#ABABAB] uppercase">Total</div>
         </div>
-        <div className="bg-emerald-50 rounded-xl p-3 text-center">
-          <div className="text-2xl font-black text-emerald-600">{posts.filter(p => p.isPublished).length}</div>
-          <div className="text-[9px] font-bold text-emerald-500 uppercase">Published</div>
+        <div className="pz-card-sm p-3 text-center" style={{ background: 'var(--pz-panel-2)', borderColor: 'rgba(16, 185, 129, 0.35)' }}>
+          <div className="text-2xl pz-display text-emerald-400">{posts.filter(p => p.isPublished).length}</div>
+          <div className="text-[9px] font-bold text-emerald-400/80 uppercase">Published</div>
         </div>
-        <div className="bg-red-50 rounded-xl p-3 text-center">
-          <div className="text-2xl font-black text-red-600">{posts.filter(p => p.priority === 'HIGH' && p.isPublished).length}</div>
-          <div className="text-[9px] font-bold text-red-500 uppercase">Alerts</div>
+        <div className="pz-card-sm p-3 text-center" style={{ background: 'var(--pz-panel-2)', borderColor: 'rgba(239, 68, 68, 0.35)' }}>
+          <div className="text-2xl pz-display text-red-400">{posts.filter(p => p.priority === 'HIGH' && p.isPublished).length}</div>
+          <div className="text-[9px] font-bold text-red-400/80 uppercase">Alerts</div>
         </div>
       </div>
 
       {/* Posts List */}
       <div className="space-y-2">
         {loading && posts.length === 0 ? (
-          <div className="text-center py-12 text-slate-400">Loading...</div>
+          <div className="text-center py-12 text-[#ABABAB]">Loading...</div>
         ) : posts.length === 0 ? (
-          <div className="text-center py-12 text-slate-400">
+          <div className="text-center py-12 text-[#ABABAB]">
             <div className="text-4xl mb-2">📝</div>
             <div className="text-sm font-medium">No posts yet</div>
             <div className="text-xs">Create your first post above</div>
@@ -181,7 +181,8 @@ const BlogManager: React.FC = () => {
             <div
               key={post.id}
               onClick={() => openEditForm(post)}
-              className="touch-btn p-4 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer active:bg-slate-100 transition-all"
+              className="touch-btn pz-card-sm p-4 cursor-pointer transition-all hover:border-[#CBFE1C]"
+              style={{ background: 'var(--pz-panel-2)' }}
             >
               <div className="flex items-start gap-3">
                 <div className="flex-grow min-w-0">
@@ -189,13 +190,13 @@ const BlogManager: React.FC = () => {
                     <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${getPriorityColor(post.priority)}`}>
                       {post.priority === 'HIGH' ? 'Alert' : post.priority}
                     </span>
-                    <span className="text-[9px] font-bold text-slate-400">
+                    <span className="text-[9px] font-bold text-[#ABABAB]">
                       {getAudienceLabel(post.targetAudience)}
                     </span>
                   </div>
-                  <div className="font-black text-sm text-slate-900 truncate">{post.title}</div>
+                  <div className="font-black text-sm text-white truncate">{post.title}</div>
                   {post.excerpt && (
-                    <div className="text-xs text-slate-500 truncate mt-1">{post.excerpt}</div>
+                    <div className="text-xs text-[#ABABAB] truncate mt-1">{post.excerpt}</div>
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-2 flex-shrink-0">
@@ -203,14 +204,14 @@ const BlogManager: React.FC = () => {
                     onClick={(e) => { e.stopPropagation(); togglePublish(post); }}
                     className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase ${
                       post.isPublished
-                        ? 'bg-emerald-100 text-emerald-600'
-                        : 'bg-slate-200 text-slate-500'
+                        ? 'bg-[#CBFE1C]/15 text-[#CBFE1C]'
+                        : 'bg-white/10 text-[#ABABAB]'
                     }`}
                   >
                     {post.isPublished ? 'Live' : 'Draft'}
                   </button>
                   {post.publishedAt && (
-                    <span className="text-[9px] text-slate-400">
+                    <span className="text-[9px] text-[#ABABAB]">
                       {new Date(post.publishedAt).toLocaleDateString()}
                     </span>
                   )}
@@ -224,20 +225,20 @@ const BlogManager: React.FC = () => {
       {/* Form Modal - Rendered inline to prevent re-mounting */}
       {showForm && editingPost && (
         <div className="mobile-modal animate-fade-in" style={{ zIndex: 'var(--z-modal, 200)' }}>
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeForm} />
-          <div className="relative flex flex-col bg-slate-50 w-full h-full animate-slide-up overflow-hidden">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeForm} />
+          <div className="relative flex flex-col w-full h-full animate-slide-up overflow-hidden" style={{ background: 'var(--pz-bg)' }}>
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-100 flex-shrink-0">
-              <button onClick={closeForm} className="touch-btn text-slate-500 font-bold text-sm px-2 py-1">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0" style={{ background: 'var(--pz-panel)' }}>
+              <button onClick={closeForm} className="touch-btn text-[#ABABAB] font-bold text-sm px-2 py-1">
                 Cancel
               </button>
-              <h2 className="text-sm font-black text-slate-900 uppercase tracking-wide">
+              <h2 className="text-sm text-white uppercase tracking-wide">
                 {editingPost.id ? 'Edit Post' : 'New Post'}
               </h2>
               <button
                 onClick={handleSave}
                 disabled={loading || !editingPost.title || !editingPost.content}
-                className="touch-btn text-brand-blue font-black text-sm px-2 py-1 disabled:opacity-30"
+                className="touch-btn text-[#CBFE1C] font-black text-sm px-2 py-1 disabled:opacity-30"
               >
                 {loading ? '...' : 'Save'}
               </button>
@@ -247,7 +248,7 @@ const BlogManager: React.FC = () => {
             <div className="flex-grow overflow-y-auto p-4 space-y-5 custom-scrollbar">
               {/* Title */}
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Title *
                 </label>
                 <input
@@ -255,13 +256,13 @@ const BlogManager: React.FC = () => {
                   value={editingPost.title || ''}
                   onChange={(e) => updateField('title', e.target.value)}
                   placeholder="Enter post title..."
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-900 outline-none focus:border-brand-blue"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
               </div>
 
               {/* Excerpt */}
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Excerpt (Preview Text)
                 </label>
                 <input
@@ -270,13 +271,13 @@ const BlogManager: React.FC = () => {
                   onChange={(e) => updateField('excerpt', e.target.value)}
                   placeholder="Short preview text..."
                   maxLength={200}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none focus:border-brand-blue"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
               </div>
 
               {/* Content */}
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Content *
                 </label>
                 <textarea
@@ -284,13 +285,13 @@ const BlogManager: React.FC = () => {
                   onChange={(e) => updateField('content', e.target.value)}
                   placeholder="Write your post content..."
                   rows={8}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none focus:border-brand-blue resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] resize-none"
                 />
               </div>
 
               {/* Target Audience */}
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Target Audience
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -301,8 +302,8 @@ const BlogManager: React.FC = () => {
                       onClick={() => updateField('targetAudience', aud)}
                       className={`touch-btn p-3 rounded-xl border-2 text-xs font-black uppercase transition-all ${
                         editingPost.targetAudience === aud
-                          ? 'border-brand-blue bg-blue-50 text-brand-blue'
-                          : 'border-slate-100 bg-white text-slate-500'
+                          ? 'border-[#CBFE1C] bg-[#CBFE1C]/10 text-[#CBFE1C]'
+                          : 'border-white/10 bg-[#171C27] text-[#ABABAB]'
                       }`}
                     >
                       {getAudienceLabel(aud)}
@@ -313,7 +314,7 @@ const BlogManager: React.FC = () => {
 
               {/* Priority */}
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Priority
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -324,29 +325,29 @@ const BlogManager: React.FC = () => {
                       onClick={() => updateField('priority', p)}
                       className={`touch-btn p-3 rounded-xl border-2 text-xs font-black uppercase transition-all ${
                         editingPost.priority === p
-                          ? p === 'HIGH' ? 'border-red-500 bg-red-50 text-red-600'
-                          : p === 'LOW' ? 'border-slate-400 bg-slate-50 text-slate-500'
-                          : 'border-brand-blue bg-blue-50 text-brand-blue'
-                          : 'border-slate-100 bg-white text-slate-500'
+                          ? p === 'HIGH' ? 'border-red-500 bg-red-500/10 text-red-400'
+                          : p === 'LOW' ? 'border-white/40 bg-white/5 text-white'
+                          : 'border-[#CBFE1C] bg-[#CBFE1C]/10 text-[#CBFE1C]'
+                          : 'border-white/10 bg-[#171C27] text-[#ABABAB]'
                       }`}
                     >
                       {p}
                     </button>
                   ))}
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">HIGH priority posts appear as alerts</p>
+                <p className="text-[10px] text-[#ABABAB] mt-1">HIGH priority posts appear as alerts</p>
               </div>
 
               {/* Publish Toggle */}
-              <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100">
+              <div className="pz-card-sm flex items-center justify-between p-4" style={{ background: 'var(--pz-panel-2)' }}>
                 <div>
-                  <div className="font-black text-sm text-slate-900">Publish</div>
-                  <div className="text-[10px] text-slate-500">Make visible to target audience</div>
+                  <div className="font-black text-sm text-white">Publish</div>
+                  <div className="text-[10px] text-[#ABABAB]">Make visible to target audience</div>
                 </div>
                 <button
                   type="button"
                   onClick={() => updateField('isPublished', !editingPost.isPublished)}
-                  className={`w-14 h-8 rounded-full transition-all ${editingPost.isPublished ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                  className={`w-14 h-8 rounded-full transition-all ${editingPost.isPublished ? 'bg-emerald-500' : 'bg-white/15'}`}
                 >
                   <div className={`w-6 h-6 bg-white rounded-full shadow transition-transform ${editingPost.isPublished ? 'translate-x-7' : 'translate-x-1'}`} />
                 </button>
@@ -358,7 +359,7 @@ const BlogManager: React.FC = () => {
                   type="button"
                   onClick={handleDelete}
                   disabled={loading}
-                  className="touch-btn w-full py-4 rounded-xl bg-red-50 text-red-500 font-black text-xs uppercase tracking-widest border border-red-100 active:bg-red-100"
+                  className="touch-btn w-full py-4 rounded-xl bg-red-500/10 text-red-400 font-black text-xs uppercase tracking-widest border border-red-500/30 active:bg-red-500/20"
                 >
                   Delete Post
                 </button>

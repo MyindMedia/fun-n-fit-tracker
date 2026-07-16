@@ -179,13 +179,16 @@ const QRScanner: React.FC<QRScannerProps> = ({ onClose, onStudentCheckedIn }) =>
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[300] bg-slate-900/95 backdrop-blur-xl flex items-center justify-center p-6">
-      <div className="bg-white rounded-5xl w-full max-w-2xl shadow-2xl border border-slate-200 overflow-hidden">
-        <div className="p-8 border-b flex justify-between items-center bg-slate-50">
-          <h2 className="text-3xl font-display font-black tracking-tight uppercase">QR Check-In</h2>
+    <div className="pz-scope fixed inset-0 z-[300] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6">
+      <div className="pz-card w-full max-w-2xl overflow-hidden">
+        <div className="p-8 flex justify-between items-center" style={{ background: 'var(--pz-panel-2)', borderBottom: '1px solid var(--pz-border)' }}>
+          <div>
+            <div className="pz-eyebrow mb-1">Scanner Online</div>
+            <h2 className="text-3xl text-white tracking-tight">QR Check-In</h2>
+          </div>
           <button
             onClick={onClose}
-            className="w-12 h-12 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-500 text-2xl font-black"
+            className="w-12 h-12 rounded-full bg-white/5 border border-white/10 hover:bg-[#CBFE1C] hover:text-[#0B0E13] flex items-center justify-center text-white/60 text-2xl font-black transition-all"
           >
             ✕
           </button>
@@ -195,31 +198,45 @@ const QRScanner: React.FC<QRScannerProps> = ({ onClose, onStudentCheckedIn }) =>
           {!isScanning ? (
             <div className="text-center space-y-6">
               <div className="text-8xl">📱</div>
-              <h3 className="text-2xl font-black text-slate-900">Ready to Scan</h3>
-              <p className="text-slate-500 font-medium">Students can scan their QR codes to check in instantly</p>
+              <h3 className="text-2xl text-white">Ready to Scan</h3>
+              <p className="font-medium" style={{ color: 'var(--pz-text)' }}>Students can scan their QR codes to check in instantly</p>
               <button
                 onClick={startScanner}
-                className="bg-brand-green text-white px-12 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl hover:bg-emerald-600 transition-all active:scale-95"
+                className="pz-btn px-12 py-5 text-xs transition-all active:scale-95"
               >
                 📷 Start Camera Scanner
               </button>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="relative bg-black rounded-3xl overflow-hidden aspect-video">
+              <div className="relative bg-black overflow-hidden aspect-video" style={{ border: '1px solid rgba(203, 254, 28, 0.25)' }}>
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 border-4 border-brand-green/50 rounded-3xl pointer-events-none" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-4 border-brand-green rounded-2xl pointer-events-none" />
+                {/* Volt HUD targeting reticle */}
+                <div
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 pointer-events-none"
+                  style={{ filter: 'drop-shadow(0 0 10px rgba(203, 254, 28, 0.55))' }}
+                >
+                  <span className="absolute top-0 left-0 w-10 h-10 border-t-4 border-l-4" style={{ borderColor: 'var(--pz-volt)' }} />
+                  <span className="absolute top-0 right-0 w-10 h-10 border-t-4 border-r-4" style={{ borderColor: 'var(--pz-volt)' }} />
+                  <span className="absolute bottom-0 left-0 w-10 h-10 border-b-4 border-l-4" style={{ borderColor: 'var(--pz-volt)' }} />
+                  <span className="absolute bottom-0 right-0 w-10 h-10 border-b-4 border-r-4" style={{ borderColor: 'var(--pz-volt)' }} />
+                  <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-0.5" style={{ background: 'var(--pz-volt)' }} />
+                  <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-3" style={{ background: 'var(--pz-volt)' }} />
+                </div>
+                <div className="absolute top-3 left-3 flex items-center gap-2 pointer-events-none">
+                  <span className="pz-live w-2 h-2 rounded-full" style={{ background: 'var(--pz-volt)' }} />
+                  <span className="text-[9px] font-black uppercase tracking-[0.28em]" style={{ color: 'var(--pz-volt)' }}>Scanning</span>
+                </div>
               </div>
               <canvas ref={canvasRef} className="hidden" />
               <button
                 onClick={stopScanner}
-                className="w-full bg-red-500 text-white px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-600 transition-all"
+                className="w-full bg-red-500 text-white px-8 py-4 font-black uppercase text-xs tracking-widest hover:bg-red-600 transition-all"
               >
                 Stop Scanner
               </button>
@@ -227,17 +244,17 @@ const QRScanner: React.FC<QRScannerProps> = ({ onClose, onStudentCheckedIn }) =>
           )}
 
           {lastScanned && (
-            <div className="bg-emerald-50 border-2 border-emerald-500 rounded-3xl p-6 text-center animate-bounce-in">
+            <div className="bg-emerald-500/10 border-2 border-emerald-500 p-6 text-center animate-bounce-in">
               <div className="text-5xl mb-3">✅</div>
-              <h3 className="text-2xl font-black text-emerald-900">{lastScanned.fullName}</h3>
-              <p className="text-emerald-600 font-bold text-sm uppercase">Checked In Successfully!</p>
+              <h3 className="text-2xl text-white">{lastScanned.fullName}</h3>
+              <p className="text-emerald-400 font-bold text-sm uppercase">Checked In Successfully!</p>
             </div>
           )}
 
           {error && (
-            <div className="bg-red-50 border-2 border-red-500 rounded-3xl p-6 text-center">
+            <div className="bg-red-500/10 border-2 border-red-500 p-6 text-center">
               <div className="text-5xl mb-3">❌</div>
-              <p className="text-red-600 font-bold">{error}</p>
+              <p className="text-red-400 font-bold">{error}</p>
             </div>
           )}
         </div>

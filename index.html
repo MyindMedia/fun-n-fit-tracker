@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-    <meta name="theme-color" content="#0ea5e9" />
+    <meta name="theme-color" content="#0B0E13" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -44,9 +44,9 @@
         --touch-target-comfortable: 48px;
       }
       body {
-        font-family: 'Inter', sans-serif;
-        background-color: #f8fafc;
-        color: #1e293b;
+        font-family: 'Chakra Petch', 'Inter', sans-serif;
+        background-color: #0B0E13;
+        color: #e5e7eb;
       }
       h1, h2, h3, h4, h5, h6, .font-display {
         font-family: 'Lexend Deca', sans-serif;
@@ -66,12 +66,12 @@
         background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
+        background: #2a3140;
         border-radius: 20px;
-        border: 3px solid #f8fafc;
+        border: 3px solid #0B0E13;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
+        background: #3d4658;
       }
 
       @keyframes spotlight {
@@ -630,15 +630,15 @@
         z-index: var(--z-modal);
         display: flex;
         flex-direction: column;
-        background: #f8fafc;
+        background: #0B0E13;
       }
 
       .mobile-modal-header {
         position: sticky;
         top: 0;
         z-index: var(--z-sticky);
-        background: white;
-        border-bottom: 1px solid #e2e8f0;
+        background: #12161F;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         padding: 0.75rem 1rem;
         display: flex;
         align-items: center;
@@ -663,10 +663,10 @@
         left: 0;
         right: 0;
         z-index: var(--z-action-bar);
-        background: white;
-        border-top: 1px solid #e2e8f0;
+        background: #12161F;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
         padding-bottom: var(--safe-area-bottom);
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
       }
 
       /* Content area that accounts for fixed action bar */
@@ -717,11 +717,11 @@
       .mobile-table-row {
         display: flex;
         flex-direction: column;
-        background: white;
+        background: #12161F;
         border-radius: 0.75rem;
         padding: 0.75rem;
         margin-bottom: 0.5rem;
-        border: 1px solid #e2e8f0;
+        border: 1px solid rgba(255, 255, 255, 0.08);
       }
       @media (min-width: 768px) {
         .mobile-table-row {

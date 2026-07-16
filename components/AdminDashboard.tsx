@@ -28,6 +28,9 @@ import RedemptionQueue from './Admin/RedemptionQueue';
 // Sub-pages that swap the tab switcher for a back button + page title
 const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS'];
 
+// Pubzi theme: small notched cut-corner shape for inline elements
+const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
+
 // Reusable Modal Wrapper for mobile-friendly modals
 const MobileModal: React.FC<{
   isOpen: boolean;
@@ -48,25 +51,25 @@ const MobileModal: React.FC<{
   }, []);
 
   return (
-    <div className="mobile-modal animate-fade-in" style={{ zIndex: 'var(--z-modal)' }}>
+    <div className="mobile-modal pz-scope animate-fade-in" style={{ zIndex: 'var(--z-modal)', background: 'transparent' }}>
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal Content */}
-      <div className={`relative flex flex-col bg-slate-50 w-full ${fullHeight ? 'h-full' : 'max-h-[90vh] mt-auto rounded-t-3xl'} animate-slide-up`}>
+      <div className={`relative flex flex-col w-full ${fullHeight ? 'h-full' : 'max-h-[90vh] mt-auto rounded-t-3xl'} animate-slide-up`} style={{ background: 'var(--pz-bg)' }}>
         {/* Header - always sticky */}
-        <div className="mobile-modal-header shadow-sm">
+        <div className="mobile-modal-header" style={{ background: 'var(--pz-panel)', borderBottom: '1px solid var(--pz-border)' }}>
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-xl sm:text-2xl flex-shrink-0">{icon}</span>
-            <h2 className="text-sm sm:text-lg font-display font-black text-slate-900 uppercase tracking-tight truncate">{title}</h2>
+            <h2 className="pz-display text-sm sm:text-lg text-white tracking-tight truncate">{title}</h2>
           </div>
           <button
             onClick={onClose}
-            className="touch-btn w-10 h-10 rounded-full bg-slate-100 text-slate-500 text-lg font-bold active:scale-95 transition-transform flex-shrink-0 focus-ring"
+            className="touch-btn w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white/60 text-lg font-bold active:scale-95 transition-transform flex-shrink-0 focus-ring"
             aria-label="Close modal"
           >
             ✕
@@ -84,16 +87,16 @@ const MobileModal: React.FC<{
 
 // Activity Log Component
 const ActivityLog: React.FC<{ events: NotificationEvent[] }> = ({ events }) => (
-  <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+  <div className="pz-card overflow-hidden">
     <div className="space-y-2 max-h-[60vh] overflow-y-auto p-4 custom-scrollbar">
       {events.length === 0 ? (
-        <div className="text-center py-12 text-slate-400 italic text-sm">No activity recorded for this session.</div>
+        <div className="text-center py-12 italic text-sm" style={{ color: 'var(--pz-text)' }}>No activity recorded for this session.</div>
       ) : (
         events.map((e, idx) => (
-          <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+          <div key={idx} className="flex items-center gap-3 p-3 bg-white/5 border border-white/10" style={{ clipPath: NOTCH_SM }}>
             <div className="flex-grow min-w-0">
-              <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{new Date(e.timestamp).toLocaleTimeString()}</div>
-              <div className="text-sm font-bold text-slate-800 leading-tight mt-0.5">{e.message}</div>
+              <div className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>{new Date(e.timestamp).toLocaleTimeString()}</div>
+              <div className="text-sm font-bold text-white leading-tight mt-0.5">{e.message}</div>
             </div>
           </div>
         ))
@@ -112,7 +115,7 @@ const QuickActionButton: React.FC<{
 }> = ({ icon, label, onClick, active, badge }) => (
   <button
     onClick={onClick}
-    className={`touch-btn flex flex-col items-center justify-center py-2 px-2 sm:px-3 min-w-[56px] sm:min-w-[64px] relative transition-all active:scale-95 focus-ring rounded-xl ${active ? 'text-brand-blue bg-blue-50' : 'text-slate-500 hover:bg-slate-50'
+    className={`touch-btn flex flex-col items-center justify-center py-2 px-2 sm:px-3 min-w-[56px] sm:min-w-[64px] relative transition-all active:scale-95 focus-ring rounded-xl ${active ? 'text-[#CBFE1C] bg-[#CBFE1C]/10' : 'text-white/50 hover:bg-white/5'
       }`}
   >
     <span className="text-lg sm:text-xl mb-0.5">{icon}</span>
@@ -284,22 +287,24 @@ const AdminDashboard: React.FC = () => {
   // Login Modal
   if (showLoginModal) {
     return (
-      <div className="fixed inset-0 z-[200] bg-slate-900 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[200] pz-scope flex items-center justify-center p-4" style={{ background: 'var(--pz-bg)' }}>
         <form onSubmit={(e) => {
           e.preventDefault();
           const v = (document.getElementById('adminNameInput') as HTMLInputElement).value;
           handleCoachLogin(v);
-        }} className="bg-white rounded-3xl p-8 md:p-12 max-w-md w-full text-center shadow-2xl">
-          <h2 className="text-2xl md:text-3xl font-display font-black mb-6 uppercase tracking-tight text-slate-900">Coach Login</h2>
-          <p className="text-slate-500 text-sm mb-6">Sign in once per day</p>
+        }} className="pz-card p-8 md:p-12 max-w-md w-full text-center">
+          <div className="pz-eyebrow mb-3">Admin Core</div>
+          <h2 className="text-2xl md:text-3xl mb-6 tracking-tight text-white">Coach Login</h2>
+          <p className="text-sm mb-6" style={{ color: 'var(--pz-text)' }}>Sign in once per day</p>
           <input
             id="adminNameInput"
             type="text"
             placeholder="Your Name"
-            className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 text-center text-lg focus:border-brand-blue outline-none mb-6"
+            className="w-full px-6 py-4 border border-white/10 bg-[#171C27] text-white placeholder-white/40 text-center text-lg font-bold focus:border-[#CBFE1C] outline-none mb-6"
+            style={{ clipPath: NOTCH_SM }}
             required
           />
-          <button type="submit" className="w-full bg-brand-blue text-white font-black py-4 rounded-2xl text-lg uppercase tracking-widest shadow-xl transition-all active:scale-95">
+          <button type="submit" className="pz-btn w-full py-4 text-lg transition-all active:scale-95">
             Launch Dashboard
           </button>
         </form>
@@ -308,7 +313,7 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col bg-slate-100 overflow-hidden">
+    <div className="h-full flex flex-col pz-scope overflow-hidden" style={{ background: 'var(--pz-bg)' }}>
       {/* Modals */}
       {editingStudent && (
         <StudentProfileModal
@@ -361,167 +366,169 @@ const AdminDashboard: React.FC = () => {
         <div className="space-y-3">
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('CHECKIN'); }}
-            className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl shadow-lg active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 text-[#0B0E13] active:scale-[0.98] transition-transform"
+            style={{ background: 'var(--pz-volt)', borderColor: 'var(--pz-volt)' }}
           >
             <span className="text-2xl">🎮</span>
             <div className="text-left">
-              <div className="font-black">Check-In Board</div>
-              <div className="text-xs opacity-80">Today's board, rotating QR & NFC kiosk</div>
+              <div className="font-black uppercase tracking-wide">Check-In Board</div>
+              <div className="text-xs opacity-70 font-bold">Today's board, rotating QR & NFC kiosk</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('MESSAGES'); }}
-            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="text-2xl">💬</span>
             <div className="text-left">
-              <div className="font-black text-slate-900">Messages</div>
-              <div className="text-xs text-slate-500">Chat with parents in real time</div>
+              <div className="font-black text-white uppercase tracking-wide">Messages</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Chat with parents in real time</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('PARTNERS'); }}
-            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="text-2xl">🏪</span>
             <div className="text-left">
-              <div className="font-black text-slate-900">Partners</div>
-              <div className="text-xs text-slate-500">Local businesses & printable QR codes</div>
+              <div className="font-black text-white uppercase tracking-wide">Partners</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Local businesses & printable QR codes</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('TASKS'); }}
-            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="text-2xl">⭐</span>
             <div className="text-left">
-              <div className="font-black text-slate-900">Special Tasks</div>
-              <div className="text-xs text-slate-500">Off-site challenges & approval queue</div>
+              <div className="font-black text-white uppercase tracking-wide">Special Tasks</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Off-site challenges & approval queue</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('REDEMPTIONS'); }}
-            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="text-2xl">🎁</span>
             <div className="text-left">
-              <div className="font-black text-slate-900">Redemptions</div>
-              <div className="text-xs text-slate-500">Fulfill perks kids have claimed</div>
+              <div className="font-black text-white uppercase tracking-wide">Redemptions</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Fulfill perks kids have claimed</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setShowGameHistory(true); }}
-            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="text-2xl">📜</span>
             <div className="text-left">
-              <div className="font-black text-slate-900">Game History</div>
-              <div className="text-xs text-slate-500">View past games and results</div>
+              <div className="font-black text-white uppercase tracking-wide">Game History</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>View past games and results</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setShowActivityLog(true); }}
-            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="text-2xl">📊</span>
             <div className="text-left">
-              <div className="font-black text-slate-900">Activity Log</div>
-              <div className="text-xs text-slate-500">Recent point changes and events</div>
+              <div className="font-black text-white uppercase tracking-wide">Activity Log</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Recent point changes and events</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setShowQRScanner(true); }}
-            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="text-2xl">📷</span>
             <div className="text-left">
-              <div className="font-black text-slate-900">QR Scanner</div>
-              <div className="text-xs text-slate-500">Scan athlete QR codes</div>
+              <div className="font-black text-white uppercase tracking-wide">QR Scanner</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Scan athlete QR codes</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('SEASONS'); }}
-            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="text-2xl">📅</span>
             <div className="text-left">
-              <div className="font-black text-slate-900">Seasons</div>
-              <div className="text-xs text-slate-500">Manage competitive seasons</div>
+              <div className="font-black text-white uppercase tracking-wide">Seasons</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Manage competitive seasons</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('TOURNAMENTS'); }}
-            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="text-2xl">🏆</span>
             <div className="text-left">
-              <div className="font-black text-slate-900">Tournaments</div>
-              <div className="text-xs text-slate-500">Brackets and match management</div>
+              <div className="font-black text-white uppercase tracking-wide">Tournaments</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Brackets and match management</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('BRANDING'); }}
-            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="text-2xl">🎨</span>
             <div className="text-left">
-              <div className="font-black text-slate-900">Branding</div>
-              <div className="text-xs text-slate-500">Customize app appearance</div>
+              <div className="font-black text-white uppercase tracking-wide">Branding</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Customize app appearance</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('PARENTS'); }}
-            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="text-2xl">👨‍👩‍👧‍👦</span>
             <div className="text-left">
-              <div className="font-black text-slate-900">Parent Accounts</div>
-              <div className="text-xs text-slate-500">Manage parents & link athletes</div>
+              <div className="font-black text-white uppercase tracking-wide">Parent Accounts</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Manage parents & link athletes</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('BLOG'); }}
-            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="text-2xl">📝</span>
             <div className="text-left">
-              <div className="font-black text-slate-900">Blog & Alerts</div>
-              <div className="text-xs text-slate-500">Post announcements and alerts</div>
+              <div className="font-black text-white uppercase tracking-wide">Blog & Alerts</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Post announcements and alerts</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('INSIGHTS'); }}
-            className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="text-2xl">📊</span>
             <div className="text-left">
-              <div className="font-black text-slate-900">Insights & Reports</div>
-              <div className="text-xs text-slate-500">View analytics and generate reports</div>
+              <div className="font-black text-white uppercase tracking-wide">Insights & Reports</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>View analytics and generate reports</div>
             </div>
           </button>
 
-          <div className="pt-2 border-t border-slate-200 mt-4">
+          <div className="pt-2 border-t border-white/10 mt-4">
             <button
               onClick={handleChangeCoach}
-              className="w-full flex items-center gap-4 p-4 bg-slate-100 rounded-2xl active:scale-[0.98] transition-transform"
+              className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+              style={{ background: 'var(--pz-panel-2)' }}
             >
               <span className="text-2xl">🔄</span>
               <div className="text-left">
-                <div className="font-black text-slate-700">Switch Coach</div>
-                <div className="text-xs text-slate-500">Currently: {adminName}</div>
+                <div className="font-black text-white uppercase tracking-wide">Switch Coach</div>
+                <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Currently: {adminName}</div>
               </div>
             </button>
           </div>
@@ -530,11 +537,12 @@ const AdminDashboard: React.FC = () => {
             <button
               onClick={() => { setShowMoreMenu(false); handleSeed(); }}
               disabled={isSeeding}
-              className="w-full flex items-center gap-4 p-4 bg-brand-green text-white rounded-2xl shadow-lg active:scale-[0.98] transition-transform disabled:opacity-50"
+              className="pz-card-sm w-full flex items-center gap-4 p-4 text-white active:scale-[0.98] transition-transform disabled:opacity-50"
+              style={{ background: 'var(--pz-sage)', borderColor: 'var(--pz-sage)' }}
             >
               <span className="text-2xl">🌱</span>
               <div className="text-left">
-                <div className="font-black">{isSeeding ? 'Seeding...' : 'Seed Demo Data'}</div>
+                <div className="font-black uppercase tracking-wide">{isSeeding ? 'Seeding...' : 'Seed Demo Data'}</div>
                 <div className="text-xs opacity-80">Add sample athletes to test</div>
               </div>
             </button>
@@ -543,25 +551,26 @@ const AdminDashboard: React.FC = () => {
       </MobileModal>
 
       {/* Top Header Bar - Mobile First */}
-      <header className="bg-white border-b border-slate-200 px-3 sm:px-4 py-2.5 sm:py-3 shrink-0 shadow-sm" style={{ zIndex: 'var(--z-header)' }}>
+      <header className="px-3 sm:px-4 py-2.5 sm:py-3 shrink-0" style={{ zIndex: 'var(--z-header)', background: 'var(--pz-bg)', borderBottom: '1px solid var(--pz-border)' }}>
         <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Back Button (shown on sub-pages) OR Coach Info */}
           {SUB_PAGES.includes(activeTab) ? (
             <button
               onClick={() => setActiveTab('GAMES')}
-              className="touch-btn flex items-center gap-2 text-slate-600 font-black text-sm px-3 py-2 bg-slate-100 rounded-xl active:bg-slate-200 transition-all"
+              className="touch-btn flex items-center gap-2 text-white font-black text-sm px-3 py-2 bg-white/5 border border-white/10 active:bg-white/10 transition-all"
+              style={{ clipPath: NOTCH_SM }}
             >
               <span className="text-lg">←</span>
-              <span className="hidden sm:inline">Back</span>
+              <span className="hidden sm:inline uppercase tracking-wider text-xs">Back</span>
             </button>
           ) : (
             <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
-              <div className="bg-brand-blue text-white w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-black">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-xs sm:text-sm font-black text-[#0B0E13]" style={{ background: 'var(--pz-volt)', clipPath: NOTCH_SM }}>
                 {adminName.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 hidden xs:block sm:block">
-                <div className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider">Coach</div>
-                <div className="text-xs sm:text-sm font-black text-slate-900 truncate max-w-[80px] sm:max-w-[120px]">{adminName}</div>
+                <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider" style={{ color: 'var(--pz-text)' }}>Coach</div>
+                <div className="text-xs sm:text-sm font-black text-white truncate max-w-[80px] sm:max-w-[120px]">{adminName}</div>
               </div>
             </div>
           )}
@@ -569,7 +578,7 @@ const AdminDashboard: React.FC = () => {
           {/* Page Title (for sub-pages) OR Tab Switcher */}
           {SUB_PAGES.includes(activeTab) ? (
             <div className="flex-grow text-center">
-              <h1 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-tight">
+              <h1 className="pz-display text-sm sm:text-base text-white tracking-tight">
                 {activeTab === 'INSIGHTS' && '📊 Insights'}
                 {activeTab === 'BRANDING' && '🎨 Branding'}
                 {activeTab === 'SEASONS' && '📅 Seasons'}
@@ -584,18 +593,19 @@ const AdminDashboard: React.FC = () => {
               </h1>
             </div>
           ) : (
-            <div className="flex bg-slate-100 rounded-xl p-0.5 sm:p-1 flex-grow max-w-[200px] sm:max-w-[250px]">
+            <div className="flex bg-white/5 border border-white/10 p-0.5 sm:p-1 flex-grow max-w-[200px] sm:max-w-[250px]" style={{ clipPath: NOTCH_SM }}>
               {(['GAMES', 'ATHLETES'] as const).map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 touch-btn px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all focus-ring ${activeTab === tab
-                    ? 'bg-white text-brand-blue shadow-sm'
-                    : 'text-slate-500'
+                  className={`flex-1 touch-btn relative px-2 sm:px-4 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all focus-ring ${activeTab === tab
+                    ? 'text-white bg-white/5'
+                    : 'text-white/50'
                     }`}
                 >
                   {tab === 'GAMES' ? '🎮' : '👥'} <span className="hidden sm:inline ml-1">{tab}</span>
                   <span className="sm:hidden ml-0.5">{tab.slice(0, 4)}</span>
+                  {activeTab === tab && <span className="absolute left-2 right-2 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
                 </button>
               ))}
             </div>
@@ -622,7 +632,7 @@ const AdminDashboard: React.FC = () => {
       {/* Toast Notifications - Responsive positioning */}
       <div className="fixed top-14 sm:top-16 right-2 sm:right-4 left-2 sm:left-auto space-y-2 pointer-events-none" style={{ zIndex: 'var(--z-toast)' }}>
         {toasts.map(t => (
-          <div key={t.id} className={`animate-slide-in-right bg-white rounded-xl sm:rounded-2xl shadow-2xl border-2 ${t.amount && t.amount < 0 ? 'border-red-200 text-red-600' : 'border-emerald-200 text-emerald-600'} px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-black`}>
+          <div key={t.id} className={`animate-slide-in-right pz-card-sm ${t.amount && t.amount < 0 ? 'text-red-400' : 'text-emerald-400'} px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-black`} style={{ borderColor: t.amount && t.amount < 0 ? 'rgba(239, 68, 68, 0.5)' : 'rgba(16, 185, 129, 0.5)' }}>
             {t.message}
           </div>
         ))}
@@ -647,19 +657,20 @@ const AdminDashboard: React.FC = () => {
           {activeTab === 'INSIGHTS' && (
             <div className="space-y-4">
               {/* Awards Report Button */}
-              <div className="bg-gradient-to-r from-purple-600 via-brand-blue to-brand-green rounded-2xl p-5 text-white">
+              <div className="pz-card p-5 text-white">
                 <div className="flex flex-col gap-4">
                   <div>
-                    <h2 className="text-xl font-display font-black uppercase tracking-tight mb-1">
+                    <div className="pz-eyebrow mb-1">Season Report</div>
+                    <h2 className="text-xl tracking-tight mb-1 text-white">
                       Season Awards
                     </h2>
-                    <p className="text-white/80 text-sm">
+                    <p className="text-sm" style={{ color: 'var(--pz-text)' }}>
                       Generate MVP awards, standings, and printable reports
                     </p>
                   </div>
                   <button
                     onClick={() => setShowStatsDashboard(true)}
-                    className="w-full bg-white text-slate-900 py-3 rounded-xl font-black uppercase text-sm tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+                    className="pz-btn w-full py-3 text-sm active:scale-95 transition-all flex items-center justify-center gap-2"
                   >
                     <span>🏆</span>
                     Generate Report
@@ -714,7 +725,7 @@ const AdminDashboard: React.FC = () => {
       </main>
 
       {/* Bottom Quick Action Bar - Mobile First */}
-      <nav className="mobile-action-bar" role="navigation" aria-label="Quick actions">
+      <nav className="mobile-action-bar" role="navigation" aria-label="Quick actions" style={{ background: 'var(--pz-panel)', borderTop: '1px solid var(--pz-border)', boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.4)' }}>
         <div className="flex items-center justify-around px-1 sm:px-2 py-1.5 sm:py-2 max-w-lg mx-auto">
           <QuickActionButton
             icon="📋"

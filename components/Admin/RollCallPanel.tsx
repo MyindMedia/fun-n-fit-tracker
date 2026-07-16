@@ -68,11 +68,11 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
   return (
     <div className="space-y-4">
       {/* Stats Summary */}
-      <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-4 text-white">
+      <div className="pz-card p-4 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-2xl sm:text-3xl font-black">{totalPresent}/{students.length}</div>
-            <div className="text-xs sm:text-sm font-bold opacity-80">Athletes Present Today</div>
+            <div className="pz-display text-2xl sm:text-3xl text-[#CBFE1C]">{totalPresent}/{students.length}</div>
+            <div className="text-xs sm:text-sm font-bold" style={{ color: 'var(--pz-text)' }}>Athletes Present Today</div>
           </div>
           <div className="text-4xl sm:text-5xl">📋</div>
         </div>
@@ -87,17 +87,17 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search athletes..."
-            className="w-full px-4 py-3 pl-10 text-sm font-medium border border-slate-200 rounded-xl focus:outline-none focus:border-brand-blue bg-white"
+            className="w-full px-4 py-3 pl-10 text-sm font-medium border border-white/10 bg-[#171C27] text-white placeholder-white/40 focus:outline-none focus:border-[#CBFE1C]"
           />
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">🔍</span>
         </div>
 
         {/* House Filter Tabs */}
         <div className="mobile-scroll-x -mx-1 px-1">
           <button
             onClick={() => setHouseFilter('ALL')}
-            className={`touch-btn px-3 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${
-              houseFilter === 'ALL' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
+            className={`touch-btn px-3 py-2 text-[10px] font-black uppercase transition-all ${
+              houseFilter === 'ALL' ? 'bg-[#CBFE1C] text-[#0B0E13]' : 'bg-white/5 text-white/60 border border-white/10'
             }`}
           >
             All ({students.length})
@@ -108,11 +108,11 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
               <button
                 key={house.id}
                 onClick={() => setHouseFilter(house.id)}
-                className={`touch-btn px-3 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${
-                  houseFilter === house.id ? 'text-white' : 'text-slate-600'
+                className={`touch-btn px-3 py-2 text-[10px] font-black uppercase transition-all ${
+                  houseFilter === house.id ? 'text-white' : 'text-white/60 border border-white/10'
                 }`}
                 style={{
-                  backgroundColor: houseFilter === house.id ? house.colorHex : '#f1f5f9'
+                  backgroundColor: houseFilter === house.id ? house.colorHex : '#171C27'
                 }}
               >
                 {house.name} ({count})
@@ -127,8 +127,8 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
         <button
           onClick={() => markAll(true)}
           disabled={isBusy || filtered.length === 0}
-          className={`touch-btn p-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-            isBusy ? 'bg-slate-200 text-slate-400' : 'bg-emerald-500 text-white active:bg-emerald-600'
+          className={`touch-btn p-3 text-xs font-black uppercase tracking-widest transition-all ${
+            isBusy ? 'bg-white/10 text-white/30' : 'bg-emerald-500 text-white active:bg-emerald-600'
           }`}
         >
           ✓ All Present
@@ -136,8 +136,8 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
         <button
           onClick={() => markAll(false)}
           disabled={isBusy || filtered.length === 0}
-          className={`touch-btn p-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-            isBusy ? 'bg-slate-200 text-slate-400' : 'bg-slate-700 text-white active:bg-slate-800'
+          className={`touch-btn p-3 text-xs font-black uppercase tracking-widest transition-all border ${
+            isBusy ? 'bg-white/10 text-white/30 border-transparent' : 'bg-white/5 text-white border-white/10 active:bg-white/10'
           }`}
         >
           ✗ All Absent
@@ -145,34 +145,34 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
       </div>
 
       {/* Filtered Count */}
-      <div className="text-xs font-bold text-slate-500 px-1">
+      <div className="text-xs font-bold px-1" style={{ color: 'var(--pz-text)' }}>
         Showing: {presentCount} present / {filtered.length} filtered
       </div>
 
       {/* Athletes List */}
-      <div className="h-[45vh] sm:h-64 overflow-y-auto border border-slate-200 rounded-xl bg-white custom-scrollbar">
+      <div className="h-[45vh] sm:h-64 overflow-y-auto border border-white/10 custom-scrollbar" style={{ background: 'var(--pz-panel)' }}>
         {filtered.length === 0 ? (
-          <div className="text-center py-12 text-slate-400">
+          <div className="text-center py-12" style={{ color: 'var(--pz-text)' }}>
             {searchQuery ? 'No athletes match your search' : 'No athletes found'}
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-white/5">
             {filtered.map(s => (
               <div
                 key={s.id}
                 className={`flex items-center gap-3 p-3 transition-all ${
-                  s.isPresent ? 'bg-emerald-50/50' : ''
+                  s.isPresent ? 'bg-emerald-500/10' : ''
                 }`}
               >
                 <img
                   src={s.avatarUrl}
                   className={`w-10 h-10 rounded-full border-2 object-cover flex-shrink-0 ${
-                    s.isPresent ? 'border-emerald-400' : 'border-slate-200 opacity-60'
+                    s.isPresent ? 'border-emerald-400' : 'border-white/10 opacity-60'
                   }`}
                   alt=""
                 />
                 <div className="flex-grow min-w-0">
-                  <div className={`font-bold text-sm truncate ${!s.isPresent ? 'text-slate-400' : ''}`}>
+                  <div className={`font-bold text-sm truncate ${!s.isPresent ? 'text-white/40' : 'text-white'}`}>
                     {s.fullName}
                   </div>
                   <div className="flex items-center gap-2">
@@ -185,16 +185,16 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
                     >
                       {HOUSES[s.houseId].name}
                     </span>
-                    <span className="text-[9px] text-slate-400">{s.points} pts</span>
+                    <span className="text-[9px]" style={{ color: 'var(--pz-text)' }}>{s.points} pts</span>
                   </div>
                 </div>
                 <button
                   onClick={() => setPresent(s.id, !s.isPresent)}
                   disabled={isBusy}
-                  className={`touch-btn px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all flex-shrink-0 ${
+                  className={`touch-btn px-4 py-2 text-[10px] font-black uppercase tracking-wide transition-all flex-shrink-0 ${
                     s.isPresent
                       ? 'bg-emerald-500 text-white active:bg-emerald-600'
-                      : 'bg-slate-200 text-slate-600 active:bg-slate-300'
+                      : 'bg-white/10 text-white/60 border border-white/10 active:bg-white/20'
                   } ${isBusy ? 'opacity-50' : ''}`}
                 >
                   {s.isPresent ? '✓ Here' : 'Absent'}
@@ -209,8 +209,8 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
       <button
         onClick={resetDay}
         disabled={isBusy}
-        className={`touch-btn w-full px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-          isBusy ? 'bg-slate-200 text-slate-400' : 'bg-blue-500 text-white active:bg-blue-600'
+        className={`touch-btn w-full px-6 py-4 text-xs font-black uppercase tracking-widest transition-all ${
+          isBusy ? 'bg-white/10 text-white/30' : 'pz-btn'
         }`}
       >
         {isBusy ? (

@@ -60,16 +60,16 @@ const GameCenterStats: React.FC<GameCenterStatsProps> = ({ studentId }) => {
   ];
 
   return (
-    <div className="bg-gradient-to-br from-indigo-950 to-slate-900 rounded-2xl p-5 text-white">
-      <div className="text-[10px] font-black uppercase text-indigo-300 tracking-widest mb-3">
+    <div className="pz-card p-5 text-white">
+      <div className="pz-eyebrow mb-3">
         🎮 Game Center
       </div>
       <div className="grid grid-cols-3 gap-3">
         {tiles.map((t) => (
-          <div key={t.label} className="bg-white/10 rounded-xl p-4 text-center">
+          <div key={t.label} className="pz-card-sm p-4 text-center" style={{ background: 'var(--pz-panel-2)' }}>
             <div className="text-xl mb-1">{t.icon}</div>
-            <div className="text-2xl font-black">{stats ? t.value : '—'}</div>
-            <div className="text-[9px] font-bold uppercase text-slate-400">{t.label}</div>
+            <div className="pz-display text-2xl" style={{ color: 'var(--pz-volt)' }}>{stats ? t.value : '—'}</div>
+            <div className="text-[9px] font-bold uppercase" style={{ color: 'var(--pz-text)' }}>{t.label}</div>
           </div>
         ))}
       </div>

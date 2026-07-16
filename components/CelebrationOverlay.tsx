@@ -42,15 +42,24 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ celebration, on
   if (!celebration || !isVisible) return null;
 
   const isGameEnd = celebration.type === 'GAME_END';
-  const gradientStyle = isGameEnd && celebration.winningHouseColor
-    ? { background: `linear-gradient(to bottom right, ${celebration.winningHouseColor}, #facc15, #fb923c)` }
-    : { background: 'linear-gradient(to bottom right, #facc15, #fb923c, #f97316)' };
+  // Pubzi theme: volt by default, winning-house color on game end — glow lives on a
+  // wrapper via drop-shadow because the notch clip-path would clip outer box-shadows.
+  const accent = (isGameEnd && celebration.winningHouseColor) ? celebration.winningHouseColor : '#CBFE1C';
+  const NOTCH = 'polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px)';
 
   return (
-    <div className="fixed inset-0 z-[700] bg-black/70 backdrop-blur-sm flex items-center justify-center animate-fade-in">
-      <div className={`rounded-5xl p-12 md:p-20 text-center max-w-3xl mx-4 shadow-2xl animate-bounce-in relative overflow-hidden`} style={gradientStyle}>
+    <div className="fixed inset-0 z-[700] pz-scope bg-black/70 backdrop-blur-sm flex items-center justify-center animate-fade-in">
+      <div className="animate-bounce-in max-w-3xl mx-4" style={{ filter: `drop-shadow(0 0 40px ${accent}66)` }}>
+        <div
+          className="p-12 md:p-20 text-center relative overflow-hidden"
+          style={{
+            background: `linear-gradient(to bottom right, ${accent}22, transparent 45%), var(--pz-panel)`,
+            border: `1px solid ${accent}66`,
+            clipPath: NOTCH
+          }}
+        >
         {/* Animated background glow */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent animate-pulse pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent animate-pulse pointer-events-none" />
 
         <div className="relative z-10">
           {isGameEnd ? (
@@ -64,16 +73,17 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ celebration, on
             <div className="relative inline-block mb-6">
               <img
                 src={celebration.studentAvatar}
-                className="w-32 h-32 md:w-40 md:h-40 rounded-full border-8 border-white shadow-2xl object-cover animate-scale-in"
+                className="w-32 h-32 md:w-40 md:h-40 rounded-full border-8 shadow-2xl object-cover animate-scale-in"
+                style={{ borderColor: accent }}
                 alt={celebration.studentName}
               />
               {celebration.type === 'RANK_UP' && celebration.rankIcon && (
-                <div className="absolute -bottom-4 -right-4 w-20 h-20 md:w-24 md:h-24 bg-white rounded-full border-4 border-yellow-300 shadow-2xl flex items-center justify-center animate-spin-in">
+                <div className="absolute -bottom-4 -right-4 w-20 h-20 md:w-24 md:h-24 bg-white rounded-full border-4 shadow-2xl flex items-center justify-center animate-spin-in" style={{ borderColor: accent }}>
                   <img src={celebration.rankIcon} className="w-16 h-16 md:w-20 md:h-20 object-contain" alt="Rank" />
                 </div>
               )}
               {celebration.type === 'BADGE_EARNED' && celebration.badgeIcon && (
-                <div className="absolute -bottom-4 -right-4 w-20 h-20 md:w-24 md:h-24 bg-white rounded-full border-4 border-yellow-300 shadow-2xl flex items-center justify-center animate-spin-in">
+                <div className="absolute -bottom-4 -right-4 w-20 h-20 md:w-24 md:h-24 bg-white rounded-full border-4 shadow-2xl flex items-center justify-center animate-spin-in" style={{ borderColor: accent }}>
                   <img src={celebration.badgeIcon} className="w-16 h-16 md:w-20 md:h-20 object-contain" alt="Badge" />
                 </div>
               )}
@@ -84,7 +94,7 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ celebration, on
             <>
               {/* Game End Celebration */}
               {celebration.gameTitle && (
-                <div className="text-3xl md:text-4xl font-bold text-white/90 mb-6">
+                <div className="text-3xl md:text-4xl font-bold mb-6" style={{ color: 'var(--pz-text)' }}>
                   {celebration.gameTitle}
                 </div>
               )}
@@ -97,7 +107,7 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ celebration, on
                     className="w-32 h-32 md:w-40 md:h-40 mx-auto mb-4 drop-shadow-2xl animate-scale-in"
                     alt="Winning House"
                   />
-                  <div className="text-4xl md:text-5xl font-black text-white drop-shadow-lg">
+                  <div className="pz-display text-4xl md:text-5xl drop-shadow-lg" style={{ color: accent }}>
                     🏆 {celebration.winningHouseName} Wins!
                   </div>
                 </div>
@@ -105,16 +115,17 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ celebration, on
 
               {/* MVP */}
               {celebration.mvpName && celebration.mvpAvatar && (
-                <div className="mt-8 pt-8 border-t-4 border-white/30">
-                  <div className="text-2xl md:text-3xl font-bold text-white/90 mb-4">
+                <div className="mt-8 pt-8 border-t border-white/10">
+                  <div className="text-2xl md:text-3xl font-bold mb-4 uppercase tracking-[0.25em]" style={{ color: 'var(--pz-volt)' }}>
                     ⭐ MVP ⭐
                   </div>
                   <img
                     src={celebration.mvpAvatar}
-                    className="w-24 h-24 md:w-32 md:h-32 rounded-full border-8 border-white shadow-2xl mx-auto mb-4 object-cover animate-scale-in"
+                    className="w-24 h-24 md:w-32 md:h-32 rounded-full border-8 shadow-2xl mx-auto mb-4 object-cover animate-scale-in"
+                    style={{ borderColor: accent }}
                     alt={celebration.mvpName}
                   />
-                  <div className="text-4xl md:text-5xl font-black text-white drop-shadow-lg">
+                  <div className="pz-display text-4xl md:text-5xl text-white drop-shadow-lg">
                     {celebration.mvpName}
                   </div>
                 </div>
@@ -123,19 +134,20 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ celebration, on
           ) : (
             <>
               {/* Rank Up / Badge Earned */}
-              <div className="text-5xl md:text-6xl font-black text-white mb-4 drop-shadow-lg animate-slide-up">
+              <div className="pz-display text-5xl md:text-6xl text-white mb-4 drop-shadow-lg animate-slide-up">
                 {celebration.studentName}
               </div>
 
-              <div className="text-2xl md:text-3xl font-bold text-white/90 mb-4 uppercase tracking-wider">
+              <div className="text-2xl md:text-3xl font-bold mb-4 uppercase tracking-wider" style={{ color: 'var(--pz-text)' }}>
                 {celebration.type === 'RANK_UP' ? '⬆️ Promoted to' : '⭐ Earned'}
               </div>
 
-              <div className="text-6xl md:text-7xl font-black text-white mt-4 drop-shadow-2xl animate-scale-in">
+              <div className="pz-display text-6xl md:text-7xl mt-4 drop-shadow-2xl animate-scale-in" style={{ color: accent }}>
                 {celebration.achievement}
               </div>
             </>
           )}
+        </div>
         </div>
       </div>
 

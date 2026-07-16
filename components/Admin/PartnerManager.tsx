@@ -170,14 +170,14 @@ const PartnerManager: React.FC = () => {
   };
 
   return (
-    <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg border border-slate-100">
+    <section className="pz-scope pz-card p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">
+        <h2 className="text-xl sm:text-2xl text-white uppercase tracking-tight">
           🏪 Partners
         </h2>
         <button
           onClick={() => setForm({ ...EMPTY_FORM })}
-          className="touch-btn focus-ring px-4 py-2 bg-brand-blue text-white rounded-xl text-xs font-black uppercase active:bg-blue-600"
+          className="touch-btn focus-ring pz-btn px-4 py-2 text-xs"
         >
           + New Partner
         </button>
@@ -185,22 +185,22 @@ const PartnerManager: React.FC = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-slate-50 rounded-xl p-3 text-center">
-          <div className="text-2xl font-black text-slate-900">{partners.length}</div>
-          <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Partners</div>
+        <div className="pz-card-sm p-3 text-center" style={{ background: 'var(--pz-panel-2)' }}>
+          <div className="text-2xl pz-display text-white">{partners.length}</div>
+          <div className="text-[9px] font-bold text-[#ABABAB] uppercase tracking-wider">Total Partners</div>
         </div>
-        <div className="bg-emerald-50 rounded-xl p-3 text-center">
-          <div className="text-2xl font-black text-emerald-600">{partners.filter((p) => p.isActive).length}</div>
-          <div className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider">Active</div>
+        <div className="pz-card-sm p-3 text-center" style={{ background: 'var(--pz-panel-2)', borderColor: 'rgba(16, 185, 129, 0.35)' }}>
+          <div className="text-2xl pz-display text-emerald-400">{partners.filter((p) => p.isActive).length}</div>
+          <div className="text-[9px] font-bold text-emerald-400/80 uppercase tracking-wider">Active</div>
         </div>
       </div>
 
       {/* Partner list */}
       <div className="space-y-2">
         {loading ? (
-          <div className="text-center py-12 text-slate-400">Loading…</div>
+          <div className="text-center py-12 text-[#ABABAB]">Loading…</div>
         ) : partners.length === 0 ? (
-          <div className="text-center py-12 text-slate-400">
+          <div className="text-center py-12 text-[#ABABAB]">
             <div className="text-4xl mb-2">🏪</div>
             <div className="text-sm font-medium">No partner businesses yet</div>
             <div className="text-xs">Add a local business so families can earn points around town</div>
@@ -209,31 +209,32 @@ const PartnerManager: React.FC = () => {
           partners.map((p) => (
             <div
               key={p.id}
-              className={`p-4 rounded-xl border transition-all ${
-                p.isActive ? 'bg-slate-50 border-slate-100' : 'bg-slate-50/50 border-slate-100 opacity-60'
+              className={`pz-card-sm p-4 transition-all ${
+                p.isActive ? '' : 'opacity-60'
               }`}
+              style={{ background: 'var(--pz-panel-2)' }}
             >
               <div className="flex items-start gap-3">
                 <div className="flex-grow min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-black text-sm text-slate-900 truncate">{p.name}</span>
+                    <span className="font-black text-sm text-white truncate">{p.name}</span>
                     {p.category && (
-                      <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-600 text-[9px] font-black uppercase">
+                      <span className="px-2 py-0.5 rounded bg-sky-500/15 text-sky-400 text-[9px] font-black uppercase">
                         {p.category}
                       </span>
                     )}
-                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-600 text-[9px] font-black uppercase">
+                    <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[9px] font-black uppercase">
                       +{p.pointsReward} pts
                     </span>
                   </div>
-                  {p.description && <div className="text-xs text-slate-500 mb-0.5">{p.description}</div>}
-                  {p.address && <div className="text-[10px] text-slate-400">📍 {p.address}</div>}
+                  {p.description && <div className="text-xs text-[#ABABAB] mb-0.5">{p.description}</div>}
+                  {p.address && <div className="text-[10px] text-[#ABABAB]">📍 {p.address}</div>}
                 </div>
                 <button
                   onClick={() => toggleActive(p)}
                   disabled={busyId === p.id}
                   className={`touch-btn focus-ring px-3 py-1 rounded-lg text-[9px] font-black uppercase flex-shrink-0 disabled:opacity-50 ${
-                    p.isActive ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-500'
+                    p.isActive ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/10 text-[#ABABAB]'
                   }`}
                 >
                   {p.isActive ? 'Active' : 'Inactive'}
@@ -243,7 +244,7 @@ const PartnerManager: React.FC = () => {
               <div className="flex gap-2 mt-3 flex-wrap">
                 <button
                   onClick={() => handlePrint(p)}
-                  className="touch-btn focus-ring px-3 py-2 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-wide active:bg-slate-700"
+                  className="touch-btn focus-ring pz-btn px-3 py-2 text-[10px]"
                 >
                   🖨️ Print QR
                 </button>
@@ -258,21 +259,21 @@ const PartnerManager: React.FC = () => {
                       pointsReward: p.pointsReward,
                     })
                   }
-                  className="touch-btn focus-ring px-3 py-2 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-wide active:bg-slate-200"
+                  className="touch-btn focus-ring pz-btn-ghost px-3 py-2 text-[10px]"
                 >
                   ✏️ Edit
                 </button>
                 <button
                   onClick={() => handleRotate(p)}
                   disabled={busyId === p.id}
-                  className="touch-btn focus-ring px-3 py-2 rounded-xl bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-wide border border-amber-100 active:bg-amber-100 disabled:opacity-50"
+                  className="touch-btn focus-ring px-3 py-2 rounded-xl bg-amber-500/10 text-amber-400 text-[10px] font-black uppercase tracking-wide border border-amber-500/30 active:bg-amber-500/20 disabled:opacity-50"
                 >
                   🔁 Rotate QR
                 </button>
                 <button
                   onClick={() => handleDelete(p)}
                   disabled={busyId === p.id}
-                  className="touch-btn focus-ring px-3 py-2 rounded-xl bg-red-50 text-red-500 text-[10px] font-black uppercase tracking-wide border border-red-100 active:bg-red-100 disabled:opacity-50"
+                  className="touch-btn focus-ring px-3 py-2 rounded-xl bg-red-500/10 text-red-400 text-[10px] font-black uppercase tracking-wide border border-red-500/30 active:bg-red-500/20 disabled:opacity-50"
                 >
                   🗑️ Delete
                 </button>
@@ -286,25 +287,25 @@ const PartnerManager: React.FC = () => {
       {form && (
         <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-6">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setForm(null)}
             aria-hidden="true"
           />
-          <div className="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] animate-slide-up">
-            <div className="flex items-center justify-between p-4 border-b border-slate-100 flex-shrink-0">
+          <div className="relative pz-card w-full sm:max-w-md drop-shadow-2xl flex flex-col max-h-[90vh] animate-slide-up">
+            <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
               <button
                 onClick={() => setForm(null)}
-                className="touch-btn text-slate-500 font-bold text-sm px-2 py-1"
+                className="touch-btn text-[#ABABAB] font-bold text-sm px-2 py-1"
               >
                 Cancel
               </button>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">
+              <h3 className="text-sm text-white uppercase tracking-wide">
                 {form.id ? 'Edit Partner' : 'New Partner'}
               </h3>
               <button
                 onClick={handleSave}
                 disabled={saving || !form.name.trim()}
-                className="touch-btn text-brand-blue font-black text-sm px-2 py-1 disabled:opacity-30"
+                className="touch-btn text-[#CBFE1C] font-black text-sm px-2 py-1 disabled:opacity-30"
               >
                 {saving ? '…' : 'Save'}
               </button>
@@ -312,7 +313,7 @@ const PartnerManager: React.FC = () => {
 
             <div className="flex-grow overflow-y-auto custom-scrollbar p-4 space-y-4">
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Business Name *
                 </label>
                 <input
@@ -320,12 +321,12 @@ const PartnerManager: React.FC = () => {
                   value={form.name}
                   onChange={(e) => updateField('name', e.target.value)}
                   placeholder="e.g. Tony's Pizza"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-900 outline-none focus:border-brand-blue"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Description
                 </label>
                 <textarea
@@ -333,12 +334,12 @@ const PartnerManager: React.FC = () => {
                   onChange={(e) => updateField('description', e.target.value)}
                   placeholder="What families should know…"
                   rows={2}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none focus:border-brand-blue resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] resize-none"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Category
                 </label>
                 <input
@@ -346,12 +347,12 @@ const PartnerManager: React.FC = () => {
                   value={form.category}
                   onChange={(e) => updateField('category', e.target.value)}
                   placeholder="e.g. Food, Books, Sports"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none focus:border-brand-blue"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Address
                 </label>
                 <input
@@ -359,12 +360,12 @@ const PartnerManager: React.FC = () => {
                   value={form.address}
                   onChange={(e) => updateField('address', e.target.value)}
                   placeholder="123 Main St"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none focus:border-brand-blue"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Points Per Visit
                 </label>
                 <input
@@ -372,9 +373,9 @@ const PartnerManager: React.FC = () => {
                   min={1}
                   value={form.pointsReward}
                   onChange={(e) => updateField('pointsReward', Number(e.target.value))}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-900 outline-none focus:border-brand-blue"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white outline-none focus:border-[#CBFE1C]"
                 />
-                <p className="text-[10px] text-slate-400 mt-1">
+                <p className="text-[10px] text-[#ABABAB] mt-1">
                   Each athlete can earn this once per business per day
                 </p>
               </div>

@@ -59,7 +59,7 @@ const StudentAvatar: React.FC<StudentAvatarProps> = ({
       {showPresence && (
         <div
           className={`absolute ${presenceSizes[size]} rounded-full border-2 border-white shadow-sm ${
-            student.isPresent ? 'bg-emerald-500' : 'bg-slate-300'
+            student.isPresent ? 'bg-emerald-500' : 'bg-slate-500'
           }`}
           style={rank && rank.icon ? { bottom: 'auto', top: '-2px', right: '-2px' } : {}}
         />

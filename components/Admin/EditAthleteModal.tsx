@@ -19,7 +19,7 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
   const [gender, setGender] = useState<'Male' | 'Female'>(student.gender);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
+
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -29,8 +29,8 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
     setIsCameraOpen(true);
     setCapturedImage(null);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user', width: 512, height: 512 } 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: 512, height: 512 }
       });
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch (err) {
@@ -76,7 +76,7 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
         gender: gender,
         avatarUrl: finalAvatar
       });
-      
+
       onRefresh();
       onClose();
     } catch (err) {
@@ -116,12 +116,12 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
   };
 
   return (
-    <div className="fixed inset-0 z-[300] bg-slate-900/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-fade-in">
-      <div className="bg-white rounded-5xl w-full max-w-5xl h-full max-h-[85vh] shadow-2xl overflow-hidden flex flex-col md:flex-row border border-slate-200">
-        
-        <div className="w-full md:w-2/5 bg-slate-50 p-10 flex flex-col items-center border-b md:border-b-0 md:border-r border-slate-200 shrink-0 overflow-y-auto custom-scrollbar">
+    <div className="pz-scope fixed inset-0 z-[300] bg-black/70 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-fade-in">
+      <div className="pz-card w-full max-w-5xl h-full max-h-[85vh] overflow-hidden flex flex-col md:flex-row">
+
+        <div className="w-full md:w-2/5 p-10 flex flex-col items-center shrink-0 overflow-y-auto custom-scrollbar" style={{ background: 'var(--pz-panel-2)', borderRight: '1px solid var(--pz-border)' }}>
            <div className="relative mb-10 group">
-              <div className="w-48 h-48 md:w-64 md:h-64 rounded-full border-8 border-white shadow-2xl overflow-hidden relative bg-slate-200">
+              <div className="w-48 h-48 md:w-64 md:h-64 rounded-full border-8 border-white/10 overflow-hidden relative bg-[#171C27]" style={{ boxShadow: 'inset 0 0 24px rgba(0, 0, 0, 0.5)' }}>
                  {capturedImage ? (
                    <img src={capturedImage} className="w-full h-full object-cover" />
                  ) : isCameraOpen ? (
@@ -131,11 +131,11 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
                  )}
               </div>
               <canvas ref={canvasRef} className="hidden" />
-              
+
               {!isCameraOpen && !capturedImage && (
-                <button 
+                <button
                   onClick={startCamera}
-                  className="absolute bottom-4 right-4 bg-brand-blue text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all"
+                  className="absolute bottom-4 right-4 pz-btn w-14 h-14 flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
                 >
                   📸
                 </button>
@@ -145,42 +145,42 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
            <div className="w-full space-y-4">
               {isCameraOpen ? (
                 <div className="flex gap-4">
-                   <button onClick={capturePhoto} className="flex-grow bg-brand-green text-white py-4 rounded-2xl font-black uppercase text-xs shadow-lg">Capture</button>
-                   <button onClick={stopCamera} className="bg-white text-slate-500 px-6 py-4 rounded-2xl font-black uppercase text-xs border border-slate-200">Cancel</button>
+                   <button onClick={capturePhoto} className="pz-btn flex-grow py-4 text-xs">Capture</button>
+                   <button onClick={stopCamera} className="pz-btn-ghost px-6 py-4 text-xs">Cancel</button>
                 </div>
               ) : capturedImage ? (
                 <div className="flex gap-4">
-                   <button onClick={() => setCapturedImage(null)} className="flex-grow bg-red-500 text-white py-4 rounded-2xl font-black uppercase text-xs shadow-lg">Clear Photo</button>
+                   <button onClick={() => setCapturedImage(null)} className="flex-grow bg-red-500 text-white py-4 font-black uppercase text-xs">Clear Photo</button>
                 </div>
               ) : (
                 <div className="text-center">
-                   <h3 className="text-2xl font-display font-black text-slate-900 mb-1">{student.fullName}</h3>
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Athlete ID: {student.id.split('-')[0]}</p>
+                   <h3 className="text-2xl text-white mb-1">{student.fullName}</h3>
+                   <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>Athlete ID: {student.id.split('-')[0]}</p>
                 </div>
               )}
            </div>
 
-           <div className="mt-12 w-full pt-10 border-t border-slate-200">
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 text-center shadow-sm">
-                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Current Points</div>
-                 <div className="text-5xl font-display font-black text-brand-blue">{student.points.toLocaleString()}</div>
+           <div className="mt-12 w-full pt-10 border-t border-white/10">
+              <div className="p-6 border border-white/10 text-center" style={{ background: 'var(--pz-bg)' }}>
+                 <div className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: 'var(--pz-text)' }}>Current Points</div>
+                 <div className="pz-display text-5xl text-[#CBFE1C]">{student.points.toLocaleString()}</div>
               </div>
            </div>
         </div>
 
-        <div className="flex-grow flex flex-col min-h-0 overflow-hidden bg-white">
-           <div className="p-8 pb-0 border-b flex justify-between items-center bg-white z-10">
+        <div className="flex-grow flex flex-col min-h-0 overflow-hidden" style={{ background: 'var(--pz-panel)' }}>
+           <div className="p-8 pb-0 flex justify-between items-center z-10" style={{ borderBottom: '1px solid var(--pz-border)' }}>
               <div className="flex gap-8">
-                 <button onClick={() => setActiveTab('INFO')} className={`pb-6 px-2 font-black text-[10px] uppercase tracking-widest relative ${activeTab === 'INFO' ? 'text-brand-blue' : 'text-slate-400'}`}>
+                 <button onClick={() => setActiveTab('INFO')} className={`pb-6 px-2 font-black text-[10px] uppercase tracking-widest relative ${activeTab === 'INFO' ? 'text-[#CBFE1C]' : 'text-white/40'}`}>
                    Account Info
-                   {activeTab === 'INFO' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-brand-blue rounded-full" />}
+                   {activeTab === 'INFO' && <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: 'var(--pz-volt)' }} />}
                  </button>
-                 <button onClick={() => setActiveTab('POINTS')} className={`pb-6 px-2 font-black text-[10px] uppercase tracking-widest relative ${activeTab === 'POINTS' ? 'text-brand-blue' : 'text-slate-400'}`}>
+                 <button onClick={() => setActiveTab('POINTS')} className={`pb-6 px-2 font-black text-[10px] uppercase tracking-widest relative ${activeTab === 'POINTS' ? 'text-[#CBFE1C]' : 'text-white/40'}`}>
                    Manual Points
-                   {activeTab === 'POINTS' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-brand-blue rounded-full" />}
+                   {activeTab === 'POINTS' && <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: 'var(--pz-volt)' }} />}
                  </button>
               </div>
-              <button onClick={onClose} className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 text-2xl mb-4 shrink-0">✕</button>
+              <button onClick={onClose} className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-white/50 text-2xl mb-4 shrink-0">✕</button>
            </div>
 
            <div className="flex-grow overflow-y-auto p-10 custom-scrollbar min-h-0">
@@ -188,48 +188,48 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
                 <div className="space-y-10 animate-fade-in">
                    <div className="space-y-6">
                       <div>
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Full Name</label>
-                        <input 
-                          type="text" 
-                          value={name} 
-                          onChange={(e) => setName(e.target.value)} 
-                          className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 bg-white !text-slate-900 font-black focus:border-brand-blue outline-none transition-all shadow-sm" 
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 block" style={{ color: 'var(--pz-text)' }}>Full Name</label>
+                        <input
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="w-full px-6 py-4 border border-white/10 bg-[#171C27] text-white font-black focus:border-[#CBFE1C] outline-none transition-all"
                         />
                       </div>
 
                       <div className="grid grid-cols-2 gap-6">
                          <div>
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">House Assignment</label>
-                            <select 
-                              value={house} 
-                              onChange={(e) => setHouse(e.target.value as HouseId)} 
-                              className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 bg-white !text-slate-900 font-black outline-none cursor-pointer focus:border-brand-blue shadow-sm"
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 block" style={{ color: 'var(--pz-text)' }}>House Assignment</label>
+                            <select
+                              value={house}
+                              onChange={(e) => setHouse(e.target.value as HouseId)}
+                              className="w-full px-6 py-4 border border-white/10 bg-[#171C27] text-white font-black outline-none cursor-pointer focus:border-[#CBFE1C]"
                             >
                                {Object.values(HOUSES).map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
                             </select>
                          </div>
                          <div>
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Gender</label>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 block" style={{ color: 'var(--pz-text)' }}>Gender</label>
                             <div className="flex gap-2">
-                               <button onClick={() => setGender('Male')} className={`flex-grow py-4 rounded-xl border-2 font-black text-[10px] uppercase transition-all shadow-sm ${gender === 'Male' ? 'bg-blue-500 border-blue-500 text-white' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-200'}`}>Male</button>
-                               <button onClick={() => setGender('Female')} className={`flex-grow py-4 rounded-xl border-2 font-black text-[10px] uppercase transition-all shadow-sm ${gender === 'Female' ? 'bg-pink-500 border-pink-500 text-white' : 'bg-white border-slate-200 text-slate-500 hover:border-pink-200'}`}>Female</button>
+                               <button onClick={() => setGender('Male')} className={`flex-grow py-4 border font-black text-[10px] uppercase transition-all ${gender === 'Male' ? 'bg-blue-500 border-blue-500 text-white' : 'bg-white/5 border-white/10 text-white/50 hover:border-blue-400/50'}`}>Male</button>
+                               <button onClick={() => setGender('Female')} className={`flex-grow py-4 border font-black text-[10px] uppercase transition-all ${gender === 'Female' ? 'bg-pink-500 border-pink-500 text-white' : 'bg-white/5 border-white/10 text-white/50 hover:border-pink-400/50'}`}>Female</button>
                             </div>
                          </div>
                       </div>
                    </div>
 
-                   <div className="pt-10 border-t flex justify-between gap-4 items-center">
+                   <div className="pt-10 border-t border-white/10 flex justify-between gap-4 items-center">
                       <button
                         onClick={() => setShowDeleteConfirm(true)}
-                        className="px-6 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100"
+                        className="px-6 py-4 font-black uppercase text-[10px] tracking-widest bg-red-500/10 text-red-400 border border-red-500/40 hover:bg-red-500 hover:text-white transition-all"
                       >
                         Delete Athlete
                       </button>
-                      <button onClick={onClose} className="px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400 hover:text-slate-600 transition-all">Discard</button>
-                      <button 
+                      <button onClick={onClose} className="px-8 py-4 font-black uppercase text-[10px] tracking-widest text-white/40 hover:text-white transition-all">Discard</button>
+                      <button
                         onClick={handleSaveInfo}
                         disabled={isSaving}
-                        className="bg-brand-blue text-white px-10 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-2xl hover:bg-blue-600 disabled:opacity-50 transition-all"
+                        className="pz-btn px-10 py-4 text-[10px] disabled:opacity-50 transition-all"
                       >
                         {isSaving ? 'Syncing...' : 'Save Profile Updates'}
                       </button>
@@ -239,25 +239,25 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
 
               {activeTab === 'POINTS' && (
                 <div className="space-y-12 animate-fade-in">
-                   <div className="bg-blue-50 p-8 rounded-4xl border border-blue-100">
-                      <h4 className="text-xl font-display font-black text-brand-blue mb-2 uppercase">Manual Point Override</h4>
-                      <p className="text-xs text-blue-600 font-medium">Use these presets to quickly adjust the athlete's point total outside of regular sessions.</p>
+                   <div className="p-8 border border-white/10" style={{ background: 'var(--pz-panel-2)' }}>
+                      <h4 className="text-xl text-[#CBFE1C] mb-2">Manual Point Override</h4>
+                      <p className="text-xs font-medium" style={{ color: 'var(--pz-text)' }}>Use these presets to quickly adjust the athlete's point total outside of regular sessions.</p>
                    </div>
 
                    <div className="grid grid-cols-2 gap-8">
                       <div className="space-y-4">
-                         <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Add Points</div>
+                         <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Add Points</div>
                          <div className="grid grid-cols-2 gap-4">
                             {[10, 50, 100, 500].map(val => (
-                              <button key={val} onClick={() => handleAdjustPoints(val)} className="py-6 rounded-3xl bg-white border-2 border-emerald-100 text-emerald-600 font-black text-lg hover:border-emerald-500 hover:bg-emerald-50 transition-all shadow-sm">+{val}</button>
+                              <button key={val} onClick={() => handleAdjustPoints(val)} className="py-6 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-black text-lg hover:border-emerald-500 hover:bg-emerald-500/20 transition-all">+{val}</button>
                             ))}
                          </div>
                       </div>
                       <div className="space-y-4">
-                         <div className="text-[10px] font-black text-red-500 uppercase tracking-widest">Deduct Points</div>
+                         <div className="text-[10px] font-black text-red-400 uppercase tracking-widest">Deduct Points</div>
                          <div className="grid grid-cols-2 gap-4">
                             {[10, 50, 100, 500].map(val => (
-                              <button key={val} onClick={() => handleAdjustPoints(-val)} className="py-6 rounded-3xl bg-white border-2 border-red-100 text-red-600 font-black text-lg hover:border-red-500 hover:bg-red-50 transition-all shadow-sm">-{val}</button>
+                              <button key={val} onClick={() => handleAdjustPoints(-val)} className="py-6 bg-red-500/10 border border-red-500/30 text-red-400 font-black text-lg hover:border-red-500 hover:bg-red-500/20 transition-all">-{val}</button>
                             ))}
                          </div>
                       </div>
@@ -268,16 +268,16 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
         </div>
       </div>
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-[400] bg-slate-900/95 backdrop-blur-xl flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-slate-200">
+        <div className="fixed inset-0 z-[400] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="pz-card max-w-md w-full p-8">
             <div className="text-center mb-6">
               <div className="text-6xl mb-4">⚠️</div>
-              <h3 className="text-2xl font-black text-slate-900 mb-2">Delete Athlete</h3>
-              <p className="text-slate-600 text-sm">This cannot be undone. Remove {student.fullName} from the roster?</p>
+              <h3 className="text-2xl text-white mb-2">Delete Athlete</h3>
+              <p className="text-sm" style={{ color: 'var(--pz-text)' }}>This cannot be undone. Remove {student.fullName} from the roster?</p>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black">Cancel</button>
-              <button onClick={handleDelete} className="flex-1 px-6 py-3 rounded-xl bg-red-600 text-white font-black">Permanently Delete</button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="pz-btn-ghost flex-1 px-6 py-3 text-xs">Cancel</button>
+              <button onClick={handleDelete} className="flex-1 px-6 py-3 bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500 transition-all">Permanently Delete</button>
             </div>
           </div>
         </div>

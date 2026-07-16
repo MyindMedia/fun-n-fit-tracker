@@ -84,12 +84,12 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
         return (
           <div className="space-y-3">
             {/* Compact Clock Header */}
-            <div className="bg-slate-900 rounded-xl p-3 text-center text-white flex items-center justify-between">
-              <div className="text-[9px] font-black uppercase tracking-widest text-blue-400">Clock</div>
-              <div className="text-2xl font-mono font-black">{sessionStopwatch}s</div>
+            <div className="rounded-xl p-3 text-center text-white flex items-center justify-between border border-white/10" style={{ background: 'var(--pz-panel-2)' }}>
+              <div className="text-[9px] font-black uppercase tracking-widest text-[#CBFE1C]">Clock</div>
+              <div className="text-2xl font-mono font-black text-[#CBFE1C]">{sessionStopwatch}s</div>
               <button
                 onClick={() => setIsClockRunning(!isClockRunning)}
-                className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-wider active:scale-95 ${isClockRunning ? 'bg-red-500' : 'bg-brand-green'}`}
+                className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-wider active:scale-95 ${isClockRunning ? 'bg-red-500 text-white' : 'bg-[#CBFE1C] text-[#0B0E13]'}`}
               >
                 {isClockRunning ? 'Pause' : 'Start'}
               </button>
@@ -102,12 +102,12 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                 return (
                   <div
                     key={s.id}
-                    className={`flex items-center gap-1.5 py-1 px-1.5 rounded-lg ${isOut ? 'bg-red-50/50 opacity-40' : 'bg-slate-50'}`}
+                    className={`flex items-center gap-1.5 py-1 px-1.5 rounded-lg ${isOut ? 'bg-red-500/10 opacity-40' : 'bg-white/5'}`}
                   >
                     {/* Avatar + Name */}
                     <img src={s.avatarUrl} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
                     <div className="w-14 min-w-0">
-                      <div className="font-bold text-[10px] text-slate-800 truncate leading-tight">{firstName}</div>
+                      <div className="font-bold text-[10px] text-white truncate leading-tight">{firstName}</div>
                       <div className="text-[8px] font-semibold leading-tight" style={{ color: HOUSES[s.houseId].colorHex }}>{s.points}</div>
                     </div>
 
@@ -118,7 +118,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                           <button
                             key={val}
                             onClick={() => handleScore(s.id, undefined, val, `${game?.displayName || 'Time Trial'} Points`)}
-                            className="flex-1 h-7 bg-slate-800 text-white rounded font-bold text-[9px] active:scale-95"
+                            className="flex-1 h-7 bg-white/10 border border-white/10 text-white rounded font-bold text-[9px] active:scale-95"
                           >
                             +{val}
                           </button>
@@ -135,7 +135,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                               setCustomValues(v => ({ ...v, [s.id]: '' }));
                             }
                           }}
-                          className="w-7 h-7 border border-slate-200 rounded text-center font-bold text-[10px] bg-white"
+                          className="w-7 h-7 border border-white/10 rounded text-center font-bold text-[10px] bg-[#171C27] text-white placeholder-white/30"
                           placeholder="#"
                         />
                         <button
@@ -146,7 +146,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                               setCustomValues(cv => ({ ...cv, [s.id]: '' }));
                             }
                           }}
-                          className="w-6 h-7 bg-emerald-500 text-white rounded font-black text-[10px] active:scale-95"
+                          className="w-6 h-7 bg-[#CBFE1C] text-[#0B0E13] rounded font-black text-[10px] active:scale-95"
                         >
                           +
                         </button>
@@ -162,7 +162,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                     )}
                     <button
                       onClick={() => supabaseService.togglePlayerStatus(session.id, s.id, !isOut, adminName)}
-                      className={`w-8 h-7 rounded font-bold text-[8px] active:scale-95 ${isOut ? 'bg-emerald-500 text-white' : 'bg-red-100 text-red-500'}`}
+                      className={`w-8 h-7 rounded font-bold text-[8px] active:scale-95 ${isOut ? 'bg-emerald-500 text-white' : 'bg-red-500/15 text-red-400'}`}
                     >
                       {isOut ? 'IN' : 'OUT'}
                     </button>
@@ -182,12 +182,12 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
               return (
                 <div
                   key={s.id}
-                  className={`flex items-center gap-1.5 py-1 px-1.5 rounded-lg ${isOut ? 'bg-red-50/50 opacity-40' : 'bg-slate-50'}`}
+                  className={`flex items-center gap-1.5 py-1 px-1.5 rounded-lg ${isOut ? 'bg-red-500/10 opacity-40' : 'bg-white/5'}`}
                 >
                   {/* Avatar + Name */}
                   <img src={s.avatarUrl} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
                   <div className="w-16 min-w-0">
-                    <div className="font-bold text-[10px] text-slate-800 truncate leading-tight">{firstName}</div>
+                    <div className="font-bold text-[10px] text-white truncate leading-tight">{firstName}</div>
                     <div className="text-[8px] font-semibold leading-tight" style={{ color: HOUSES[s.houseId].colorHex }}>{s.points}</div>
                   </div>
 
@@ -198,7 +198,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                         <button
                           key={val}
                           onClick={() => handleScore(s.id, undefined, val, `${game?.displayName || 'Accuracy'} Points`)}
-                          className="flex-1 h-7 bg-slate-800 text-white rounded font-bold text-[9px] active:scale-95"
+                          className="flex-1 h-7 bg-white/10 border border-white/10 text-white rounded font-bold text-[9px] active:scale-95"
                         >
                           +{val}
                         </button>
@@ -215,7 +215,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                             setCustomValues(v => ({ ...v, [s.id]: '' }));
                           }
                         }}
-                        className="w-8 h-7 border border-slate-200 rounded text-center font-bold text-[10px] bg-white"
+                        className="w-8 h-7 border border-white/10 rounded text-center font-bold text-[10px] bg-[#171C27] text-white placeholder-white/30"
                         placeholder="#"
                       />
                       <button
@@ -226,7 +226,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                             setCustomValues(cv => ({ ...cv, [s.id]: '' }));
                           }
                         }}
-                        className="w-7 h-7 bg-emerald-500 text-white rounded font-black text-xs active:scale-95"
+                        className="w-7 h-7 bg-[#CBFE1C] text-[#0B0E13] rounded font-black text-xs active:scale-95"
                       >
                         +
                       </button>
@@ -236,7 +236,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                   )}
                   <button
                     onClick={() => supabaseService.togglePlayerStatus(session.id, s.id, !isOut, adminName)}
-                    className={`w-8 h-7 rounded font-bold text-[8px] active:scale-95 ${isOut ? 'bg-emerald-500 text-white' : 'bg-red-100 text-red-500'}`}
+                    className={`w-8 h-7 rounded font-bold text-[8px] active:scale-95 ${isOut ? 'bg-emerald-500 text-white' : 'bg-red-500/15 text-red-400'}`}
                   >
                     {isOut ? 'IN' : 'OUT'}
                   </button>
@@ -256,12 +256,12 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
               return (
                 <div
                   key={s.id}
-                  className={`flex items-center gap-1.5 py-1 px-1.5 rounded-lg ${isOut ? 'bg-red-50/50 opacity-40' : 'bg-slate-50'}`}
+                  className={`flex items-center gap-1.5 py-1 px-1.5 rounded-lg ${isOut ? 'bg-red-500/10 opacity-40' : 'bg-white/5'}`}
                 >
                   {/* Avatar + Name */}
                   <img src={s.avatarUrl} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
                   <div className="w-16 min-w-0">
-                    <div className="font-bold text-[10px] text-slate-800 truncate leading-tight">{firstName}</div>
+                    <div className="font-bold text-[10px] text-white truncate leading-tight">{firstName}</div>
                     <div className="text-[8px] font-semibold leading-tight" style={{ color: HOUSES[s.houseId].colorHex }}>{s.points}</div>
                   </div>
 
@@ -272,7 +272,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                         <button
                           key={val}
                           onClick={() => handleScore(s.id, undefined, val, `${game?.displayName || 'Game'} Points`)}
-                          className="flex-1 h-7 bg-slate-800 text-white rounded font-bold text-[9px] active:scale-95"
+                          className="flex-1 h-7 bg-white/10 border border-white/10 text-white rounded font-bold text-[9px] active:scale-95"
                         >
                           +{val}
                         </button>
@@ -289,7 +289,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                             setCustomValues(v => ({ ...v, [s.id]: '' }));
                           }
                         }}
-                        className="w-8 h-7 border border-slate-200 rounded text-center font-bold text-[10px] bg-white"
+                        className="w-8 h-7 border border-white/10 rounded text-center font-bold text-[10px] bg-[#171C27] text-white placeholder-white/30"
                         placeholder="#"
                       />
                       <button
@@ -300,7 +300,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                             setCustomValues(cv => ({ ...cv, [s.id]: '' }));
                           }
                         }}
-                        className="w-7 h-7 bg-emerald-500 text-white rounded font-black text-xs active:scale-95"
+                        className="w-7 h-7 bg-[#CBFE1C] text-[#0B0E13] rounded font-black text-xs active:scale-95"
                       >
                         +
                       </button>
@@ -310,7 +310,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                   )}
                   <button
                     onClick={() => supabaseService.togglePlayerStatus(session.id, s.id, !isOut, adminName)}
-                    className={`w-8 h-7 rounded font-bold text-[8px] active:scale-95 ${isOut ? 'bg-emerald-500 text-white' : 'bg-red-100 text-red-500'}`}
+                    className={`w-8 h-7 rounded font-bold text-[8px] active:scale-95 ${isOut ? 'bg-emerald-500 text-white' : 'bg-red-500/15 text-red-400'}`}
                   >
                     {isOut ? 'IN' : 'OUT'}
                   </button>
@@ -335,8 +335,8 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
 const UndoBar: React.FC<{ lastEvents: any[], onUndo: () => void }> = ({ lastEvents, onUndo }) => {
   if (lastEvents.length === 0) return null;
   return (
-    <div className="flex items-center justify-between bg-slate-100 rounded-lg p-2 shrink-0">
-      <div className="text-[9px] text-slate-500 truncate flex-1">
+    <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg p-2 shrink-0">
+      <div className="text-[9px] text-white/50 truncate flex-1">
         {lastEvents[0] && `${lastEvents[0].amount > 0 ? '+' : ''}${lastEvents[0].amount} ${lastEvents[0].description}`}
       </div>
       <button onClick={onUndo} className="bg-red-500 text-white font-bold px-3 py-1.5 rounded-lg text-[9px] uppercase tracking-wider active:scale-95 shrink-0">Undo</button>

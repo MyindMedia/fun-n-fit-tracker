@@ -75,17 +75,17 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
       {/* Header with Select All */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h3 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-tight">
+          <h3 className="text-sm sm:text-base text-white tracking-tight">
             Select Athletes
           </h3>
-          <p className="text-[10px] sm:text-xs text-slate-500">
+          <p className="text-[10px] sm:text-xs" style={{ color: 'var(--pz-text)' }}>
             {selected.size} of {students.length} selected
           </p>
         </div>
         <button
           onClick={selectAll}
           disabled={loading || filteredStudents.length === 0}
-          className="touch-btn text-[10px] sm:text-xs font-black text-brand-blue uppercase tracking-widest hover:underline disabled:opacity-30 px-3 py-2 bg-blue-50 rounded-lg"
+          className="touch-btn text-[10px] sm:text-xs font-black text-[#CBFE1C] uppercase tracking-widest hover:underline disabled:opacity-30 px-3 py-2 bg-[#CBFE1C]/10 border border-[#CBFE1C]/30 rounded-lg"
         >
           {filteredStudents.filter(s => s.isPresent).every(s => selected.has(s.id)) ? 'Deselect All' : 'Select Active'}
         </button>
@@ -95,8 +95,8 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
       <div className="mobile-scroll-x -mx-1 px-1">
         <button
           onClick={() => setFilterHouse('all')}
-          className={`touch-btn px-3 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${
-            filterHouse === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
+          className={`touch-btn px-3 py-2 text-[10px] font-black uppercase transition-all ${
+            filterHouse === 'all' ? 'bg-[#CBFE1C] text-[#0B0E13]' : 'bg-white/5 text-white/60 border border-white/10'
           }`}
         >
           All ({students.length})
@@ -107,11 +107,11 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
             <button
               key={house.id}
               onClick={() => setFilterHouse(house.id)}
-              className={`touch-btn px-3 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${
-                filterHouse === house.id ? 'text-white' : 'text-slate-600'
+              className={`touch-btn px-3 py-2 text-[10px] font-black uppercase transition-all ${
+                filterHouse === house.id ? 'text-white' : 'text-white/60 border border-white/10'
               }`}
               style={{
-                backgroundColor: filterHouse === house.id ? house.colorHex : '#f1f5f9'
+                backgroundColor: filterHouse === house.id ? house.colorHex : '#171C27'
               }}
             >
               {house.name} ({count})
@@ -121,9 +121,9 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
       </div>
 
       {/* Athletes List - Mobile optimized */}
-      <div className="h-[40vh] sm:h-56 overflow-y-auto border border-slate-200 rounded-xl p-2 bg-slate-50 custom-scrollbar space-y-1.5">
+      <div className="h-[40vh] sm:h-56 overflow-y-auto border border-white/10 p-2 custom-scrollbar space-y-1.5" style={{ background: 'var(--pz-panel)' }}>
         {filteredStudents.length === 0 ? (
-          <div className="text-center py-10 text-slate-400 text-sm italic">
+          <div className="text-center py-10 text-sm italic" style={{ color: 'var(--pz-text)' }}>
             {students.length === 0 ? 'No athletes enrolled yet.' : 'No athletes in this house.'}
           </div>
         ) : (
@@ -132,35 +132,32 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
               key={s.id}
               onClick={() => toggle(s.id)}
               className={`
-                touch-btn p-3 rounded-xl text-sm font-bold cursor-pointer transition-all flex justify-between items-center
+                touch-btn p-3 text-sm font-bold cursor-pointer transition-all flex justify-between items-center border
                 ${selected.has(s.id)
-                  ? 'bg-slate-900 text-white shadow-lg'
-                  : 'bg-white border border-slate-100 text-slate-700 active:bg-blue-50'}
+                  ? 'bg-[#171C27] border-[#CBFE1C] text-white'
+                  : 'bg-white/5 border-white/10 text-white/70 active:bg-white/10'}
                 ${loading ? 'opacity-50 pointer-events-none' : ''}
                 ${!s.isPresent ? 'opacity-60' : ''}
               `}
             >
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                  selected.has(s.id) ? 'bg-brand-blue border-white' : 'bg-white border-slate-300'
+                  selected.has(s.id) ? 'bg-[#CBFE1C] border-[#CBFE1C]' : 'bg-transparent border-white/30'
                 }`}>
-                  {selected.has(s.id) && <span className="text-white text-[10px]">✓</span>}
+                  {selected.has(s.id) && <span className="text-[#0B0E13] text-[10px] font-black">✓</span>}
                 </div>
                 <img src={s.avatarUrl} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0" alt="" />
                 <div className="min-w-0">
                   <span className="block truncate text-xs sm:text-sm">{s.fullName}</span>
                   {!s.isPresent && (
-                    <span className="text-[8px] font-black text-slate-400">ABSENT</span>
+                    <span className="text-[8px] font-black text-white/40">ABSENT</span>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <span className={`
-                  text-[8px] sm:text-[9px] uppercase font-black px-2 py-1 rounded
-                  ${selected.has(s.id) ? 'bg-white/20 text-white' : ''}
-                `} style={{
-                  backgroundColor: selected.has(s.id) ? 'transparent' : HOUSES[s.houseId].colorHex + '20',
-                  color: selected.has(s.id) ? 'white' : HOUSES[s.houseId].colorHex
+                <span className="text-[8px] sm:text-[9px] uppercase font-black px-2 py-1 rounded" style={{
+                  backgroundColor: HOUSES[s.houseId].colorHex + '20',
+                  color: HOUSES[s.houseId].colorHex
                 }}>
                   {HOUSES[s.houseId].name}
                 </span>
@@ -171,8 +168,8 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
       </div>
 
       {/* Points Input Section */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
-        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">
+      <div className="pz-card-sm p-4 space-y-3">
+        <label className="text-[10px] font-black uppercase tracking-widest block" style={{ color: 'var(--pz-text)' }}>
           Points to Award
         </label>
 
@@ -183,16 +180,16 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
               key={preset}
               onClick={() => setPoints(String(preset))}
               disabled={loading}
-              className={`touch-btn px-4 py-2 rounded-lg text-sm font-black transition-all ${
+              className={`touch-btn px-4 py-2 text-sm font-black transition-all ${
                 points === String(preset)
-                  ? 'bg-brand-blue text-white'
-                  : 'bg-slate-100 text-slate-600 active:bg-slate-200'
+                  ? 'bg-[#CBFE1C] text-[#0B0E13]'
+                  : 'bg-white/5 text-white/60 border border-white/10 active:bg-white/10'
               }`}
             >
               +{preset}
             </button>
           ))}
-          <div className="flex items-center gap-2 flex-grow min-w-[100px] bg-slate-100 rounded-lg px-3">
+          <div className="flex items-center gap-2 flex-grow min-w-[100px] bg-[#171C27] border border-white/10 px-3">
             <input
               type="text"
               inputMode="numeric"
@@ -200,9 +197,9 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
               disabled={loading}
               onChange={(e) => setPoints(e.target.value.replace(/[^0-9]/g, ''))}
               placeholder="Custom"
-              className="flex-grow bg-transparent font-black text-lg text-brand-blue outline-none text-center w-full py-2 disabled:opacity-50"
+              className="flex-grow bg-transparent font-black text-lg text-[#CBFE1C] placeholder-white/30 outline-none text-center w-full py-2 disabled:opacity-50"
             />
-            <span className="font-black text-slate-400 text-xs flex-shrink-0">PTS</span>
+            <span className="font-black text-white/40 text-xs flex-shrink-0">PTS</span>
           </div>
         </div>
       </div>
@@ -212,8 +209,8 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
         onClick={handleAward}
         disabled={selected.size === 0 || loading || !parseInt(points || '0', 10)}
         className={`
-          touch-btn w-full text-white font-black py-4 rounded-xl shadow-lg transition-all uppercase tracking-widest text-sm
-          ${loading ? 'bg-slate-700 cursor-wait' : 'bg-slate-900 hover:bg-black active:scale-[0.98]'}
+          touch-btn w-full font-black py-4 transition-all uppercase tracking-widest text-sm
+          ${loading ? 'bg-white/10 text-white/50 cursor-wait' : 'pz-btn active:scale-[0.98]'}
           ${(selected.size === 0 || !parseInt(points || '0', 10)) ? 'opacity-30' : ''}
         `}
       >

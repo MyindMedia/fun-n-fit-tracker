@@ -46,69 +46,69 @@ const SeasonManager: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="pz-scope space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">Season Management</h2>
-        <button 
+        <h2 className="text-xl text-white uppercase tracking-tight">Season Management</h2>
+        <button
           onClick={() => setShowCreate(true)}
-          className="bg-brand-blue text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg shadow-blue-200"
+          className="pz-btn px-4 py-2 text-sm"
         >
           + New Season
         </button>
       </div>
 
       {showCreate && (
-        <div className="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm animate-fade-in">
-          <h3 className="font-bold mb-3">Start New Season</h3>
+        <div className="pz-card p-4 animate-fade-in" style={{ borderColor: 'rgba(203, 254, 28, 0.35)' }}>
+          <h3 className="text-white mb-3">Start New Season</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Season Name</label>
-              <input 
-                type="text" 
+              <label className="block text-xs font-bold text-[#ABABAB] uppercase mb-1">Season Name</label>
+              <input
+                type="text"
                 value={newSeasonName}
                 onChange={e => setNewSeasonName(e.target.value)}
-                className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50"
+                className="w-full p-3 rounded-xl border border-white/10 bg-[#171C27] text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 placeholder="e.g. Winter 2024"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Start Date</label>
-              <input 
-                type="date" 
+              <label className="block text-xs font-bold text-[#ABABAB] uppercase mb-1">Start Date</label>
+              <input
+                type="date"
                 value={newSeasonDate}
                 onChange={e => setNewSeasonDate(e.target.value)}
-                className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50"
+                className="w-full p-3 rounded-xl border border-white/10 bg-[#171C27] text-white outline-none focus:border-[#CBFE1C]"
               />
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <button onClick={() => setShowCreate(false)} className="px-4 py-2 text-slate-500 font-bold">Cancel</button>
-            <button onClick={handleCreate} className="px-4 py-2 bg-brand-green text-white rounded-xl font-bold">Launch Season</button>
+            <button onClick={() => setShowCreate(false)} className="px-4 py-2 text-[#ABABAB] font-bold">Cancel</button>
+            <button onClick={handleCreate} className="pz-btn px-4 py-2 text-sm">Launch Season</button>
           </div>
         </div>
       )}
 
       <div className="grid gap-4">
         {seasons.map(season => (
-          <div key={season.id} className={`p-4 rounded-2xl border-2 flex items-center justify-between ${
-            season.isActive ? 'border-brand-green bg-green-50/50' : 'border-slate-100 bg-white opacity-75'
-          }`}>
+          <div key={season.id} className={`pz-card p-4 flex items-center justify-between ${
+            season.isActive ? '' : 'opacity-60'
+          }`} style={season.isActive ? { borderColor: 'rgba(203, 254, 28, 0.45)' } : undefined}>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-black text-lg">{season.name}</h3>
-                {season.isActive && <span className="bg-brand-green text-white text-[10px] px-2 py-0.5 rounded-full uppercase font-black">Active</span>}
-                {!season.isActive && <span className="bg-slate-200 text-slate-500 text-[10px] px-2 py-0.5 rounded-full uppercase font-black">{season.status}</span>}
+                <h3 className="text-lg text-white">{season.name}</h3>
+                {season.isActive && <span className="bg-[#CBFE1C] text-[#0B0E13] text-[10px] px-2 py-0.5 rounded-full uppercase font-black">Active</span>}
+                {!season.isActive && <span className="bg-white/10 text-[#ABABAB] text-[10px] px-2 py-0.5 rounded-full uppercase font-black">{season.status}</span>}
               </div>
-              <div className="text-xs text-slate-500 font-medium">
-                Started: {new Date(season.startDate).toLocaleDateString()} 
+              <div className="text-xs text-[#ABABAB] font-medium">
+                Started: {new Date(season.startDate).toLocaleDateString()}
                 {season.endDate && ` • Ended: ${new Date(season.endDate).toLocaleDateString()}`}
               </div>
             </div>
-            
+
             {season.isActive && (
-              <button 
+              <button
                 onClick={() => handleEndSeason(season.id)}
-                className="text-red-500 bg-red-50 px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wide hover:bg-red-100"
+                className="text-red-400 bg-red-500/10 border border-red-500/30 px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wide hover:bg-red-500/20"
               >
                 End Season
               </button>
@@ -116,7 +116,7 @@ const SeasonManager: React.FC = () => {
           </div>
         ))}
         {seasons.length === 0 && !loading && (
-          <div className="text-center py-12 text-slate-400">No seasons found. Create one to start tracking!</div>
+          <div className="text-center py-12 text-[#ABABAB]">No seasons found. Create one to start tracking!</div>
         )}
       </div>
     </div>

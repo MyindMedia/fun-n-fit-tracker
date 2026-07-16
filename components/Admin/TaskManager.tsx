@@ -140,22 +140,22 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="pz-scope space-y-4">
       {/* Pending approval queue */}
-      <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg border border-slate-100">
+      <section className="pz-card p-4 sm:p-6">
         <div className="flex items-center gap-2 mb-4">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">
+          <h2 className="text-xl sm:text-2xl text-white uppercase tracking-tight">
             ⏳ Pending Approvals
           </h2>
           {pending.length > 0 && (
-            <span className="bg-red-500 text-white text-[10px] font-black rounded-full px-2 py-0.5">
+            <span className="bg-[#CBFE1C] text-[#0B0E13] text-[10px] font-black rounded-full px-2 py-0.5">
               {pending.length}
             </span>
           )}
         </div>
 
         {pending.length === 0 ? (
-          <div className="text-center py-10 text-slate-400">
+          <div className="text-center py-10 text-[#ABABAB]">
             <div className="text-4xl mb-2">✅</div>
             <div className="text-sm font-medium">Queue is clear</div>
             <div className="text-xs">Parent task submissions land here for review</div>
@@ -163,22 +163,22 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
         ) : (
           <div className="space-y-2">
             {pending.map(({ submission, taskTitle, points, studentName, parentName }) => (
-              <div key={submission.id} className="p-4 rounded-xl bg-amber-50/60 border border-amber-100">
+              <div key={submission.id} className="pz-card-sm p-4" style={{ background: 'var(--pz-panel-2)', borderColor: 'rgba(245, 158, 11, 0.35)' }}>
                 <div className="flex items-start gap-3 flex-wrap sm:flex-nowrap">
                   <div className="flex-grow min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-black text-sm text-slate-900">{studentName}</span>
-                      <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-600 text-[9px] font-black uppercase">
+                      <span className="font-black text-sm text-white">{studentName}</span>
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[9px] font-black uppercase">
                         +{points} pts
                       </span>
                     </div>
-                    <div className="text-xs font-bold text-slate-700">⭐ {taskTitle}</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">
+                    <div className="text-xs font-bold text-white/90">⭐ {taskTitle}</div>
+                    <div className="text-[10px] text-[#ABABAB] mt-0.5">
                       Submitted by {parentName} · {new Date(submission.createdAt).toLocaleDateString()}{' '}
                       {new Date(submission.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                     </div>
                     {submission.note && (
-                      <div className="text-xs text-slate-600 bg-white rounded-lg border border-slate-100 px-3 py-2 mt-2">
+                      <div className="text-xs text-[#ABABAB] rounded-lg border border-white/10 px-3 py-2 mt-2" style={{ background: 'var(--pz-bg)' }}>
                         “{submission.note}”
                       </div>
                     )}
@@ -192,7 +192,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
                         <img
                           src={submission.photoUrl}
                           alt="Submission proof"
-                          className="w-24 h-24 object-cover rounded-xl border-2 border-slate-200"
+                          className="w-24 h-24 object-cover rounded-xl border-2 border-white/10"
                         />
                       </a>
                     )}
@@ -208,7 +208,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
                     <button
                       onClick={() => handleReview(submission.id, false)}
                       disabled={reviewingId === submission.id}
-                      className="touch-btn focus-ring flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-red-50 text-red-500 text-[10px] font-black uppercase tracking-wide border border-red-100 active:bg-red-100 disabled:opacity-50"
+                      className="touch-btn focus-ring flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 text-[10px] font-black uppercase tracking-wide border border-red-500/30 active:bg-red-500/20 disabled:opacity-50"
                     >
                       ✗ Reject
                     </button>
@@ -221,23 +221,23 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
       </section>
 
       {/* Task catalog */}
-      <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg border border-slate-100">
+      <section className="pz-card p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">
+          <h2 className="text-xl sm:text-2xl text-white uppercase tracking-tight">
             ⭐ Special Tasks
           </h2>
           <button
             onClick={() => setForm({ ...EMPTY_FORM })}
-            className="touch-btn focus-ring px-4 py-2 bg-brand-blue text-white rounded-xl text-xs font-black uppercase active:bg-blue-600"
+            className="touch-btn focus-ring pz-btn px-4 py-2 text-xs"
           >
             + New Task
           </button>
         </div>
 
         {loading ? (
-          <div className="text-center py-10 text-slate-400">Loading…</div>
+          <div className="text-center py-10 text-[#ABABAB]">Loading…</div>
         ) : tasks.length === 0 ? (
-          <div className="text-center py-10 text-slate-400">
+          <div className="text-center py-10 text-[#ABABAB]">
             <div className="text-4xl mb-2">⭐</div>
             <div className="text-sm font-medium">No special tasks yet</div>
             <div className="text-xs">Create off-site challenges kids can complete for points</div>
@@ -247,30 +247,31 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
             {tasks.map((t) => (
               <div
                 key={t.id}
-                className={`p-4 rounded-xl border transition-all ${
-                  t.isActive ? 'bg-slate-50 border-slate-100' : 'bg-slate-50/50 border-slate-100 opacity-60'
+                className={`pz-card-sm p-4 transition-all ${
+                  t.isActive ? '' : 'opacity-60'
                 }`}
+                style={{ background: 'var(--pz-panel-2)' }}
               >
                 <div className="flex items-start gap-3">
                   <div className="flex-grow min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-black text-sm text-slate-900">{t.title}</span>
-                      <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-600 text-[9px] font-black uppercase">
+                      <span className="font-black text-sm text-white">{t.title}</span>
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[9px] font-black uppercase">
                         +{t.points} pts
                       </span>
                       {t.requiresProof && (
-                        <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-600 text-[9px] font-black uppercase">
+                        <span className="px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 text-[9px] font-black uppercase">
                           📸 Proof Required
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-slate-500">{t.description}</div>
+                    <div className="text-xs text-[#ABABAB]">{t.description}</div>
                   </div>
                   <button
                     onClick={() => toggleActive(t)}
                     disabled={busyId === t.id}
                     className={`touch-btn focus-ring px-3 py-1 rounded-lg text-[9px] font-black uppercase flex-shrink-0 disabled:opacity-50 ${
-                      t.isActive ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-500'
+                      t.isActive ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/10 text-[#ABABAB]'
                     }`}
                   >
                     {t.isActive ? 'Active' : 'Inactive'}
@@ -287,14 +288,14 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
                         requiresProof: t.requiresProof,
                       })
                     }
-                    className="touch-btn focus-ring px-3 py-2 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-wide active:bg-slate-200"
+                    className="touch-btn focus-ring pz-btn-ghost px-3 py-2 text-[10px]"
                   >
                     ✏️ Edit
                   </button>
                   <button
                     onClick={() => handleDelete(t)}
                     disabled={busyId === t.id}
-                    className="touch-btn focus-ring px-3 py-2 rounded-xl bg-red-50 text-red-500 text-[10px] font-black uppercase tracking-wide border border-red-100 active:bg-red-100 disabled:opacity-50"
+                    className="touch-btn focus-ring px-3 py-2 rounded-xl bg-red-500/10 text-red-400 text-[10px] font-black uppercase tracking-wide border border-red-500/30 active:bg-red-500/20 disabled:opacity-50"
                   >
                     🗑️ Delete
                   </button>
@@ -309,25 +310,25 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
       {form && (
         <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center p-0 sm:p-6">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setForm(null)}
             aria-hidden="true"
           />
-          <div className="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] animate-slide-up">
-            <div className="flex items-center justify-between p-4 border-b border-slate-100 flex-shrink-0">
+          <div className="relative pz-card w-full sm:max-w-md drop-shadow-2xl flex flex-col max-h-[90vh] animate-slide-up">
+            <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
               <button
                 onClick={() => setForm(null)}
-                className="touch-btn text-slate-500 font-bold text-sm px-2 py-1"
+                className="touch-btn text-[#ABABAB] font-bold text-sm px-2 py-1"
               >
                 Cancel
               </button>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">
+              <h3 className="text-sm text-white uppercase tracking-wide">
                 {form.id ? 'Edit Task' : 'New Task'}
               </h3>
               <button
                 onClick={handleSave}
                 disabled={saving || !form.title.trim() || !form.description.trim()}
-                className="touch-btn text-brand-blue font-black text-sm px-2 py-1 disabled:opacity-30"
+                className="touch-btn text-[#CBFE1C] font-black text-sm px-2 py-1 disabled:opacity-30"
               >
                 {saving ? '…' : 'Save'}
               </button>
@@ -335,7 +336,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
 
             <div className="flex-grow overflow-y-auto custom-scrollbar p-4 space-y-4">
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Title *
                 </label>
                 <input
@@ -343,12 +344,12 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
                   value={form.title}
                   onChange={(e) => updateField('title', e.target.value)}
                   placeholder="e.g. Read a book for 30 minutes"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-900 outline-none focus:border-brand-blue"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Description *
                 </label>
                 <textarea
@@ -356,12 +357,12 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
                   onChange={(e) => updateField('description', e.target.value)}
                   placeholder="What does the athlete need to do?"
                   rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none focus:border-brand-blue resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] resize-none"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Points
                 </label>
                 <input
@@ -369,20 +370,20 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
                   min={1}
                   value={form.points}
                   onChange={(e) => updateField('points', Number(e.target.value))}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-900 outline-none focus:border-brand-blue"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white outline-none focus:border-[#CBFE1C]"
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="pz-card-sm flex items-center justify-between p-4" style={{ background: 'var(--pz-panel-2)' }}>
                 <div>
-                  <div className="font-black text-sm text-slate-900">Require Proof</div>
-                  <div className="text-[10px] text-slate-500">Parents must attach a note or photo</div>
+                  <div className="font-black text-sm text-white">Require Proof</div>
+                  <div className="text-[10px] text-[#ABABAB]">Parents must attach a note or photo</div>
                 </div>
                 <button
                   type="button"
                   onClick={() => updateField('requiresProof', !form.requiresProof)}
                   className={`w-14 h-8 rounded-full transition-all flex-shrink-0 ${
-                    form.requiresProof ? 'bg-emerald-500' : 'bg-slate-300'
+                    form.requiresProof ? 'bg-emerald-500' : 'bg-white/15'
                   }`}
                 >
                   <div

@@ -209,8 +209,8 @@ const BrandingSettings: React.FC = () => {
   // Tab content components
   const LogoTab = () => (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-50 rounded-2xl border border-slate-100">
-        <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center p-4 border border-slate-200 overflow-hidden flex-shrink-0">
+      <div className="pz-card-sm flex flex-col sm:flex-row items-center gap-6 p-6" style={{ background: 'var(--pz-panel-2)' }}>
+        <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex items-center justify-center p-4 border border-white/10 overflow-hidden flex-shrink-0" style={{ background: 'var(--pz-bg)' }}>
           <img
             src={settings.app_logo || 'https://odsyoxopcvtgxylmnapk.supabase.co/storage/v1/object/public/Assets/FNFLogo.png'}
             className="w-full h-full object-contain"
@@ -218,9 +218,9 @@ const BrandingSettings: React.FC = () => {
           />
         </div>
         <div className="flex-grow text-center sm:text-left">
-          <h3 className="text-lg sm:text-xl font-black text-slate-800 mb-1">Primary Academy Logo</h3>
-          <p className="text-xs sm:text-sm text-slate-500 mb-4">Appears on leaderboard, admin header, and reports.</p>
-          <label className="touch-btn inline-block bg-brand-blue text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest cursor-pointer active:bg-blue-600 transition-all shadow-lg">
+          <h3 className="text-lg sm:text-xl text-white mb-1">Primary Academy Logo</h3>
+          <p className="text-xs sm:text-sm text-[#ABABAB] mb-4">Appears on leaderboard, admin header, and reports.</p>
+          <label className="touch-btn pz-btn inline-block px-6 py-3 text-xs cursor-pointer">
             {loading ? 'Processing...' : 'Upload New Logo'}
             <input
               type="file"
@@ -237,7 +237,7 @@ const BrandingSettings: React.FC = () => {
 
   const SoundsTab = () => (
     <div className="space-y-4">
-      <p className="text-xs text-slate-500 font-medium">Tap to preview each sound from the system.</p>
+      <p className="text-xs text-[#ABABAB] font-medium">Tap to preview each sound from the system.</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <button onClick={() => AudioService.playRandomAward()} className="touch-btn px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-emerald-500 text-white shadow-md active:bg-emerald-600 active:scale-[0.98] transition-all">
           🎵 Award Pop
@@ -267,10 +267,10 @@ const BrandingSettings: React.FC = () => {
   const RanksTab = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <p className="text-xs text-slate-500 font-medium">{ranks.length} ranks configured</p>
+        <p className="text-xs text-[#ABABAB] font-medium">{ranks.length} ranks configured</p>
         <button
           onClick={() => openCreateForm('RANK')}
-          className="touch-btn px-4 py-2 bg-brand-blue text-white rounded-xl text-xs font-black uppercase active:bg-blue-600"
+          className="touch-btn pz-btn px-4 py-2 text-xs"
         >
           + New Rank
         </button>
@@ -281,7 +281,8 @@ const BrandingSettings: React.FC = () => {
           <div
             key={rank.id}
             onClick={() => openEditForm(rank, 'RANK')}
-            className="touch-btn p-4 bg-white rounded-xl border border-slate-100 flex items-center gap-4 cursor-pointer active:bg-slate-50 transition-all"
+            className="touch-btn pz-card-sm p-4 flex items-center gap-4 cursor-pointer transition-all hover:border-[#CBFE1C]"
+            style={{ background: 'var(--pz-panel-2)' }}
           >
             <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
               {rank.icon ? (
@@ -296,8 +297,8 @@ const BrandingSettings: React.FC = () => {
               )}
             </div>
             <div className="flex-grow min-w-0">
-              <div className="font-black text-sm text-slate-900">{rank.name}</div>
-              <div className="text-[10px] text-slate-500">
+              <div className="font-black text-sm text-white">{rank.name}</div>
+              <div className="text-[10px] text-[#ABABAB]">
                 {rank.threshold.toLocaleString()} pts threshold
                 {rank.xpReward ? ` • ${rank.xpReward} XP` : ''}
               </div>
@@ -315,17 +316,17 @@ const BrandingSettings: React.FC = () => {
   const TrophiesTab = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <p className="text-xs text-slate-500 font-medium">{trophies.length} trophies available</p>
+        <p className="text-xs text-[#ABABAB] font-medium">{trophies.length} trophies available</p>
         <button
           onClick={() => openCreateForm('TROPHY')}
-          className="touch-btn px-4 py-2 bg-yellow-500 text-white rounded-xl text-xs font-black uppercase active:bg-yellow-600"
+          className="touch-btn pz-btn px-4 py-2 text-xs"
         >
           + New Trophy
         </button>
       </div>
 
       {trophies.length === 0 ? (
-        <div className="text-center py-12 text-slate-400">
+        <div className="text-center py-12 text-[#ABABAB]">
           <div className="text-4xl mb-2">🏆</div>
           <div className="text-sm font-medium">No trophies yet</div>
           <div className="text-xs">Create your first trophy above</div>
@@ -336,7 +337,8 @@ const BrandingSettings: React.FC = () => {
             <div
               key={trophy.id}
               onClick={() => openEditForm(trophy, 'TROPHY')}
-              className="touch-btn p-4 bg-white rounded-xl border border-slate-100 flex items-center gap-4 cursor-pointer active:bg-slate-50 transition-all"
+              className="touch-btn pz-card-sm p-4 flex items-center gap-4 cursor-pointer transition-all hover:border-[#CBFE1C]"
+              style={{ background: 'var(--pz-panel-2)' }}
             >
               <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
                 {trophy.icon ? (
@@ -351,12 +353,12 @@ const BrandingSettings: React.FC = () => {
                 )}
               </div>
               <div className="flex-grow min-w-0">
-                <div className="font-black text-sm text-slate-900">{trophy.name}</div>
-                <div className="text-[10px] text-slate-500">
+                <div className="font-black text-sm text-white">{trophy.name}</div>
+                <div className="text-[10px] text-[#ABABAB]">
                   {trophy.pointsRequired.toLocaleString()} pts • {trophy.xpReward} XP
                 </div>
               </div>
-              <div className={`px-2 py-1 rounded text-[9px] font-black uppercase ${trophy.isActive ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+              <div className={`px-2 py-1 rounded text-[9px] font-black uppercase ${trophy.isActive ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-[#ABABAB]'}`}>
                 {trophy.isActive ? 'Active' : 'Hidden'}
               </div>
             </div>
@@ -374,23 +376,23 @@ const BrandingSettings: React.FC = () => {
     const isNew = !editingItem.id;
 
     return createPortal(
-      <div className="fixed inset-0 z-[9999] flex flex-col bg-black/50 backdrop-blur-sm animate-fade-in">
-        <div className="flex flex-col bg-slate-50 w-full h-full">
+      <div className="fixed inset-0 z-[9999] flex flex-col bg-black/70 backdrop-blur-sm animate-fade-in pz-scope">
+        <div className="flex flex-col w-full h-full" style={{ background: 'var(--pz-bg)' }}>
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-100 flex-shrink-0">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0" style={{ background: 'var(--pz-panel)' }}>
             <button
               onClick={() => setShowForm(false)}
-              className="touch-btn text-slate-500 font-bold text-sm px-2 py-1"
+              className="touch-btn text-[#ABABAB] font-bold text-sm px-2 py-1"
             >
               Cancel
             </button>
-            <h2 className="text-sm font-black text-slate-900 uppercase tracking-wide">
+            <h2 className="text-sm text-white uppercase tracking-wide">
               {isNew ? 'Create' : 'Edit'} {isRank ? 'Rank' : 'Trophy'}
             </h2>
             <button
               onClick={handleSaveItem}
               disabled={loading || !editingItem.name}
-              className="touch-btn text-brand-blue font-black text-sm px-2 py-1 disabled:opacity-30"
+              className="touch-btn text-[#CBFE1C] font-black text-sm px-2 py-1 disabled:opacity-30"
             >
               {loading ? '...' : 'Save'}
             </button>
@@ -401,8 +403,8 @@ const BrandingSettings: React.FC = () => {
             {/* Icon Preview & Upload */}
             <div className="flex flex-col items-center">
               <div
-                className="w-24 h-24 rounded-2xl flex items-center justify-center mb-3 border-2 border-dashed border-slate-200 bg-white overflow-hidden"
-                style={{ borderColor: editingItem.color }}
+                className="w-24 h-24 rounded-2xl flex items-center justify-center mb-3 border-2 border-dashed border-white/15 overflow-hidden"
+                style={{ borderColor: editingItem.color, background: 'var(--pz-panel-2)' }}
               >
                 {editingItem.icon ? (
                   <img src={editingItem.icon} className="w-full h-full object-contain" alt="" />
@@ -419,7 +421,7 @@ const BrandingSettings: React.FC = () => {
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="touch-btn text-xs font-black text-brand-blue uppercase"
+                className="touch-btn text-xs font-black text-[#CBFE1C] uppercase"
               >
                 {editingItem.icon ? 'Change Icon' : 'Upload Icon'}
               </button>
@@ -427,7 +429,7 @@ const BrandingSettings: React.FC = () => {
 
             {/* Name */}
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+              <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                 Name *
               </label>
               <input
@@ -435,13 +437,13 @@ const BrandingSettings: React.FC = () => {
                 value={editingItem.name || ''}
                 onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
                 placeholder={isRank ? "e.g. Elite" : "e.g. Champion's Cup"}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-900 outline-none focus:border-brand-blue"
+                className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+              <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                 Description
               </label>
               <textarea
@@ -449,13 +451,13 @@ const BrandingSettings: React.FC = () => {
                 onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
                 placeholder="Short description of this achievement..."
                 rows={2}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none focus:border-brand-blue resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] resize-none"
               />
             </div>
 
             {/* Color Picker */}
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+              <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                 Theme Color
               </label>
               <div className="flex items-center gap-3">
@@ -469,7 +471,7 @@ const BrandingSettings: React.FC = () => {
                   type="text"
                   value={editingItem.color || '#3b82f6'}
                   onChange={(e) => setEditingItem({ ...editingItem, color: e.target.value })}
-                  className="flex-grow px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-mono text-slate-700 outline-none focus:border-brand-blue"
+                  className="flex-grow px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-mono text-white outline-none focus:border-[#CBFE1C]"
                 />
               </div>
             </div>
@@ -477,7 +479,7 @@ const BrandingSettings: React.FC = () => {
             {/* Points Threshold (for Ranks) */}
             {isRank && (
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Points Threshold
                 </label>
                 <input
@@ -485,16 +487,16 @@ const BrandingSettings: React.FC = () => {
                   value={editingItem.threshold || 0}
                   onChange={(e) => setEditingItem({ ...editingItem, threshold: parseInt(e.target.value) || 0 })}
                   placeholder="0"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-900 outline-none focus:border-brand-blue"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
-                <p className="text-[10px] text-slate-400 mt-1">Points needed to reach this rank</p>
+                <p className="text-[10px] text-[#ABABAB] mt-1">Points needed to reach this rank</p>
               </div>
             )}
 
             {/* Points Required (for Trophies) */}
             {!isRank && (
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                   Points Required
                 </label>
                 <input
@@ -502,14 +504,14 @@ const BrandingSettings: React.FC = () => {
                   value={editingItem.pointsRequired || 0}
                   onChange={(e) => setEditingItem({ ...editingItem, pointsRequired: parseInt(e.target.value) || 0 })}
                   placeholder="500"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-900 outline-none focus:border-brand-blue"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
               </div>
             )}
 
             {/* XP Reward */}
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+              <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                 XP Reward
               </label>
               <input
@@ -517,14 +519,14 @@ const BrandingSettings: React.FC = () => {
                 value={editingItem.xpReward || 0}
                 onChange={(e) => setEditingItem({ ...editingItem, xpReward: parseInt(e.target.value) || 0 })}
                 placeholder="100"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-900 outline-none focus:border-brand-blue"
+                className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
               />
-              <p className="text-[10px] text-slate-400 mt-1">XP awarded when this is achieved</p>
+              <p className="text-[10px] text-[#ABABAB] mt-1">XP awarded when this is achieved</p>
             </div>
 
             {/* Criteria Tasks */}
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+              <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
                 Criteria Tasks
               </label>
               <div className="space-y-2">
@@ -535,11 +537,11 @@ const BrandingSettings: React.FC = () => {
                       value={task}
                       onChange={(e) => updateCriteria(idx, e.target.value)}
                       placeholder={`Task ${idx + 1}...`}
-                      className="flex-grow px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none focus:border-brand-blue"
+                      className="flex-grow px-4 py-2 rounded-lg border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                     />
                     <button
                       onClick={() => removeCriteria(idx)}
-                      className="touch-btn w-8 h-8 rounded-lg bg-red-100 text-red-500 text-sm font-black flex items-center justify-center"
+                      className="touch-btn w-8 h-8 rounded-lg bg-red-500/15 text-red-400 text-sm font-black flex items-center justify-center"
                     >
                       ×
                     </button>
@@ -548,23 +550,23 @@ const BrandingSettings: React.FC = () => {
               </div>
               <button
                 onClick={addCriteria}
-                className="touch-btn mt-2 text-xs font-black text-brand-blue uppercase"
+                className="touch-btn mt-2 text-xs font-black text-[#CBFE1C] uppercase"
               >
                 + Add Criteria
               </button>
-              <p className="text-[10px] text-slate-400 mt-1">Tasks/milestones to display for this achievement</p>
+              <p className="text-[10px] text-[#ABABAB] mt-1">Tasks/milestones to display for this achievement</p>
             </div>
 
             {/* Active Toggle (for Trophies) */}
             {!isRank && (
-              <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100">
+              <div className="pz-card-sm flex items-center justify-between p-4" style={{ background: 'var(--pz-panel-2)' }}>
                 <div>
-                  <div className="font-black text-sm text-slate-900">Active</div>
-                  <div className="text-[10px] text-slate-500">Show this trophy in the student portal</div>
+                  <div className="font-black text-sm text-white">Active</div>
+                  <div className="text-[10px] text-[#ABABAB]">Show this trophy in the student portal</div>
                 </div>
                 <button
                   onClick={() => setEditingItem({ ...editingItem, isActive: !editingItem.isActive })}
-                  className={`w-14 h-8 rounded-full transition-all ${editingItem.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                  className={`w-14 h-8 rounded-full transition-all ${editingItem.isActive ? 'bg-emerald-500' : 'bg-white/15'}`}
                 >
                   <div className={`w-6 h-6 bg-white rounded-full shadow transition-transform ${editingItem.isActive ? 'translate-x-7' : 'translate-x-1'}`} />
                 </button>
@@ -576,7 +578,7 @@ const BrandingSettings: React.FC = () => {
               <button
                 onClick={handleDeleteItem}
                 disabled={loading}
-                className="touch-btn w-full py-4 rounded-xl bg-red-50 text-red-500 font-black text-xs uppercase tracking-widest border border-red-100 active:bg-red-100"
+                className="touch-btn w-full py-4 rounded-xl bg-red-500/10 text-red-400 font-black text-xs uppercase tracking-widest border border-red-500/30 active:bg-red-500/20"
               >
                 Delete {isRank ? 'Rank' : 'Trophy'}
               </button>
@@ -592,8 +594,8 @@ const BrandingSettings: React.FC = () => {
   };
 
   return (
-    <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg border border-slate-100">
-      <h2 className="text-xl sm:text-2xl font-black text-slate-900 mb-4 uppercase tracking-tight">
+    <section className="pz-scope pz-card p-4 sm:p-6">
+      <h2 className="text-xl sm:text-2xl text-white mb-4 uppercase tracking-tight">
         Academy Branding
       </h2>
 
@@ -610,8 +612,8 @@ const BrandingSettings: React.FC = () => {
             onClick={() => setActiveTab(tab.id as any)}
             className={`touch-btn px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wide transition-all whitespace-nowrap ${
               activeTab === tab.id
-                ? 'bg-slate-900 text-white'
-                : 'bg-slate-100 text-slate-600'
+                ? 'bg-[#CBFE1C] text-[#0B0E13]'
+                : 'bg-[#171C27] text-[#ABABAB] border border-white/10'
             }`}
           >
             {tab.icon} {tab.label}

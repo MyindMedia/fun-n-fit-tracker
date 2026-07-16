@@ -52,8 +52,21 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ audience = 'ALL' }) => {
 
   const currentAlert = visibleAlerts[currentIndex % visibleAlerts.length];
 
+  // Pubzi theme: priority accent colors on the dark notched banner
+  const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
+  const PRIORITY_ACCENT: Record<string, { bar: string; title: string }> = {
+    HIGH: { bar: '#ef4444', title: '#fca5a5' },
+    NORMAL: { bar: 'var(--pz-volt)', title: 'var(--pz-volt)' },
+    LOW: { bar: 'rgba(255,255,255,0.25)', title: 'var(--pz-text)' },
+  };
+  const accent = PRIORITY_ACCENT[currentAlert.priority || 'NORMAL'] || PRIORITY_ACCENT.NORMAL;
+
   return (
-    <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-4 py-3 relative">
+    <div
+      className="pz-scope text-white px-4 py-3 relative"
+      style={{ background: 'var(--pz-panel)', borderBottom: '1px solid var(--pz-border)' }}
+    >
+      <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: accent.bar }} />
       <div className="flex items-center gap-3 max-w-4xl mx-auto">
         {/* Alert Icon */}
         <div className="flex-shrink-0">
@@ -62,9 +75,9 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ audience = 'ALL' }) => {
 
         {/* Content */}
         <div className="flex-grow min-w-0">
-          <div className="font-black text-sm uppercase tracking-wide">{currentAlert.title}</div>
+          <div className="font-black text-sm uppercase tracking-wide" style={{ color: accent.title }}>{currentAlert.title}</div>
           {currentAlert.excerpt && (
-            <div className="text-xs text-white/90 truncate">{currentAlert.excerpt}</div>
+            <div className="text-xs truncate" style={{ color: 'var(--pz-text)' }}>{currentAlert.excerpt}</div>
           )}
         </div>
 
@@ -73,14 +86,16 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ audience = 'ALL' }) => {
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={() => setCurrentIndex(prev => (prev - 1 + visibleAlerts.length) % visibleAlerts.length)}
-              className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs"
+              className="w-6 h-6 bg-white/10 border border-white/10 flex items-center justify-center text-xs hover:border-[#CBFE1C] hover:text-[#CBFE1C] transition-all"
+              style={{ clipPath: NOTCH_SM }}
             >
               ←
             </button>
-            <span className="text-xs font-bold">{currentIndex + 1}/{visibleAlerts.length}</span>
+            <span className="text-xs font-bold" style={{ color: 'var(--pz-text)' }}>{currentIndex + 1}/{visibleAlerts.length}</span>
             <button
               onClick={() => setCurrentIndex(prev => (prev + 1) % visibleAlerts.length)}
-              className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs"
+              className="w-6 h-6 bg-white/10 border border-white/10 flex items-center justify-center text-xs hover:border-[#CBFE1C] hover:text-[#CBFE1C] transition-all"
+              style={{ clipPath: NOTCH_SM }}
             >
               →
             </button>
@@ -90,7 +105,8 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ audience = 'ALL' }) => {
         {/* Dismiss Button */}
         <button
           onClick={() => handleDismiss(currentAlert.id)}
-          className="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-sm hover:bg-white/30 transition-all"
+          className="flex-shrink-0 w-6 h-6 bg-white/10 border border-white/10 flex items-center justify-center text-sm hover:border-[#CBFE1C] hover:text-[#CBFE1C] transition-all"
+          style={{ clipPath: NOTCH_SM }}
         >
           ×
         </button>

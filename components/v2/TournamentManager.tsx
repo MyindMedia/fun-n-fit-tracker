@@ -14,7 +14,7 @@ const TournamentManager: React.FC = () => {
   } | null>(null);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [searchStudent, setSearchStudent] = useState('');
-  
+
   // Create Form State
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState<TournamentType>('SINGLE_ELIM');
@@ -102,20 +102,20 @@ const TournamentManager: React.FC = () => {
     const filteredAvailable = availableStudents.filter(s => s.fullName.toLowerCase().includes(searchStudent.toLowerCase()));
 
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="pz-scope space-y-6 animate-fade-in">
         <div className="flex items-center gap-4 mb-6">
-          <button 
+          <button
             onClick={() => setSelectedTournament(null)}
-            className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500"
+            className="w-10 h-10 rounded-full bg-[#171C27] border border-white/10 flex items-center justify-center font-bold text-white"
           >
             ←
           </button>
           <div>
-            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{tournament.name}</h2>
-            <div className="flex gap-2 text-xs font-bold text-slate-500 uppercase">
+            <h2 className="text-2xl text-white uppercase tracking-tight">{tournament.name}</h2>
+            <div className="flex gap-2 text-xs font-bold text-[#ABABAB] uppercase">
               <span>{tournament.type.replace('_', ' ')}</span>
               <span>•</span>
-              <span className={tournament.status === 'ACTIVE' ? 'text-green-600' : ''}>{tournament.status}</span>
+              <span className={tournament.status === 'ACTIVE' ? 'text-[#CBFE1C]' : ''}>{tournament.status}</span>
             </div>
           </div>
         </div>
@@ -123,30 +123,30 @@ const TournamentManager: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* LEFT COLUMN: Participants */}
           <div className="lg:col-span-1 space-y-4">
-            <div className="bg-white p-4 rounded-2xl border border-slate-100">
-              <h3 className="font-black text-slate-900 uppercase tracking-wide mb-4 flex justify-between">
+            <div className="pz-card p-4">
+              <h3 className="text-white tracking-wide mb-4 flex justify-between">
                 <span>Roster ({participants.length}/{tournament.maxParticipants || '∞'})</span>
               </h3>
-              
+
               {tournament.status === 'REGISTRATION' && (
                 <div className="mb-4">
-                  <input 
-                    type="text" 
-                    placeholder="Search student..." 
+                  <input
+                    type="text"
+                    placeholder="Search student..."
                     value={searchStudent}
                     onChange={e => setSearchStudent(e.target.value)}
-                    className="w-full p-2 text-sm rounded-lg border border-slate-200 bg-slate-50 mb-2"
+                    className="w-full p-2 text-sm rounded-lg border border-white/10 bg-[#171C27] text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] mb-2"
                   />
                   {searchStudent && (
                     <div className="max-h-40 overflow-y-auto space-y-1">
                       {filteredAvailable.map(s => (
-                        <button 
+                        <button
                           key={s.id}
                           onClick={() => handleJoin(s.id)}
-                          className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-blue-50 rounded-lg flex justify-between"
+                          className="w-full text-left px-3 py-2 text-xs font-bold text-white hover:bg-white/5 rounded-lg flex justify-between"
                         >
                           <span>{s.fullName}</span>
-                          <span className="text-brand-blue">+ Add</span>
+                          <span className="text-[#CBFE1C]">+ Add</span>
                         </button>
                       ))}
                     </div>
@@ -156,20 +156,20 @@ const TournamentManager: React.FC = () => {
 
               <div className="space-y-2 max-h-[60vh] overflow-y-auto">
                 {participants.map((p, i) => (
-                  <div key={p.id} className="flex items-center gap-3 p-2 rounded-lg bg-slate-50">
-                    <span className="text-xs font-black text-slate-400 w-6 text-center">{p.seedPosition || i + 1}</span>
+                  <div key={p.id} className="flex items-center gap-3 p-2 rounded-lg bg-[#171C27] border border-white/10">
+                    <span className="text-xs font-black text-[#ABABAB] w-6 text-center">{p.seedPosition || i + 1}</span>
                     {p.student?.avatarUrl && (
-                      <img src={p.student.avatarUrl} className="w-8 h-8 rounded-full border border-slate-200" alt="" />
+                      <img src={p.student.avatarUrl} className="w-8 h-8 rounded-full border border-white/10" alt="" />
                     )}
-                    <span className="text-sm font-bold truncate">{p.student?.fullName || 'Unknown'}</span>
+                    <span className="text-sm font-bold text-white truncate">{p.student?.fullName || 'Unknown'}</span>
                   </div>
                 ))}
               </div>
 
               {tournament.status === 'REGISTRATION' && participants.length >= 2 && (
-                <button 
+                <button
                   onClick={handleGenerateBracket}
-                  className="w-full mt-4 py-3 bg-brand-blue text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg active:scale-95"
+                  className="w-full mt-4 pz-btn py-3 text-xs active:scale-95"
                 >
                   Start Tournament
                 </button>
@@ -180,7 +180,7 @@ const TournamentManager: React.FC = () => {
           {/* RIGHT COLUMN: Matches */}
           <div className="lg:col-span-2 space-y-4">
              {matches.length === 0 ? (
-               <div className="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 p-12 text-center text-slate-400">
+               <div className="rounded-2xl border-2 border-dashed border-white/10 p-12 text-center text-[#ABABAB]" style={{ background: 'var(--pz-panel)' }}>
                  No matches scheduled yet.
                </div>
              ) : (
@@ -188,25 +188,25 @@ const TournamentManager: React.FC = () => {
                  {/* Group by Round */}
                  {Array.from(new Set(matches.map(m => m.roundNumber))).sort().map(round => (
                    <div key={round}>
-                     <h3 className="text-center text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Round {round}</h3>
+                     <h3 className="text-center text-xs text-[#ABABAB] tracking-widest mb-3">Round {round}</h3>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                        {matches.filter(m => m.roundNumber === round).sort((a,b) => a.matchNumber - b.matchNumber).map(m => (
-                         <div key={m.id} className={`bg-white rounded-xl border-2 p-3 ${m.status === 'COMPLETED' ? 'border-slate-100 opacity-75' : 'border-blue-100 shadow-sm'}`}>
-                           <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase mb-2">
+                         <div key={m.id} className={`pz-card-sm p-3 ${m.status === 'COMPLETED' ? 'opacity-60' : ''}`} style={m.status === 'COMPLETED' ? undefined : { borderColor: 'rgba(203, 254, 28, 0.45)' }}>
+                           <div className="flex justify-between items-center text-[10px] font-bold text-[#ABABAB] uppercase mb-2">
                              <span>Match {m.matchNumber}</span>
-                             <span>{m.status}</span>
+                             <span className={m.status === 'COMPLETED' ? '' : 'text-[#CBFE1C]'}>{m.status}</span>
                            </div>
-                           
+
                            {/* Player 1 */}
-                           <div className={`flex items-center justify-between p-2 rounded-lg mb-1 ${m.winnerId === m.participant1Id ? 'bg-green-50 text-green-700' : 'bg-slate-50'}`}>
+                           <div className={`flex items-center justify-between p-2 rounded-lg mb-1 ${m.winnerId === m.participant1Id ? 'bg-[#CBFE1C]/10 text-[#CBFE1C]' : 'bg-[#171C27] text-white'}`}>
                              <div className="flex items-center gap-2">
-                               <span className="text-xs font-black text-slate-300">{m.p1 ? (participants.find(p => p.studentId === m.p1?.id)?.seedPosition) : '-'}</span>
+                               <span className="text-xs font-black text-white/30">{m.p1 ? (participants.find(p => p.studentId === m.p1?.id)?.seedPosition) : '-'}</span>
                                <span className="font-bold text-sm">{m.p1?.fullName || 'TBD'}</span>
                              </div>
                              {m.status === 'SCHEDULED' && m.p1 && m.p2 ? (
-                               <input 
-                                 type="number" 
-                                 className="w-12 p-1 text-center border rounded bg-white" 
+                               <input
+                                 type="number"
+                                 className="w-12 p-1 text-center border border-white/10 rounded bg-[#0B0E13] text-white outline-none focus:border-[#CBFE1C]"
                                  placeholder="-"
                                  id={`score-${m.id}-1`}
                                />
@@ -216,15 +216,15 @@ const TournamentManager: React.FC = () => {
                            </div>
 
                            {/* Player 2 */}
-                           <div className={`flex items-center justify-between p-2 rounded-lg ${m.winnerId === m.participant2Id ? 'bg-green-50 text-green-700' : 'bg-slate-50'}`}>
+                           <div className={`flex items-center justify-between p-2 rounded-lg ${m.winnerId === m.participant2Id ? 'bg-[#CBFE1C]/10 text-[#CBFE1C]' : 'bg-[#171C27] text-white'}`}>
                              <div className="flex items-center gap-2">
-                               <span className="text-xs font-black text-slate-300">{m.p2 ? (participants.find(p => p.studentId === m.p2?.id)?.seedPosition) : '-'}</span>
+                               <span className="text-xs font-black text-white/30">{m.p2 ? (participants.find(p => p.studentId === m.p2?.id)?.seedPosition) : '-'}</span>
                                <span className="font-bold text-sm">{m.p2?.fullName || 'TBD'}</span>
                              </div>
                              {m.status === 'SCHEDULED' && m.p1 && m.p2 ? (
-                               <input 
-                                 type="number" 
-                                 className="w-12 p-1 text-center border rounded bg-white" 
+                               <input
+                                 type="number"
+                                 className="w-12 p-1 text-center border border-white/10 rounded bg-[#0B0E13] text-white outline-none focus:border-[#CBFE1C]"
                                  placeholder="-"
                                  id={`score-${m.id}-2`}
                                />
@@ -235,7 +235,7 @@ const TournamentManager: React.FC = () => {
 
                            {/* Action Buttons */}
                            {m.status === 'SCHEDULED' && m.p1 && m.p2 && (
-                             <button 
+                             <button
                                onClick={() => {
                                  const s1 = Number((document.getElementById(`score-${m.id}-1`) as HTMLInputElement).value);
                                  const s2 = Number((document.getElementById(`score-${m.id}-2`) as HTMLInputElement).value);
@@ -243,7 +243,7 @@ const TournamentManager: React.FC = () => {
                                  const winner = s1 > s2 ? m.participant1Id : m.participant2Id;
                                  if (winner) handleMatchUpdate(m.id, winner, s1, s2);
                                }}
-                               className="w-full mt-2 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold uppercase"
+                               className="w-full mt-2 pz-btn py-1.5 text-xs"
                              >
                                Submit Result
                              </button>
@@ -264,37 +264,37 @@ const TournamentManager: React.FC = () => {
   // --- LIST VIEW ---
 
   return (
-    <div className="space-y-6">
+    <div className="pz-scope space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">Tournaments</h2>
-        <button 
+        <h2 className="text-xl text-white uppercase tracking-tight">Tournaments</h2>
+        <button
           onClick={() => setShowCreate(true)}
-          className="bg-brand-blue text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg shadow-blue-200"
+          className="pz-btn px-4 py-2 text-sm"
         >
           + New Tournament
         </button>
       </div>
 
       {showCreate && (
-        <div className="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm animate-fade-in">
-          <h3 className="font-bold mb-3">Create Tournament</h3>
+        <div className="pz-card p-4 animate-fade-in" style={{ borderColor: 'rgba(203, 254, 28, 0.35)' }}>
+          <h3 className="text-white mb-3">Create Tournament</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Tournament Name</label>
-              <input 
-                type="text" 
+              <label className="block text-xs font-bold text-[#ABABAB] uppercase mb-1">Tournament Name</label>
+              <input
+                type="text"
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
-                className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50"
+                className="w-full p-3 rounded-xl border border-white/10 bg-[#171C27] text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 placeholder="e.g. Winter Showdown"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Format</label>
-              <select 
+              <label className="block text-xs font-bold text-[#ABABAB] uppercase mb-1">Format</label>
+              <select
                 value={newType}
                 onChange={e => setNewType(e.target.value as TournamentType)}
-                className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50"
+                className="w-full p-3 rounded-xl border border-white/10 bg-[#171C27] text-white outline-none focus:border-[#CBFE1C]"
               >
                 <option value="SINGLE_ELIM">Single Elimination</option>
                 <option value="DOUBLE_ELIM">Double Elimination</option>
@@ -303,50 +303,50 @@ const TournamentManager: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Max Participants</label>
-              <input 
-                type="number" 
+              <label className="block text-xs font-bold text-[#ABABAB] uppercase mb-1">Max Participants</label>
+              <input
+                type="number"
                 value={newMaxParticipants}
                 onChange={e => setNewMaxParticipants(Number(e.target.value))}
-                className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50"
+                className="w-full p-3 rounded-xl border border-white/10 bg-[#171C27] text-white outline-none focus:border-[#CBFE1C]"
               />
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <button onClick={() => setShowCreate(false)} className="px-4 py-2 text-slate-500 font-bold">Cancel</button>
-            <button onClick={handleCreate} className="px-4 py-2 bg-brand-green text-white rounded-xl font-bold">Create</button>
+            <button onClick={() => setShowCreate(false)} className="px-4 py-2 text-[#ABABAB] font-bold">Cancel</button>
+            <button onClick={handleCreate} className="pz-btn px-4 py-2 text-sm">Create</button>
           </div>
         </div>
       )}
 
       <div className="grid gap-4">
         {tournaments.map(t => (
-          <div key={t.id} className="p-4 rounded-2xl border-2 border-slate-100 bg-white flex items-center justify-between">
+          <div key={t.id} className="pz-card p-4 flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-black text-lg">{t.name}</h3>
+                <h3 className="text-lg text-white">{t.name}</h3>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-black ${
-                  t.status === 'ACTIVE' ? 'bg-green-100 text-green-600' : 
-                  t.status === 'COMPLETED' ? 'bg-slate-200 text-slate-500' : 
-                  'bg-blue-100 text-blue-600'
+                  t.status === 'ACTIVE' ? 'bg-[#CBFE1C]/15 text-[#CBFE1C]' :
+                  t.status === 'COMPLETED' ? 'bg-white/10 text-[#ABABAB]' :
+                  'bg-sky-500/15 text-sky-400'
                 }`}>
                   {t.status}
                 </span>
               </div>
-              <div className="text-xs text-slate-500 font-medium">
+              <div className="text-xs text-[#ABABAB] font-medium">
                 {t.type.replace('_', ' ')} • {t.maxParticipants} Players Max
               </div>
             </div>
-            <button 
+            <button
               onClick={() => setSelectedTournament(t.id)}
-              className="text-brand-blue font-bold text-sm bg-blue-50 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors"
+              className="pz-btn-ghost px-3 py-2 text-xs"
             >
               Manage
             </button>
           </div>
         ))}
         {tournaments.length === 0 && !loading && (
-          <div className="text-center py-12 text-slate-400">No tournaments found.</div>
+          <div className="text-center py-12 text-[#ABABAB]">No tournaments found.</div>
         )}
       </div>
     </div>

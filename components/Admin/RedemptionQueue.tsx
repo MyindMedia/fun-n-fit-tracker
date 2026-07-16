@@ -52,23 +52,23 @@ const RedemptionQueue: React.FC<RedemptionQueueProps> = ({ adminName }) => {
   };
 
   return (
-    <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg border border-slate-100">
+    <section className="pz-scope pz-card p-4 sm:p-6">
       <div className="flex items-center gap-2 mb-4">
-        <h2 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">
+        <h2 className="text-xl sm:text-2xl text-white uppercase tracking-tight">
           🎁 Redemptions
         </h2>
         {pending.length > 0 && (
-          <span className="bg-red-500 text-white text-[10px] font-black rounded-full px-2 py-0.5">
+          <span className="bg-[#CBFE1C] text-[#0B0E13] text-[10px] font-black rounded-full px-2 py-0.5">
             {pending.length}
           </span>
         )}
       </div>
-      <p className="text-xs text-slate-500 -mt-2 mb-4">
+      <p className="text-xs text-[#ABABAB] -mt-2 mb-4">
         Real-world perks kids have claimed and are waiting to pick up
       </p>
 
       {pending.length === 0 ? (
-        <div className="text-center py-12 text-slate-400">
+        <div className="text-center py-12 text-[#ABABAB]">
           <div className="text-4xl mb-2">🎉</div>
           <div className="text-sm font-medium">Nothing to fulfill</div>
           <div className="text-xs">Pending perk redemptions show up here in real time</div>
@@ -80,21 +80,22 @@ const RedemptionQueue: React.FC<RedemptionQueueProps> = ({ adminName }) => {
             return (
               <div
                 key={redemption.id}
-                className="p-4 rounded-xl bg-slate-50 border border-slate-100"
+                className="pz-card-sm p-4"
+                style={{ background: 'var(--pz-panel-2)' }}
               >
                 <div className="flex items-start gap-3 flex-wrap sm:flex-nowrap">
-                  <div className="text-3xl flex-shrink-0 w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center">
+                  <div className="text-3xl flex-shrink-0 w-12 h-12 rounded-xl border border-white/10 flex items-center justify-center" style={{ background: 'var(--pz-bg)' }}>
                     {redemption.rewardIcon || '🎁'}
                   </div>
                   <div className="flex-grow min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                      <span className="font-black text-sm text-slate-900">{redemption.rewardName}</span>
-                      <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-600 text-[9px] font-black uppercase">
+                      <span className="font-black text-sm text-white">{redemption.rewardName}</span>
+                      <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 text-[9px] font-black uppercase">
                         {redemption.cost} pts
                       </span>
                     </div>
-                    <div className="text-xs font-bold text-slate-600">for {studentName}</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">
+                    <div className="text-xs font-bold text-white/80">for {studentName}</div>
+                    <div className="text-[10px] text-[#ABABAB] mt-0.5">
                       Requested {new Date(redemption.createdAt).toLocaleDateString()}{' '}
                       {new Date(redemption.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                       {' · '}via {redemption.requestedVia === 'PARENT' ? 'parent portal' : 'student portal'}
@@ -111,7 +112,7 @@ const RedemptionQueue: React.FC<RedemptionQueueProps> = ({ adminName }) => {
                     <button
                       onClick={() => handleCancel(row)}
                       disabled={busyId === redemption.id}
-                      className="touch-btn focus-ring flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-red-50 text-red-500 text-[10px] font-black uppercase tracking-wide border border-red-100 active:bg-red-100 disabled:opacity-50"
+                      className="touch-btn focus-ring flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 text-[10px] font-black uppercase tracking-wide border border-red-500/30 active:bg-red-500/20 disabled:opacity-50"
                     >
                       ✗ Cancel & Refund
                     </button>

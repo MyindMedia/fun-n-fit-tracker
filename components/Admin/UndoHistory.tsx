@@ -14,27 +14,27 @@ const UndoHistory: React.FC<{ adminName: string }> = ({ adminName }) => {
   if (activeSessions.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-red-50">
-      <h2 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tight flex items-center gap-3">
-         <span className="bg-red-500 text-white p-2 rounded-xl text-xs">↩️</span> Scoring Safety Net
+    <div className="pz-scope pz-card p-8" style={{ borderColor: 'rgba(239, 68, 68, 0.25)' }}>
+      <h2 className="text-xl text-white mb-6 tracking-tight flex items-center gap-3">
+         <span className="bg-red-500 text-white p-2 text-xs">↩️</span> Scoring Safety Net
       </h2>
       <div className="space-y-4">
         {activeSessions.map(session => (
-          <div key={session.id} className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+          <div key={session.id} className="flex justify-between items-center bg-white/5 p-4 border border-white/10">
              <div>
-                <div className="text-xs font-black text-slate-800">{session.title}</div>
-                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Live Session</div>
+                <div className="text-xs font-black text-white">{session.title}</div>
+                <div className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>Live Session</div>
              </div>
-             <button 
+             <button
                onClick={() => supabaseService.undoLastScoreEvent(session.id, adminName)}
-               className="bg-white border-2 border-red-100 text-red-500 px-6 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all shadow-sm"
+               className="bg-red-500/10 border border-red-500/40 text-red-400 px-6 py-2 text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all"
              >
                Undo Last Action
              </button>
           </div>
         ))}
       </div>
-      <p className="mt-6 text-[9px] font-black text-slate-400 uppercase text-center leading-relaxed">
+      <p className="mt-6 text-[9px] font-black uppercase text-center leading-relaxed" style={{ color: 'var(--pz-text)' }}>
         * Undoing reverses the latest recorded point action.
       </p>
     </div>

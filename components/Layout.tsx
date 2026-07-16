@@ -308,6 +308,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </button>
               )}
 
+              <Link to="/" className="relative px-3 md:px-4 py-2 text-xs font-bold transition-colors uppercase tracking-widest text-white/60 hover:text-white">
+                Home
+              </Link>
               <Link to="/live" className={`relative px-3 md:px-4 py-2 text-xs font-bold transition-colors uppercase tracking-widest ${isLive ? 'text-white' : 'text-white/60 hover:text-white'}`}>
                 Live
                 {isLive && <span className="absolute left-3 right-3 md:left-4 md:right-4 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}

@@ -17,6 +17,9 @@ interface StudentProfileModalProps {
   isAdminMode?: boolean;
 }
 
+// Pubzi theme: small notched cut-corner shape for inline elements
+const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
+
 const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onClose, adminName, onRefresh, isAdminMode = false }) => {
   const [activeTab, setActiveTab] = useState<'TROPHY' | 'SHOP' | 'PEPTALK' | 'QRCODE' | 'EDIT' | 'POINTS'>('TROPHY');
   const [aiFeedback, setAiFeedback] = useState<string | null>(null);
@@ -85,7 +88,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
   const currentRankIndex = ranks.findIndex(r => r.id === student.rankId);
   const currentRank = ranks[currentRankIndex] || ranks[0];
   const nextRank = ranks[currentRankIndex + 1] || null;
-  
+
   const pointsToNext = nextRank ? nextRank.threshold - student.points : 0;
   // Fallback to 0 if ranks not loaded yet
   const progressPercent = (nextRank && currentRank)
@@ -98,7 +101,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
     setIsAiLoading(true);
     try {
       const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
-      const prompt = `You are a high-energy youth fitness coach. 
+      const prompt = `You are a high-energy youth fitness coach.
       Analyze this athlete's stats and give them a short, 2-sentence pep talk:
       Name: ${student.fullName}
       Current Rank: ${currentRank?.name || 'Rookie'}
@@ -337,29 +340,29 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
       <CelebrationOverlay celebration={currentCelebration} onDismiss={() => setCurrentCelebration(null)} />
       {/* Rank Change Confirmation Dialog */}
       {showRankConfirm && pendingRank && (
-        <div className="fixed inset-0 z-[400] bg-slate-900/95 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-slate-200 animate-bounce-in">
+        <div className="fixed inset-0 z-[400] pz-scope bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
+          <div className="pz-card max-w-md w-full p-8 animate-bounce-in">
             <div className="text-center mb-6">
               <div className="text-6xl mb-4">⚠️</div>
-              <h3 className="text-2xl font-black text-slate-900 mb-2">Confirm Rank Change</h3>
-              <p className="text-slate-600 text-sm">
-                Are you sure you want to promote <span className="font-black text-brand-blue">{student.fullName}</span> to <span className="font-black text-brand-blue">{pendingRank.name}</span>?
+              <h3 className="text-2xl text-white mb-2">Confirm Rank Change</h3>
+              <p className="text-sm" style={{ color: 'var(--pz-text)' }}>
+                Are you sure you want to promote <span className="font-black" style={{ color: 'var(--pz-volt)' }}>{student.fullName}</span> to <span className="font-black" style={{ color: 'var(--pz-volt)' }}>{pendingRank.name}</span>?
               </p>
             </div>
 
-            <div className="bg-slate-50 rounded-2xl p-4 mb-6 space-y-2">
+            <div className="pz-card-sm p-4 mb-6 space-y-2" style={{ background: 'var(--pz-panel-2)' }}>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Current Points:</span>
-                <span className="font-black text-slate-900">{student.points}</span>
+                <span style={{ color: 'var(--pz-text)' }}>Current Points:</span>
+                <span className="font-black text-white">{student.points}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-600">New Rank Threshold:</span>
-                <span className="font-black text-slate-900">{pendingRank.threshold}</span>
+                <span style={{ color: 'var(--pz-text)' }}>New Rank Threshold:</span>
+                <span className="font-black text-white">{pendingRank.threshold}</span>
               </div>
               {pointsToAward > 0 && (
-                <div className="flex justify-between text-sm pt-2 border-t border-slate-200">
-                  <span className="text-emerald-600 font-bold">Points to Award:</span>
-                  <span className="font-black text-emerald-600">+{pointsToAward}</span>
+                <div className="flex justify-between text-sm pt-2" style={{ borderTop: '1px solid var(--pz-border)' }}>
+                  <span className="text-emerald-400 font-bold">Points to Award:</span>
+                  <span className="font-black text-emerald-400">+{pointsToAward}</span>
                 </div>
               )}
             </div>
@@ -370,14 +373,14 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                   setShowRankConfirm(false);
                   setPendingRankId(null);
                 }}
-                className="flex-1 px-6 py-4 rounded-2xl font-black uppercase text-xs text-slate-600 hover:bg-slate-100 transition-all"
+                className="pz-btn-ghost flex-1 px-6 py-4 text-xs"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmRankChange}
                 disabled={isSaving}
-                className="flex-1 px-6 py-4 rounded-2xl font-black uppercase text-xs bg-brand-blue text-white hover:bg-blue-600 disabled:opacity-50 transition-all shadow-lg"
+                className="pz-btn flex-1 px-6 py-4 text-xs disabled:opacity-50"
               >
                 {isSaving ? 'Processing...' : 'Confirm'}
               </button>
@@ -386,12 +389,12 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
         </div>
       )}
 
-      <div className="fixed inset-0 z-[300] bg-slate-900/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-fade-in">
-        <div className="bg-white rounded-4xl md:rounded-5xl w-full max-w-6xl h-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col md:flex-row border border-slate-200">
-        
-        <div className="w-full md:w-1/3 bg-slate-50 p-6 md:p-12 flex flex-col items-center border-b md:border-b-0 md:border-r border-slate-200 shrink-0">
+      <div className="fixed inset-0 z-[300] pz-scope bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-fade-in">
+        <div className="pz-card w-full max-w-6xl h-full max-h-[90vh] overflow-hidden flex flex-col md:flex-row">
+
+        <div className="w-full md:w-1/3 p-6 md:p-12 flex flex-col items-center shrink-0" style={{ background: 'var(--pz-panel-2)', borderRight: '1px solid var(--pz-border)', borderBottom: '1px solid var(--pz-border)' }}>
           <div className="relative mb-6 md:mb-10 group">
-            <div className={`w-32 h-32 md:w-48 md:h-48 rounded-full border-4 md:border-8 border-white shadow-xl overflow-hidden relative bg-slate-200 ${student.inventory?.includes('r_aura') ? 'ring-4 md:ring-8 ring-yellow-400 animate-pulse' : ''}`}>
+            <div className={`w-32 h-32 md:w-48 md:h-48 rounded-full border-4 md:border-8 shadow-xl overflow-hidden relative ${student.inventory?.includes('r_aura') ? 'ring-4 md:ring-8 ring-yellow-400 animate-pulse' : ''}`} style={{ borderColor: HOUSES[student.houseId].colorHex, background: 'var(--pz-panel)' }}>
               {capturedImage ? (
                 <img src={capturedImage} className="w-full h-full object-cover" />
               ) : isCameraOpen ? (
@@ -406,13 +409,14 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
               <>
                 <button
                   onClick={startCamera}
-                  className="absolute bottom-0 right-0 bg-brand-blue text-white w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all"
+                  className="absolute bottom-0 right-0 pz-btn w-10 h-10 md:w-12 md:h-12 flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all"
                 >
                   📸
                 </button>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-0 left-0 bg-emerald-500 text-white w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all"
+                  className="absolute bottom-0 left-0 bg-emerald-500 text-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all"
+                  style={{ clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)' }}
                 >
                   📁
                 </button>
@@ -429,80 +433,80 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
 
           {isAdminMode && isCameraOpen && (
             <div className="flex gap-2 mb-4 w-full">
-              <button onClick={capturePhoto} className="flex-grow bg-brand-green text-white py-3 rounded-xl font-black uppercase text-[10px] shadow-lg">Capture</button>
-              <button onClick={stopCamera} className="bg-white text-slate-500 px-4 py-3 rounded-xl font-black uppercase text-[10px] border border-slate-200">Cancel</button>
+              <button onClick={capturePhoto} className="flex-grow pz-btn py-3 text-[10px]">Capture</button>
+              <button onClick={stopCamera} className="pz-btn-ghost px-4 py-3 text-[10px]">Cancel</button>
             </div>
           )}
 
           {isAdminMode && capturedImage && (
-            <button onClick={() => setCapturedImage(null)} className="mb-4 bg-red-500 text-white py-3 px-6 rounded-xl font-black uppercase text-[10px] shadow-lg">Clear Photo</button>
+            <button onClick={() => setCapturedImage(null)} className="mb-4 bg-red-500 text-white py-3 px-6 font-black uppercase text-[10px] shadow-lg" style={{ clipPath: NOTCH_SM }}>Clear Photo</button>
           )}
           {(() => {
             const displayName = getStudentDisplayName(student);
             return (
               <>
-                <h2 className="text-xl md:text-3xl font-display font-black text-slate-900 text-center leading-tight mb-1">
+                <h2 className="pz-display text-xl md:text-3xl text-white text-center leading-tight mb-1">
                   {displayName.primary} {student.inventory?.includes('r_shades') && '😎'}
                 </h2>
                 {displayName.secondary && (
-                  <div className="text-slate-400 text-sm text-center mb-2 md:mb-3">{displayName.secondary}</div>
+                  <div className="text-sm text-center mb-2 md:mb-3" style={{ color: 'var(--pz-text)' }}>{displayName.secondary}</div>
                 )}
               </>
             );
           })()}
-          <div className={`px-4 md:px-6 py-1 md:py-2 rounded-full font-black text-[10px] md:text-xs uppercase tracking-widest text-white shadow-md mb-6 md:mb-10`} style={{ backgroundColor: HOUSES[student.houseId].colorHex }}>
+          <div className={`px-4 md:px-6 py-1 md:py-2 font-black text-[10px] md:text-xs uppercase tracking-widest text-white shadow-md mb-6 md:mb-10`} style={{ backgroundColor: HOUSES[student.houseId].colorHex, clipPath: NOTCH_SM }}>
             {HOUSES[student.houseId].name} House
           </div>
-          
+
           <div className="w-full space-y-4 md:space-y-6 hidden md:block">
-             <div className="bg-white p-6 md:p-8 rounded-3xl md:rounded-4xl border border-slate-200 shadow-sm text-center">
-                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Points</div>
-                <div className="text-3xl md:text-5xl font-display font-black text-slate-900">{student.points.toLocaleString()}</div>
+             <div className="pz-card-sm p-6 md:p-8 text-center">
+                <div className="pz-eyebrow mb-2">Total Points</div>
+                <div className="pz-display text-3xl md:text-5xl" style={{ color: 'var(--pz-volt)' }}>{student.points.toLocaleString()}</div>
              </div>
              {nextRank && (
                 <div className="space-y-2">
-                   <div className="flex justify-between text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                   <div className="flex justify-between text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>
                       <span>{currentRank.name}</span>
                       <span>{nextRank.name}</span>
                    </div>
-                   <div className="h-4 bg-slate-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-brand-green transition-all duration-1000" style={{ width: `${progressPercent}%` }} />
+                   <div className="h-4 bg-white/10 overflow-hidden" style={{ clipPath: NOTCH_SM }}>
+                      <div className="h-full transition-all duration-1000" style={{ width: `${progressPercent}%`, background: 'var(--pz-volt)' }} />
                    </div>
-                   <div className="text-center text-[10px] font-bold text-slate-400">{pointsToNext} pts to level up</div>
+                   <div className="text-center text-[10px] font-bold" style={{ color: 'var(--pz-text)' }}>{pointsToNext} pts to level up</div>
                 </div>
              )}
           </div>
         </div>
 
-        <div className="flex-grow flex flex-col min-h-0 overflow-hidden bg-white">
-           <div className="p-4 md:p-8 pb-0 border-b flex justify-between items-center bg-white z-10">
+        <div className="flex-grow flex flex-col min-h-0 overflow-hidden" style={{ background: 'var(--pz-panel)' }}>
+           <div className="p-4 md:p-8 pb-0 flex justify-between items-center z-10" style={{ borderBottom: '1px solid var(--pz-border)' }}>
               <div className="flex gap-2 md:gap-4 overflow-x-auto no-scrollbar pb-1">
-                 <button onClick={() => setActiveTab('TROPHY')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'TROPHY' ? 'text-brand-blue' : 'text-slate-400'}`}>Trophy Case</button>
-                 <button onClick={() => setActiveTab('SHOP')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'SHOP' ? 'text-brand-blue' : 'text-slate-400'}`}>Rewards Shop</button>
-                 <button onClick={() => setActiveTab('PEPTALK')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'PEPTALK' ? 'text-brand-blue' : 'text-slate-400'}`}>Coach Pep Talk</button>
-                 <button onClick={() => setActiveTab('QRCODE')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'QRCODE' ? 'text-brand-blue' : 'text-slate-400'}`}>📱 QR Code</button>
+                 <button onClick={() => setActiveTab('TROPHY')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'TROPHY' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Trophy Case</button>
+                 <button onClick={() => setActiveTab('SHOP')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'SHOP' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Rewards Shop</button>
+                 <button onClick={() => setActiveTab('PEPTALK')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'PEPTALK' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Coach Pep Talk</button>
+                 <button onClick={() => setActiveTab('QRCODE')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'QRCODE' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>📱 QR Code</button>
                  {isAdminMode && (
                    <>
-                     <button onClick={() => setActiveTab('EDIT')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'EDIT' ? 'text-brand-blue' : 'text-slate-400'}`}>✏️ Edit Info</button>
-                     <button onClick={() => setActiveTab('POINTS')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'POINTS' ? 'text-brand-blue' : 'text-slate-400'}`}>Manual Points</button>
+                     <button onClick={() => setActiveTab('EDIT')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'EDIT' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>✏️ Edit Info</button>
+                     <button onClick={() => setActiveTab('POINTS')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'POINTS' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Manual Points</button>
                    </>
                  )}
               </div>
-              <button onClick={onClose} className="text-slate-400 text-2xl md:text-3xl shrink-0 ml-4">✕</button>
+              <button onClick={onClose} className="text-2xl md:text-3xl shrink-0 ml-4 hover:text-white transition-colors" style={{ color: 'var(--pz-text)' }}>✕</button>
            </div>
-           
+
            <div className="flex-grow overflow-y-auto p-6 md:p-12 custom-scrollbar min-h-0">
               {activeTab === 'TROPHY' && (
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                     {earnedBadges.length === 0 ? (
-                       <div className="col-span-3 text-center py-10 text-slate-400 italic">No badges earned yet. Keep training!</div>
+                       <div className="col-span-3 text-center py-10 italic" style={{ color: 'var(--pz-text)' }}>No badges earned yet. Keep training!</div>
                     ) : (
                        earnedBadges.map(b => (
-                          <div key={b.id} className="p-4 rounded-3xl bg-slate-50 border border-slate-100 flex flex-col items-center text-center gap-3">
+                          <div key={b.id} className="pz-card-sm p-4 flex flex-col items-center text-center gap-3" style={{ background: 'var(--pz-panel-2)' }}>
                              <div className="text-4xl">{b.icon}</div>
                              <div>
-                                <div className="font-black text-slate-800 text-xs uppercase mb-1">{b.name}</div>
-                                <div className="text-[10px] text-slate-500 leading-tight">{b.description}</div>
+                                <div className="font-black text-white text-xs uppercase mb-1">{b.name}</div>
+                                <div className="text-[10px] leading-tight" style={{ color: 'var(--pz-text)' }}>{b.description}</div>
                              </div>
                           </div>
                        ))
@@ -512,27 +516,28 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
 
               {activeTab === 'SHOP' && (
                  <div className="space-y-4">
-                    {redeemError && <div className="bg-red-50 text-red-500 p-4 rounded-xl text-xs font-black uppercase text-center">{redeemError}</div>}
+                    {redeemError && <div className="bg-red-500/10 border border-red-500/40 text-red-300 p-4 text-xs font-black uppercase text-center" style={{ clipPath: NOTCH_SM }}>{redeemError}</div>}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                        {availableRewards.map(r => {
                           const canAfford = student.points >= r.cost;
                           const isOwned = student.inventory?.includes(r.id);
                           return (
-                             <div key={r.id} className={`p-6 rounded-3xl border-2 flex items-center justify-between gap-4 transition-all ${isOwned ? 'bg-slate-100 border-slate-200 opacity-70' : 'bg-white border-slate-100'}`}>
+                             <div key={r.id} className={`pz-card-sm p-6 flex items-center justify-between gap-4 transition-all ${isOwned ? 'opacity-60' : ''}`} style={{ background: 'var(--pz-panel-2)' }}>
                                 <div className="flex items-center gap-4">
                                    <div className="text-3xl">{r.icon}</div>
                                    <div>
-                                      <div className="font-black text-slate-900 text-sm">{r.name}</div>
-                                      <div className="text-[10px] font-black text-brand-blue">{r.cost} PTS</div>
+                                      <div className="font-black text-white text-sm">{r.name}</div>
+                                      <div className="text-[10px] font-black" style={{ color: 'var(--pz-volt)' }}>{r.cost} PTS</div>
                                    </div>
                                 </div>
                                 {isOwned ? (
-                                   <span className="text-[10px] font-black uppercase text-slate-400">Owned</span>
+                                   <span className="text-[10px] font-black uppercase" style={{ color: 'var(--pz-text)' }}>Owned</span>
                                 ) : (
-                                   <button 
+                                   <button
                                      onClick={() => handleRedeem(r)}
                                      disabled={!canAfford}
-                                     className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${canAfford ? 'bg-brand-green text-white hover:bg-emerald-600' : 'bg-slate-200 text-slate-400'}`}
+                                     className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest ${canAfford ? 'pz-btn' : 'bg-white/5 text-slate-500'}`}
+                                     style={!canAfford ? { clipPath: NOTCH_SM } : undefined}
                                    >
                                      Buy
                                    </button>
@@ -548,16 +553,16 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                  <div className="flex flex-col items-center justify-center h-full text-center space-y-8">
                     <div className="text-6xl">🤖</div>
                     {isAiLoading ? (
-                       <div className="text-slate-400 font-black uppercase tracking-widest animate-pulse">Consulting AI Coach...</div>
+                       <div className="font-black uppercase tracking-widest animate-pulse" style={{ color: 'var(--pz-volt)' }}>Consulting AI Coach...</div>
                     ) : aiFeedback ? (
-                       <div className="bg-blue-50 p-8 rounded-3xl border border-blue-100 text-blue-900 text-lg font-medium leading-relaxed max-w-lg">
+                       <div className="pz-card-sm p-8 text-white text-lg font-medium leading-relaxed max-w-lg" style={{ background: 'var(--pz-panel-2)', borderColor: 'rgba(203, 254, 28, 0.4)' }}>
                           "{aiFeedback}"
                        </div>
                     ) : (
                        <div className="space-y-4">
-                          <h3 className="text-2xl font-black text-slate-900">Need a boost?</h3>
-                          <p className="text-slate-500">Get a personalized pep talk based on your recent performance.</p>
-                          <button onClick={getAiCoachFeedback} className="bg-brand-blue text-white px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl hover:bg-blue-600 transition-all">
+                          <h3 className="text-2xl text-white">Need a boost?</h3>
+                          <p style={{ color: 'var(--pz-text)' }}>Get a personalized pep talk based on your recent performance.</p>
+                          <button onClick={getAiCoachFeedback} className="pz-btn px-8 py-4 text-xs">
                              Generate Pep Talk
                           </button>
                        </div>
@@ -568,17 +573,18 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
               {activeTab === 'QRCODE' && (
                  <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
                     <div className="text-6xl mb-4">📱</div>
-                    <h3 className="text-3xl font-black text-slate-900 uppercase">Check-In QR Code</h3>
-                    <p className="text-slate-500 font-medium max-w-md">Scan this code at the door to mark your attendance instantly!</p>
+                    <h3 className="text-3xl text-white uppercase">Check-In QR Code</h3>
+                    <p className="font-medium max-w-md" style={{ color: 'var(--pz-text)' }}>Scan this code at the door to mark your attendance instantly!</p>
 
+                    {/* QR stays on a solid white tile — scanners need the contrast */}
                     {qrCodeUrl ? (
-                       <div className="bg-white p-8 rounded-3xl border-4 border-slate-200 shadow-xl">
+                       <div className="bg-white p-8 border border-white/20 shadow-xl" style={{ clipPath: 'polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px)' }}>
                           <img src={qrCodeUrl} alt="Student QR Code" className="w-64 h-64" />
                        </div>
                     ) : (
-                       <div className="bg-slate-100 p-8 rounded-3xl border-4 border-slate-200 shadow-xl">
+                       <div className="pz-card p-8">
                           <div className="w-64 h-64 flex items-center justify-center">
-                             <div className="text-slate-400 font-black animate-pulse">Generating QR Code...</div>
+                             <div className="font-black animate-pulse" style={{ color: 'var(--pz-text)' }}>Generating QR Code...</div>
                           </div>
                        </div>
                     )}
@@ -651,7 +657,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                               setTimeout(() => printWindow.print(), 250);
                             }
                           }}
-                          className="w-full bg-brand-blue text-white px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl hover:bg-blue-600 transition-all active:scale-95"
+                          className="w-full pz-btn px-8 py-4 text-xs active:scale-95"
                        >
                           🖨️ Print QR Card
                        </button>
@@ -663,7 +669,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                             link.href = qrCodeUrl;
                             link.click();
                           }}
-                          className="w-full bg-slate-200 text-slate-700 px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-300 transition-all active:scale-95"
+                          className="w-full pz-btn-ghost px-8 py-4 text-xs active:scale-95"
                        >
                           💾 Download QR Code
                        </button>
@@ -675,67 +681,71 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                 <div className="space-y-10 animate-fade-in">
                    <div className="space-y-6">
                       <div>
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Full Name</label>
+                        <label className="pz-eyebrow mb-2 block">Full Name</label>
                         <input
                           type="text"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
-                          className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 bg-white !text-slate-900 font-black focus:border-brand-blue outline-none transition-all shadow-sm"
+                          className="w-full px-6 py-4 bg-white/5 border border-white/10 text-white font-black placeholder-white/40 focus:border-[#CBFE1C] focus:bg-white/10 outline-none transition-all"
+                          style={{ clipPath: NOTCH_SM }}
                         />
                       </div>
 
                       <div className="grid grid-cols-2 gap-6">
                          <div>
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">House Assignment</label>
+                            <label className="pz-eyebrow mb-2 block">House Assignment</label>
                             <select
                               value={house}
                               onChange={(e) => setHouse(e.target.value as HouseId)}
-                              className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 bg-white !text-slate-900 font-black outline-none cursor-pointer focus:border-brand-blue shadow-sm"
+                              className="w-full px-6 py-4 bg-white/5 border border-white/10 text-white font-black outline-none cursor-pointer focus:border-[#CBFE1C]"
+                              style={{ clipPath: NOTCH_SM }}
                             >
-                               {Object.values(HOUSES).map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+                               {Object.values(HOUSES).map(h => <option key={h.id} value={h.id} className="text-slate-900">{h.name}</option>)}
                             </select>
                          </div>
                          <div>
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Gender</label>
+                            <label className="pz-eyebrow mb-2 block">Gender</label>
                             <div className="flex gap-2">
-                               <button onClick={() => setGender('Male')} className={`flex-grow py-4 rounded-xl border-2 font-black text-[10px] uppercase transition-all shadow-sm ${gender === 'Male' ? 'bg-blue-500 border-blue-500 text-white' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-200'}`}>Male</button>
-                               <button onClick={() => setGender('Female')} className={`flex-grow py-4 rounded-xl border-2 font-black text-[10px] uppercase transition-all shadow-sm ${gender === 'Female' ? 'bg-pink-500 border-pink-500 text-white' : 'bg-white border-slate-200 text-slate-500 hover:border-pink-200'}`}>Female</button>
+                               <button onClick={() => setGender('Male')} className={`flex-grow py-4 border font-black text-[10px] uppercase transition-all ${gender === 'Male' ? 'bg-sky-500 border-sky-500 text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:border-sky-500/50'}`} style={{ clipPath: NOTCH_SM }}>Male</button>
+                               <button onClick={() => setGender('Female')} className={`flex-grow py-4 border font-black text-[10px] uppercase transition-all ${gender === 'Female' ? 'bg-pink-500 border-pink-500 text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:border-pink-500/50'}`} style={{ clipPath: NOTCH_SM }}>Female</button>
                             </div>
                          </div>
                       </div>
 
                       <div>
-                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">Rank / Level</label>
+                         <label className="pz-eyebrow mb-2 block">Rank / Level</label>
                          <select
                            value={selectedRankId}
                            onChange={(e) => handleRankChange(e.target.value)}
-                           className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 bg-white !text-slate-900 font-black outline-none cursor-pointer focus:border-brand-blue shadow-sm"
+                           className="w-full px-6 py-4 bg-white/5 border border-white/10 text-white font-black outline-none cursor-pointer focus:border-[#CBFE1C]"
+                           style={{ clipPath: NOTCH_SM }}
                          >
                             {ranks.map(r => (
-                              <option key={r.id} value={r.id}>
+                              <option key={r.id} value={r.id} className="text-slate-900">
                                 {r.name} ({r.threshold} pts)
                               </option>
                             ))}
                          </select>
-                         <p className="text-[9px] text-slate-400 mt-2 font-medium">
+                         <p className="text-[9px] mt-2 font-medium" style={{ color: 'var(--pz-text)' }}>
                            Changing rank will automatically award points to reach the rank threshold
                          </p>
                       </div>
                    </div>
 
-                   <div className="pt-10 border-t flex justify-between gap-4 items-center">
+                   <div className="pt-10 flex justify-between gap-4 items-center" style={{ borderTop: '1px solid var(--pz-border)' }}>
                       <button
                         onClick={() => setShowDeleteConfirm(true)}
-                        className="px-6 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100"
+                        className="px-6 py-4 font-black uppercase text-[10px] tracking-widest bg-red-500/10 text-red-400 border border-red-500/40 hover:bg-red-500/20 transition-all"
+                        style={{ clipPath: NOTCH_SM }}
                       >
                         Delete Athlete
                       </button>
                       <div className="flex gap-4">
-                        <button onClick={onClose} className="px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400 hover:text-slate-600 transition-all">Discard</button>
+                        <button onClick={onClose} className="px-8 py-4 font-black uppercase text-[10px] tracking-widest hover:text-white transition-all" style={{ color: 'var(--pz-text)' }}>Discard</button>
                         <button
                           onClick={handleSaveInfo}
                           disabled={isSaving}
-                          className="bg-brand-blue text-white px-10 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-2xl hover:bg-blue-600 disabled:opacity-50 transition-all"
+                          className="pz-btn px-10 py-4 text-[10px] disabled:opacity-50"
                         >
                           {isSaving ? 'Syncing...' : 'Save Profile Updates'}
                         </button>
@@ -746,31 +756,31 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
 
               {activeTab === 'POINTS' && (
                 <div className="space-y-12 animate-fade-in">
-                   <div className="bg-blue-50 p-8 rounded-4xl border border-blue-100">
-                      <h4 className="text-xl font-display font-black text-brand-blue mb-2 uppercase">Manual Point Override</h4>
-                      <p className="text-xs text-blue-600 font-medium">Use these presets to quickly adjust the athlete's point total outside of regular sessions.</p>
+                   <div className="pz-card p-8" style={{ borderColor: 'rgba(203, 254, 28, 0.35)' }}>
+                      <h4 className="text-xl mb-2 uppercase" style={{ color: 'var(--pz-volt)' }}>Manual Point Override</h4>
+                      <p className="text-xs font-medium" style={{ color: 'var(--pz-text)' }}>Use these presets to quickly adjust the athlete's point total outside of regular sessions.</p>
                    </div>
 
                   <div className="grid grid-cols-2 gap-8">
                       <div className="space-y-4">
-                         <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Add Points</div>
+                         <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Add Points</div>
                          <div className="grid grid-cols-2 gap-4">
                             {[10, 50, 100, 500].map(val => (
-                              <button key={val} onClick={() => handleAdjustPoints(val)} className="py-6 rounded-3xl bg-white border-2 border-emerald-100 text-emerald-600 font-black text-lg hover:border-emerald-500 hover:bg-emerald-50 transition-all shadow-sm">+{val}</button>
+                              <button key={val} onClick={() => handleAdjustPoints(val)} className="py-6 bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 font-black text-lg hover:border-emerald-400 hover:bg-emerald-500/20 transition-all" style={{ clipPath: NOTCH_SM }}>+{val}</button>
                             ))}
                          </div>
                       </div>
                       <div className="space-y-4">
-                         <div className="text-[10px] font-black text-red-500 uppercase tracking-widest">Deduct Points</div>
+                         <div className="text-[10px] font-black text-red-400 uppercase tracking-widest">Deduct Points</div>
                          <div className="grid grid-cols-2 gap-4">
                             {[10, 50, 100, 500].map(val => (
-                              <button key={val} onClick={() => handleAdjustPoints(-val)} className="py-6 rounded-3xl bg-white border-2 border-red-100 text-red-600 font-black text-lg hover:border-red-500 hover:bg-red-50 transition-all shadow-sm">-{val}</button>
+                              <button key={val} onClick={() => handleAdjustPoints(-val)} className="py-6 bg-red-500/10 border border-red-500/40 text-red-400 font-black text-lg hover:border-red-400 hover:bg-red-500/20 transition-all" style={{ clipPath: NOTCH_SM }}>-{val}</button>
                             ))}
                          </div>
                      </div>
                   </div>
-                  <div className="bg-white rounded-3xl border-2 border-slate-200 p-6">
-                    <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Custom Amount</div>
+                  <div className="pz-card p-6">
+                    <div className="pz-eyebrow mb-3">Custom Amount</div>
                     <div className="flex items-center gap-3">
                       <input
                         type="text"
@@ -778,19 +788,22 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                         value={customPoints}
                         onChange={(e) => setCustomPoints(e.target.value.replace(/[^0-9]/g, ''))}
                         placeholder="Points"
-                        className="w-28 px-3 py-2 rounded-xl border-2 border-slate-300 font-black"
+                        className="w-28 px-3 py-2 bg-white/5 border border-white/10 text-white font-black placeholder-white/40 focus:border-[#CBFE1C] outline-none"
+                        style={{ clipPath: NOTCH_SM }}
                       />
                       <button
                         onClick={() => { const v = parseInt(customPoints || '0', 10); if (v > 0) { handleAdjustPoints(v); setCustomPoints(''); } }}
                         disabled={!parseInt(customPoints || '0', 10)}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-black disabled:opacity-50"
+                        className="px-4 py-2 bg-emerald-500 text-emerald-950 font-black disabled:opacity-50"
+                        style={{ clipPath: NOTCH_SM }}
                       >
                         Apply +
                       </button>
                       <button
                         onClick={() => { const v = parseInt(customPoints || '0', 10); if (v > 0) { handleAdjustPoints(-v); setCustomPoints(''); } }}
                         disabled={!parseInt(customPoints || '0', 10)}
-                        className="px-4 py-2 rounded-xl bg-red-600 text-white font-black disabled:opacity-50"
+                        className="px-4 py-2 bg-red-600 text-white font-black disabled:opacity-50"
+                        style={{ clipPath: NOTCH_SM }}
                       >
                         Apply −
                       </button>
@@ -803,16 +816,16 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
       </div>
     </div>
     {showDeleteConfirm && (
-      <div className="fixed inset-0 z-[400] bg-slate-900/95 backdrop-blur-xl flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-slate-200">
+      <div className="fixed inset-0 z-[400] pz-scope bg-black/85 backdrop-blur-xl flex items-center justify-center p-4">
+        <div className="pz-card max-w-md w-full p-8" style={{ borderColor: 'rgba(239, 68, 68, 0.4)' }}>
           <div className="text-center mb-6">
             <div className="text-6xl mb-4">⚠️</div>
-            <h3 className="text-2xl font-black text-slate-900 mb-2">Delete Athlete</h3>
-            <p className="text-slate-600 text-sm">This cannot be undone. Remove {student.fullName} from the roster?</p>
+            <h3 className="text-2xl text-white mb-2">Delete Athlete</h3>
+            <p className="text-sm" style={{ color: 'var(--pz-text)' }}>This cannot be undone. Remove {student.fullName} from the roster?</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black">Cancel</button>
-            <button onClick={handleDelete} className="flex-1 px-6 py-3 rounded-xl bg-red-600 text-white font-black">Permanently Delete</button>
+            <button onClick={() => setShowDeleteConfirm(false)} className="pz-btn-ghost flex-1 px-6 py-3 text-xs">Cancel</button>
+            <button onClick={handleDelete} className="flex-1 px-6 py-3 bg-red-600 text-white font-black uppercase text-xs tracking-widest" style={{ clipPath: NOTCH_SM }}>Permanently Delete</button>
           </div>
         </div>
       </div>

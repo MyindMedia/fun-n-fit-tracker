@@ -141,11 +141,11 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
     <div className="space-y-5">
       {/* Avatar Section */}
       <div className="flex flex-col items-center">
-        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-slate-100 border-4 border-white shadow-lg mb-4 overflow-hidden relative">
+        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-[#171C27] border-4 border-white/10 mb-4 overflow-hidden relative">
           {capturedImage ? (
             <img src={capturedImage} className="w-full h-full object-cover" alt="Profile" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-4xl sm:text-5xl bg-gradient-to-br from-slate-100 to-slate-200 text-slate-400">
+            <div className="w-full h-full flex items-center justify-center text-4xl sm:text-5xl bg-[#171C27] text-white/30">
               👤
             </div>
           )}
@@ -163,13 +163,13 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
             <>
               <button
                 onClick={startCamera}
-                className="touch-btn w-full text-[10px] sm:text-xs font-black text-brand-blue bg-blue-50 px-4 py-3 rounded-xl uppercase tracking-widest border border-blue-100 active:bg-brand-blue active:text-white transition-all"
+                className="touch-btn w-full text-[10px] sm:text-xs font-black text-[#CBFE1C] bg-[#CBFE1C]/10 px-4 py-3 uppercase tracking-widest border border-[#CBFE1C]/30 active:bg-[#CBFE1C] active:text-[#0B0E13] transition-all"
               >
                 📷 Take Profile Photo
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="touch-btn w-full text-[10px] sm:text-xs font-black text-emerald-600 bg-emerald-50 px-4 py-3 rounded-xl uppercase tracking-widest border border-emerald-100 active:bg-emerald-500 active:text-white transition-all"
+                className="touch-btn w-full text-[10px] sm:text-xs font-black text-emerald-400 bg-emerald-500/10 px-4 py-3 uppercase tracking-widest border border-emerald-500/30 active:bg-emerald-500 active:text-white transition-all"
               >
                 📁 Upload From Gallery
               </button>
@@ -185,7 +185,7 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
           {isCameraOpen && (
             <button
               onClick={capturePhoto}
-              className="touch-btn w-full bg-brand-green text-white font-black py-4 rounded-xl text-xs uppercase shadow-lg active:scale-95 transition-all"
+              className="touch-btn pz-btn w-full py-4 text-xs active:scale-95 transition-all"
             >
               📸 Capture Photo
             </button>
@@ -193,7 +193,7 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
           {capturedImage && (
             <button
               onClick={() => setCapturedImage(null)}
-              className="touch-btn w-full text-[10px] sm:text-xs font-black text-red-500 bg-red-50 py-3 rounded-xl uppercase border border-red-100 active:bg-red-500 active:text-white transition-all"
+              className="touch-btn w-full text-[10px] sm:text-xs font-black text-red-400 bg-red-500/10 py-3 uppercase border border-red-500/30 active:bg-red-500 active:text-white transition-all"
             >
               🔄 Retake Photo
             </button>
@@ -205,7 +205,7 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
       <div className="space-y-4">
         {/* Full Name */}
         <div>
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+          <label className="text-[10px] font-black uppercase tracking-widest mb-2 block" style={{ color: 'var(--pz-text)' }}>
             Full Name *
           </label>
           <input
@@ -213,32 +213,32 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Leo Smith"
-            className="w-full px-4 py-4 rounded-xl border-2 border-slate-100 bg-white text-sm font-bold text-slate-900 outline-none focus:border-brand-blue focus:bg-blue-50/20 transition-all"
+            className="w-full px-4 py-4 border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder-white/40 outline-none focus:border-[#CBFE1C] transition-all"
           />
         </div>
 
         {/* Gender Selection */}
         <div>
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+          <label className="text-[10px] font-black uppercase tracking-widest mb-2 block" style={{ color: 'var(--pz-text)' }}>
             Gender
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => setGender('Male')}
-              className={`touch-btn py-4 rounded-xl border-2 font-black text-xs uppercase transition-all flex items-center justify-center gap-2 ${
+              className={`touch-btn py-4 border font-black text-xs uppercase transition-all flex items-center justify-center gap-2 ${
                 gender === 'Male'
-                  ? 'bg-blue-500 border-blue-500 text-white shadow-md'
-                  : 'bg-white border-slate-100 text-slate-500 active:border-blue-300'
+                  ? 'bg-blue-500 border-blue-500 text-white'
+                  : 'bg-white/5 border-white/10 text-white/50 active:border-blue-400/50'
               }`}
             >
               <span className="text-lg">♂</span> Male
             </button>
             <button
               onClick={() => setGender('Female')}
-              className={`touch-btn py-4 rounded-xl border-2 font-black text-xs uppercase transition-all flex items-center justify-center gap-2 ${
+              className={`touch-btn py-4 border font-black text-xs uppercase transition-all flex items-center justify-center gap-2 ${
                 gender === 'Female'
-                  ? 'bg-pink-500 border-pink-500 text-white shadow-md'
-                  : 'bg-white border-slate-100 text-slate-500 active:border-pink-300'
+                  ? 'bg-pink-500 border-pink-500 text-white'
+                  : 'bg-white/5 border-white/10 text-white/50 active:border-pink-400/50'
               }`}
             >
               <span className="text-lg">♀</span> Female
@@ -248,7 +248,7 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
 
         {/* House Selection */}
         <div>
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+          <label className="text-[10px] font-black uppercase tracking-widest mb-2 block" style={{ color: 'var(--pz-text)' }}>
             House Assignment
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -256,15 +256,15 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
               <button
                 key={h.id}
                 onClick={() => setHouse(h.id)}
-                className={`touch-btn p-3 rounded-xl border-2 transition-all text-left ${
+                className={`touch-btn p-3 border-2 transition-all text-left ${
                   house === h.id
-                    ? 'border-current shadow-md'
-                    : 'border-slate-100 bg-white'
+                    ? 'border-current'
+                    : 'border-white/10 bg-white/5'
                 }`}
                 style={{
-                  backgroundColor: house === h.id ? h.colorHex + '15' : undefined,
+                  backgroundColor: house === h.id ? h.colorHex + '20' : undefined,
                   borderColor: house === h.id ? h.colorHex : undefined,
-                  color: house === h.id ? h.colorHex : '#64748b'
+                  color: house === h.id ? h.colorHex : '#ABABAB'
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -285,12 +285,12 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
         <button
           onClick={handleEnroll}
           disabled={!name.trim() || uploading}
-          className={`touch-btn w-full font-black py-4 rounded-xl shadow-lg uppercase tracking-widest transition-all text-sm ${
+          className={`touch-btn w-full font-black py-4 uppercase tracking-widest transition-all text-sm ${
             uploading
-              ? 'bg-slate-400 text-white cursor-not-allowed'
+              ? 'bg-white/20 text-white/60 cursor-not-allowed'
               : !name.trim()
-              ? 'bg-slate-200 text-slate-400'
-              : 'bg-brand-green text-white active:bg-emerald-600 active:scale-[0.98]'
+              ? 'bg-white/10 text-white/30'
+              : 'pz-btn active:scale-[0.98]'
           }`}
         >
           {uploading ? (

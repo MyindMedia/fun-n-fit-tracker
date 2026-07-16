@@ -13,6 +13,9 @@ interface StudentPortalProps {
   onRefresh?: () => void;
 }
 
+// Pubzi theme: small notched cut-corner shape for inline elements
+const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
+
 const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefresh }) => {
   const [activeTab, setActiveTab] = useState<'PROFILE' | 'PROGRESS' | 'SHOP' | 'FRIENDS' | 'TEAM' | 'STORE' | 'NEWS'>('PROFILE');
   const [ranks, setRanks] = useState<Rank[]>([]);
@@ -159,8 +162,9 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
   // Tab Components
   const renderProfileTab = () => (
     <div className="space-y-5">
-      {/* Avatar & Name Display */}
-      <div className="grid grid-cols-2 gap-4 p-4 bg-white rounded-2xl border border-slate-100">
+      {/* Avatar & Name Display — player-profile card */}
+      <div className="pz-card relative grid grid-cols-2 gap-4 p-4">
+        <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: HOUSES[student.houseId].colorHex }} />
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
           <img
             src={student.avatarUrl}
@@ -174,17 +178,17 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
               const displayName = getProfileDisplayName();
               return (
                 <>
-                  <div className="font-black text-2xl text-slate-900 truncate">{displayName.primary}</div>
+                  <div className="pz-display text-2xl text-white truncate">{displayName.primary}</div>
                   {displayName.secondary && (
-                    <div className="text-slate-400 text-base truncate">{displayName.secondary}</div>
+                    <div className="text-base truncate" style={{ color: 'var(--pz-text)' }}>{displayName.secondary}</div>
                   )}
                 </>
               );
             })()}
             <div className="mt-2">
               <div
-                className="text-sm font-black uppercase px-3 py-1.5 rounded inline-block"
-                style={{ backgroundColor: HOUSES[student.houseId].colorHex + '20', color: HOUSES[student.houseId].colorHex }}
+                className="text-sm font-black uppercase px-3 py-1.5 inline-block"
+                style={{ backgroundColor: HOUSES[student.houseId].colorHex + '20', color: HOUSES[student.houseId].colorHex, clipPath: NOTCH_SM }}
               >
                 {HOUSES[student.houseId].name}
               </div>
@@ -204,7 +208,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
       {/* Gamer Tag */}
       <div>
-        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+        <label className="pz-eyebrow mb-2 block">
           Gamer Tag
         </label>
         <input
@@ -213,14 +217,15 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           onChange={(e) => setGamerTag(e.target.value)}
           placeholder="Enter your gamer tag..."
           maxLength={20}
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-900 outline-none focus:border-brand-blue"
+          className="w-full px-4 py-3 bg-white/5 border border-white/10 text-sm font-bold text-white placeholder-white/40 outline-none focus:border-[#CBFE1C] focus:bg-white/10 transition-all"
+          style={{ clipPath: NOTCH_SM }}
         />
-        <p className="text-[10px] text-slate-400 mt-1">This name can be shown on leaderboards</p>
+        <p className="text-[10px] mt-1" style={{ color: 'var(--pz-text)' }}>This name can be shown on leaderboards</p>
       </div>
 
       {/* Display Preference */}
       <div>
-        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+        <label className="pz-eyebrow mb-2 block">
           Display Name On Leaderboard
         </label>
         <div className="grid grid-cols-3 gap-2">
@@ -233,10 +238,11 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
               key={opt.id}
               onClick={() => setDisplayPreference(opt.id as any)}
               disabled={opt.id === 'GAMER_TAG' && !gamerTag}
-              className={`touch-btn p-3 rounded-xl border-2 text-center transition-all ${displayPreference === opt.id
-                ? 'border-brand-blue bg-blue-50 text-brand-blue'
-                : 'border-slate-100 bg-white text-slate-600'
+              className={`touch-btn p-3 border-2 text-center transition-all ${displayPreference === opt.id
+                ? 'border-[#CBFE1C] bg-[#CBFE1C]/10 text-[#CBFE1C]'
+                : 'border-white/10 text-slate-400'
                 } ${opt.id === 'GAMER_TAG' && !gamerTag ? 'opacity-40' : ''}`}
+              style={{ clipPath: NOTCH_SM, background: displayPreference === opt.id ? undefined : 'var(--pz-panel)' }}
             >
               <div className="text-[10px] font-black uppercase tracking-wide">{opt.label}</div>
               <div className="text-sm font-bold truncate mt-2">{opt.preview}</div>
@@ -247,7 +253,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
       {/* Bio */}
       <div>
-        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">
+        <label className="pz-eyebrow mb-2 block">
           Bio
         </label>
         <textarea
@@ -256,17 +262,19 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           placeholder="Tell us about yourself..."
           maxLength={150}
           rows={3}
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none focus:border-brand-blue resize-none"
+          className="w-full px-4 py-3 bg-white/5 border border-white/10 text-sm font-medium text-white placeholder-white/40 outline-none focus:border-[#CBFE1C] focus:bg-white/10 transition-all resize-none"
+          style={{ clipPath: NOTCH_SM }}
         />
-        <div className="text-right text-[10px] text-slate-400">{bio.length}/150</div>
+        <div className="text-right text-[10px]" style={{ color: 'var(--pz-text)' }}>{bio.length}/150</div>
       </div>
 
       {/* Save Button */}
       <button
         onClick={handleSaveProfile}
         disabled={isSaving}
-        className={`touch-btn w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest transition-all ${isSaving ? 'bg-slate-300 text-slate-500' : 'bg-brand-blue text-white active:bg-blue-600'
+        className={`touch-btn w-full py-4 font-black text-sm uppercase tracking-widest transition-all ${isSaving ? 'bg-white/10 text-slate-500' : 'pz-btn'
           }`}
+        style={isSaving ? { clipPath: NOTCH_SM } : undefined}
       >
         {isSaving ? 'Saving...' : 'Save Profile'}
       </button>
@@ -276,41 +284,41 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
   const renderProgressTab = () => (
     <div className="space-y-5">
       {/* Points & Rank Card */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-white">
+      <div className="pz-card p-6 text-white">
         <div className="flex items-center gap-4 mb-4">
           {currentRank?.icon && (
             <img src={currentRank.icon} className="w-16 h-16 object-contain" alt="" />
           )}
           <div>
-            <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Current Rank</div>
-            <div className="text-2xl font-black">{currentRank?.name || 'Rookie'}</div>
+            <div className="pz-eyebrow">Current Rank</div>
+            <div className="pz-display text-2xl">{currentRank?.name || 'Rookie'}</div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-white/10 rounded-xl p-4 text-center">
-            <div className="text-3xl font-black">{student.points.toLocaleString()}</div>
-            <div className="text-[10px] font-bold uppercase text-slate-400">Total Points</div>
+          <div className="pz-card-sm p-4 text-center" style={{ background: 'var(--pz-panel-2)' }}>
+            <div className="pz-display text-3xl" style={{ color: 'var(--pz-volt)' }}>{student.points.toLocaleString()}</div>
+            <div className="text-[10px] font-bold uppercase" style={{ color: 'var(--pz-text)' }}>Total Points</div>
           </div>
-          <div className="bg-white/10 rounded-xl p-4 text-center">
-            <div className="text-3xl font-black">{student.totalXp || 0}</div>
-            <div className="text-[10px] font-bold uppercase text-slate-400">Total XP</div>
+          <div className="pz-card-sm p-4 text-center" style={{ background: 'var(--pz-panel-2)' }}>
+            <div className="pz-display text-3xl" style={{ color: 'var(--pz-volt)' }}>{student.totalXp || 0}</div>
+            <div className="text-[10px] font-bold uppercase" style={{ color: 'var(--pz-text)' }}>Total XP</div>
           </div>
         </div>
 
         {nextRank && (
           <div className="space-y-2">
-            <div className="flex justify-between text-[10px] font-bold uppercase text-slate-400">
+            <div className="flex justify-between text-[10px] font-bold uppercase" style={{ color: 'var(--pz-text)' }}>
               <span>{currentRank?.name}</span>
               <span>{nextRank.name}</span>
             </div>
-            <div className="h-3 bg-white/20 rounded-full overflow-hidden">
+            <div className="h-3 bg-white/10 overflow-hidden" style={{ clipPath: NOTCH_SM }}>
               <div
-                className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-1000"
-                style={{ width: `${progressPercent}%` }}
+                className="h-full transition-all duration-1000"
+                style={{ width: `${progressPercent}%`, background: 'var(--pz-volt)' }}
               />
             </div>
-            <div className="text-center text-xs font-bold text-slate-400">
+            <div className="text-center text-xs font-bold" style={{ color: 'var(--pz-text)' }}>
               {nextRank.threshold - student.points} pts to level up
             </div>
           </div>
@@ -322,46 +330,46 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
       {/* Badges */}
       <div>
-        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">Badges Earned</h3>
+        <h3 className="text-sm text-white uppercase tracking-wide mb-3">Badges Earned</h3>
         {student.badges?.length ? (
           <div className="grid grid-cols-4 gap-2">
             {student.badges.map(badgeId => (
-              <div key={badgeId} className="bg-white rounded-xl p-3 border border-slate-100 text-center">
+              <div key={badgeId} className="pz-card-sm p-3 text-center">
                 <div className="text-2xl mb-1">🏅</div>
-                <div className="text-[9px] font-black text-slate-500 uppercase truncate">{badgeId}</div>
+                <div className="text-[9px] font-black uppercase truncate" style={{ color: 'var(--pz-text)' }}>{badgeId}</div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-slate-400 text-sm">No badges yet. Keep training!</div>
+          <div className="text-center py-8 text-sm" style={{ color: 'var(--pz-text)' }}>No badges yet. Keep training!</div>
         )}
       </div>
 
       {/* Available Trophies */}
       <div>
-        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">Trophies To Earn</h3>
+        <h3 className="text-sm text-white uppercase tracking-wide mb-3">Trophies To Earn</h3>
         {trophies.length === 0 ? (
-          <div className="text-center py-8 text-slate-400 text-sm">No trophies available</div>
+          <div className="text-center py-8 text-sm" style={{ color: 'var(--pz-text)' }}>No trophies available</div>
         ) : (
           <div className="space-y-2">
             {trophies.map(trophy => {
               const progress = Math.min(100, (student.points / trophy.pointsRequired) * 100);
               return (
-                <div key={trophy.id} className="bg-white rounded-xl p-4 border border-slate-100">
+                <div key={trophy.id} className="pz-card-sm p-4">
                   <div className="flex items-center gap-3 mb-2">
                     {trophy.icon ? (
                       <img src={trophy.icon} className="w-10 h-10 object-contain" alt="" />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-xl">🏆</div>
+                      <div className="w-10 h-10 bg-amber-400/15 flex items-center justify-center text-xl" style={{ clipPath: NOTCH_SM }}>🏆</div>
                     )}
                     <div className="flex-grow min-w-0">
-                      <div className="font-black text-sm text-slate-900">{trophy.name}</div>
-                      <div className="text-[10px] text-slate-500">{trophy.pointsRequired.toLocaleString()} pts • {trophy.xpReward} XP</div>
+                      <div className="font-black text-sm text-white">{trophy.name}</div>
+                      <div className="text-[10px]" style={{ color: 'var(--pz-text)' }}>{trophy.pointsRequired.toLocaleString()} pts • {trophy.xpReward} XP</div>
                     </div>
-                    <div className="text-xs font-black text-slate-400">{Math.round(progress)}%</div>
+                    <div className="text-xs font-black" style={{ color: 'var(--pz-volt)' }}>{Math.round(progress)}%</div>
                   </div>
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-yellow-400" style={{ width: `${progress}%` }} />
+                  <div className="h-2 bg-white/10 overflow-hidden" style={{ clipPath: NOTCH_SM }}>
+                    <div className="h-full" style={{ width: `${progress}%`, background: 'var(--pz-volt)' }} />
                   </div>
                 </div>
               );
@@ -377,18 +385,18 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       {/* Add Friend Button */}
       <button
         onClick={() => setShowAddFriend(true)}
-        className="touch-btn w-full py-3 rounded-xl bg-brand-blue text-white font-black text-xs uppercase tracking-widest"
+        className="touch-btn pz-btn w-full py-3 text-xs"
       >
         + Add Friend
       </button>
 
       {/* Friends List */}
       <div>
-        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">
+        <h3 className="text-sm text-white uppercase tracking-wide mb-3">
           My Friends ({friends.length})
         </h3>
         {friends.length === 0 ? (
-          <div className="text-center py-12 text-slate-400">
+          <div className="text-center py-12" style={{ color: 'var(--pz-text)' }}>
             <div className="text-4xl mb-2">👥</div>
             <div className="text-sm font-medium">No friends yet</div>
             <div className="text-xs">Add friends to see their progress!</div>
@@ -398,7 +406,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
             {friends.map(friend => {
               const friendDisplayName = getStudentDisplayName(friend);
               return (
-                <div key={friend.id} className="bg-white rounded-xl p-4 border border-slate-100 flex items-center gap-3">
+                <div key={friend.id} className="pz-card-sm p-4 flex items-center gap-3" style={{ background: 'var(--pz-panel-2)' }}>
                   <img
                     src={friend.avatarUrl}
                     className="w-12 h-12 rounded-full border-2 object-cover flex-shrink-0"
@@ -406,25 +414,26 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
                     alt=""
                   />
                   <div className="flex-grow min-w-0">
-                    <div className="font-black text-sm text-slate-900 truncate">
+                    <div className="font-black text-sm text-white truncate">
                       {friendDisplayName.primary}
                     </div>
                     {friendDisplayName.secondary && (
-                      <div className="text-[10px] text-slate-400 truncate">{friendDisplayName.secondary}</div>
+                      <div className="text-[10px] truncate" style={{ color: 'var(--pz-text)' }}>{friendDisplayName.secondary}</div>
                     )}
                     <div className="flex items-center gap-2">
                       <span
-                        className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded"
-                        style={{ backgroundColor: HOUSES[friend.houseId].colorHex + '20', color: HOUSES[friend.houseId].colorHex }}
+                        className="text-[9px] font-black uppercase px-1.5 py-0.5"
+                        style={{ backgroundColor: HOUSES[friend.houseId].colorHex + '20', color: HOUSES[friend.houseId].colorHex, clipPath: NOTCH_SM }}
                       >
                         {HOUSES[friend.houseId].name}
                       </span>
-                      <span className="text-[10px] text-slate-400">{friend.points.toLocaleString()} pts</span>
+                      <span className="text-[10px]" style={{ color: 'var(--pz-text)' }}>{friend.points.toLocaleString()} pts</span>
                     </div>
                   </div>
                   <button
                     onClick={() => handleRemoveFriend(friend.id)}
-                    className="touch-btn w-8 h-8 rounded-lg bg-red-50 text-red-500 text-sm flex items-center justify-center"
+                    className="touch-btn w-8 h-8 bg-red-500/10 border border-red-500/40 text-red-400 text-sm flex items-center justify-center"
+                    style={{ clipPath: NOTCH_SM }}
                   >
                     ×
                   </button>
@@ -438,10 +447,10 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       {/* Add Friend Modal */}
       {showAddFriend && (
         <div className="fixed inset-0 z-[250] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-              <h3 className="text-sm font-black text-slate-900 uppercase">Add Friend</h3>
-              <button onClick={() => setShowAddFriend(false)} className="text-slate-400 text-xl">×</button>
+          <div className="pz-card w-full max-w-md max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--pz-border)' }}>
+              <h3 className="text-sm text-white uppercase">Add Friend</h3>
+              <button onClick={() => setShowAddFriend(false)} className="text-xl" style={{ color: 'var(--pz-text)' }}>×</button>
             </div>
             <div className="p-4">
               <input
@@ -449,12 +458,13 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name..."
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium outline-none focus:border-brand-blue"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 text-sm font-medium text-white placeholder-white/40 outline-none focus:border-[#CBFE1C] focus:bg-white/10 transition-all"
+                style={{ clipPath: NOTCH_SM }}
               />
             </div>
             <div className="flex-grow overflow-y-auto p-4 pt-0 max-h-[50vh]">
               {filteredStudents.length === 0 ? (
-                <div className="text-center py-8 text-slate-400 text-sm">No students found</div>
+                <div className="text-center py-8 text-sm" style={{ color: 'var(--pz-text)' }}>No students found</div>
               ) : (
                 <div className="space-y-2">
                   {filteredStudents.slice(0, 20).map(s => {
@@ -463,7 +473,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
                       <button
                         key={s.id}
                         onClick={() => handleAddFriend(s.id)}
-                        className="touch-btn w-full p-3 rounded-xl bg-slate-50 flex items-center gap-3 active:bg-slate-100"
+                        className="touch-btn pz-card-sm w-full p-3 flex items-center gap-3 hover:border-[#CBFE1C] transition-all active:scale-[0.98]"
+                        style={{ background: 'var(--pz-panel-2)' }}
                       >
                         <img
                           src={s.avatarUrl}
@@ -472,13 +483,13 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
                           alt=""
                         />
                         <div className="flex-grow text-left min-w-0">
-                          <div className="font-bold text-sm text-slate-900 truncate">{sDisplayName.primary}</div>
+                          <div className="font-bold text-sm text-white truncate">{sDisplayName.primary}</div>
                           {sDisplayName.secondary && (
-                            <div className="text-[9px] text-slate-400 truncate">{sDisplayName.secondary}</div>
+                            <div className="text-[9px] truncate" style={{ color: 'var(--pz-text)' }}>{sDisplayName.secondary}</div>
                           )}
-                          <div className="text-[10px] text-slate-500">{HOUSES[s.houseId].name}</div>
+                          <div className="text-[10px]" style={{ color: HOUSES[s.houseId].colorHex }}>{HOUSES[s.houseId].name}</div>
                         </div>
-                        <span className="text-brand-blue font-black text-xs">+ Add</span>
+                        <span className="font-black text-xs" style={{ color: 'var(--pz-volt)' }}>+ Add</span>
                       </button>
                     );
                   })}
@@ -493,35 +504,39 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
   const renderTeamTab = () => (
     <div className="space-y-5">
-      {/* Team Card */}
+      {/* Team Card — house color as the personal accent */}
       <div
-        className="rounded-2xl p-6 text-white"
-        style={{ background: `linear-gradient(135deg, ${HOUSES[student.houseId].colorHex}, ${HOUSES[student.houseId].colorHex}dd)` }}
+        className="pz-card relative p-6 text-white"
+        style={{
+          background: `linear-gradient(135deg, ${HOUSES[student.houseId].colorHex}33, transparent 55%), var(--pz-panel)`,
+          borderColor: `${HOUSES[student.houseId].colorHex}66`
+        }}
       >
+        <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: HOUSES[student.houseId].colorHex }} />
         <div className="flex items-center gap-4 mb-4">
           {HOUSES[student.houseId].customIcon && (
             <img src={HOUSES[student.houseId].customIcon} className="w-16 h-16 object-contain" alt="" />
           )}
           <div>
-            <div className="text-[10px] font-black uppercase text-white/70 tracking-widest">Your House</div>
-            <div className="text-3xl font-black">{HOUSES[student.houseId].name}</div>
-            <div className="text-sm opacity-80">{HOUSES[student.houseId].mascot}</div>
+            <div className="pz-eyebrow">Your House</div>
+            <div className="pz-display text-3xl" style={{ color: HOUSES[student.houseId].colorHex }}>{HOUSES[student.houseId].name}</div>
+            <div className="text-sm" style={{ color: 'var(--pz-text)' }}>{HOUSES[student.houseId].mascot}</div>
           </div>
         </div>
 
         {teamStats && (
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white/20 rounded-xl p-3 text-center">
-              <div className="text-2xl font-black">{teamStats.totalPoints.toLocaleString()}</div>
-              <div className="text-[9px] font-bold uppercase text-white/70">Total Points</div>
+            <div className="pz-card-sm p-3 text-center" style={{ background: 'var(--pz-panel-2)' }}>
+              <div className="pz-display text-2xl" style={{ color: HOUSES[student.houseId].colorHex }}>{teamStats.totalPoints.toLocaleString()}</div>
+              <div className="text-[9px] font-bold uppercase" style={{ color: 'var(--pz-text)' }}>Total Points</div>
             </div>
-            <div className="bg-white/20 rounded-xl p-3 text-center">
-              <div className="text-2xl font-black">{teamStats.memberCount}</div>
-              <div className="text-[9px] font-bold uppercase text-white/70">Members</div>
+            <div className="pz-card-sm p-3 text-center" style={{ background: 'var(--pz-panel-2)' }}>
+              <div className="pz-display text-2xl text-white">{teamStats.memberCount}</div>
+              <div className="text-[9px] font-bold uppercase" style={{ color: 'var(--pz-text)' }}>Members</div>
             </div>
-            <div className="bg-white/20 rounded-xl p-3 text-center">
-              <div className="text-2xl font-black">{teamStats.presentCount}</div>
-              <div className="text-[9px] font-bold uppercase text-white/70">Present</div>
+            <div className="pz-card-sm p-3 text-center" style={{ background: 'var(--pz-panel-2)' }}>
+              <div className="pz-display text-2xl text-white">{teamStats.presentCount}</div>
+              <div className="text-[9px] font-bold uppercase" style={{ color: 'var(--pz-text)' }}>Present</div>
             </div>
           </div>
         )}
@@ -532,8 +547,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
         const topScorerDisplay = getStudentDisplayName(teamStats.topScorer);
         return (
           <div>
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">Top Scorer</h3>
-            <div className="bg-white rounded-xl p-4 border border-slate-100 flex items-center gap-4">
+            <h3 className="text-sm text-white uppercase tracking-wide mb-3">Top Scorer</h3>
+            <div className="pz-card-sm p-4 flex items-center gap-4" style={{ background: 'var(--pz-panel-2)' }}>
               <div className="text-3xl">👑</div>
               <img
                 src={teamStats.topScorer.avatarUrl}
@@ -542,11 +557,11 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
                 alt=""
               />
               <div className="flex-grow min-w-0">
-                <div className="font-black text-sm text-slate-900">{topScorerDisplay.primary}</div>
+                <div className="font-black text-sm text-white">{topScorerDisplay.primary}</div>
                 {topScorerDisplay.secondary && (
-                  <div className="text-[10px] text-slate-400">{topScorerDisplay.secondary}</div>
+                  <div className="text-[10px]" style={{ color: 'var(--pz-text)' }}>{topScorerDisplay.secondary}</div>
                 )}
-                <div className="text-xs text-slate-500">{teamStats.topScorer.points.toLocaleString()} points</div>
+                <div className="text-xs" style={{ color: 'var(--pz-volt)' }}>{teamStats.topScorer.points.toLocaleString()} points</div>
               </div>
             </div>
           </div>
@@ -555,7 +570,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
       {/* House Comparison */}
       <div>
-        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">All Houses</h3>
+        <h3 className="text-sm text-white uppercase tracking-wide mb-3">All Houses</h3>
         <div className="space-y-2">
           {Object.values(HOUSES)
             .map(house => {
@@ -563,19 +578,21 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
               return (
                 <div
                   key={house.id}
-                  className={`rounded-xl p-4 border-2 flex items-center gap-3 transition-all ${isMyHouse ? 'border-current bg-current/5' : 'border-slate-100 bg-white'
-                    }`}
-                  style={{ borderColor: isMyHouse ? house.colorHex : undefined }}
+                  className="pz-card-sm p-4 flex items-center gap-3 transition-all"
+                  style={{
+                    borderColor: isMyHouse ? house.colorHex : undefined,
+                    background: isMyHouse ? `${house.colorHex}14` : 'var(--pz-panel-2)'
+                  }}
                 >
                   {house.customIcon && (
                     <img src={house.customIcon} className="w-10 h-10 object-contain flex-shrink-0" alt="" />
                   )}
                   <div className="flex-grow min-w-0">
                     <div className="font-black text-sm" style={{ color: house.colorHex }}>{house.name}</div>
-                    <div className="text-[10px] text-slate-500">{house.mascot}</div>
+                    <div className="text-[10px]" style={{ color: 'var(--pz-text)' }}>{house.mascot}</div>
                   </div>
                   {isMyHouse && (
-                    <span className="text-[9px] font-black uppercase px-2 py-1 rounded bg-slate-900 text-white">You</span>
+                    <span className="text-[9px] font-black uppercase px-2 py-1" style={{ background: 'var(--pz-volt)', color: '#0B0E13', clipPath: NOTCH_SM }}>You</span>
                   )}
                 </div>
               );
@@ -587,10 +604,10 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
   const renderStoreTab = () => (
     <div className="space-y-6">
-      <div className="bg-slate-900 text-white p-4 rounded-2xl flex justify-between items-center">
+      <div className="pz-card text-white p-4 flex justify-between items-center">
         <div>
-          <div className="text-[10px] font-bold uppercase text-slate-400">Your Balance</div>
-          <div className="text-2xl font-black">{student.points.toLocaleString()} PTS</div>
+          <div className="pz-eyebrow">Your Balance</div>
+          <div className="pz-display text-2xl" style={{ color: 'var(--pz-volt)' }}>{student.points.toLocaleString()} PTS</div>
         </div>
         <div className="text-3xl">🛍️</div>
       </div>
@@ -601,28 +618,29 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
         return (
           <div key={slot}>
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">{slot.replace('_', ' ')}</h3>
+            <h3 className="text-sm text-white uppercase tracking-wide mb-3">{slot.replace('_', ' ')}</h3>
             <div className="grid grid-cols-2 gap-3">
               {items.map(item => {
                 const isOwned = inventory.includes(item.id) || item.isDefault;
                 const canAfford = student.points >= item.xpCost;
 
                 return (
-                  <div key={item.id} className="bg-white p-3 rounded-xl border border-slate-100 flex flex-col">
-                    <div className="bg-slate-50 rounded-lg p-2 mb-2 h-24 flex items-center justify-center">
+                  <div key={item.id} className="pz-card-sm p-3 flex flex-col">
+                    <div className="bg-white/5 border border-white/10 p-2 mb-2 h-24 flex items-center justify-center" style={{ clipPath: NOTCH_SM }}>
                       <img src={item.filePath} alt={item.name} className="h-full object-contain" />
                     </div>
-                    <div className="font-bold text-xs text-slate-900 mb-1">{item.name}</div>
+                    <div className="font-bold text-xs text-white mb-1">{item.name}</div>
                     <div className="flex items-center justify-between mt-auto">
-                      <span className="text-[10px] font-bold text-slate-500">{item.xpCost} pts</span>
+                      <span className="text-[10px] font-bold" style={{ color: 'var(--pz-volt)' }}>{item.xpCost} pts</span>
                       {isOwned ? (
-                        <span className="text-[10px] font-black text-emerald-500 uppercase">Owned</span>
+                        <span className="text-[10px] font-black text-emerald-400 uppercase">Owned</span>
                       ) : (
                         <button
                           onClick={() => handlePurchase(item)}
                           disabled={!canAfford}
-                          className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase ${canAfford ? 'bg-brand-blue text-white' : 'bg-slate-100 text-slate-400'
+                          className={`px-3 py-1.5 text-[10px] font-black uppercase ${canAfford ? 'pz-btn' : 'bg-white/5 text-slate-500'
                             }`}
+                          style={!canAfford ? { clipPath: NOTCH_SM } : undefined}
                         >
                           Buy
                         </button>
@@ -640,28 +658,28 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
   const renderNewsTab = () => (
     <div className="space-y-4">
-      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">Academy News</h3>
+      <h3 className="text-sm text-white uppercase tracking-wide">Academy News</h3>
       {news.length === 0 ? (
-        <div className="text-center py-12 text-slate-400">
+        <div className="text-center py-12" style={{ color: 'var(--pz-text)' }}>
           <div className="text-4xl mb-2">📰</div>
           <div className="text-sm font-medium">No news yet</div>
         </div>
       ) : (
         <div className="space-y-4">
           {news.map(post => (
-            <div key={post.id} className="bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
+            <div key={post.id} className="pz-card p-5">
               <div className="flex items-center gap-2 mb-2">
                 {post.priority === 'HIGH' && (
-                  <span className="bg-red-100 text-red-600 text-[9px] font-black uppercase px-2 py-0.5 rounded">
+                  <span className="bg-red-500/15 text-red-400 text-[9px] font-black uppercase px-2 py-0.5" style={{ clipPath: NOTCH_SM }}>
                     Important
                   </span>
                 )}
-                <span className="text-[10px] text-slate-400 font-bold">
+                <span className="text-[10px] font-bold" style={{ color: 'var(--pz-text)' }}>
                   {new Date(post.publishedAt || post.createdAt).toLocaleDateString()}
                 </span>
               </div>
-              <h4 className="font-black text-lg text-slate-900 mb-2">{post.title}</h4>
-              <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{post.content}</div>
+              <h4 className="text-lg text-white mb-2">{post.title}</h4>
+              <div className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--pz-text)' }}>{post.content}</div>
             </div>
           ))}
         </div>
@@ -670,20 +688,20 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
   );
 
   return (
-    <div className="mobile-modal animate-fade-in" style={{ zIndex: 'var(--z-modal, 200)' }}>
+    <div className="mobile-modal pz-scope animate-fade-in" style={{ zIndex: 'var(--z-modal, 200)', background: 'var(--pz-bg)' }}>
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative flex flex-col bg-slate-50 w-full h-full animate-slide-up overflow-hidden">
+      <div className="relative flex flex-col w-full h-full animate-slide-up overflow-hidden" style={{ background: 'var(--pz-bg)' }}>
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-100 flex-shrink-0">
-          <button onClick={onClose} className="touch-btn text-slate-500 font-bold text-sm px-2 py-1">
+        <div className="flex items-center justify-between px-4 py-3 flex-shrink-0" style={{ background: 'var(--pz-panel)', borderBottom: '1px solid var(--pz-border)' }}>
+          <button onClick={onClose} className="touch-btn pz-btn-ghost font-bold text-xs px-3 py-1">
             Close
           </button>
-          <h2 className="text-sm font-black text-slate-900 uppercase tracking-wide">My Profile</h2>
+          <h2 className="text-sm text-white uppercase tracking-wide">My Profile</h2>
           <div className="w-16" /> {/* Spacer */}
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white border-b border-slate-100 px-2 py-2 flex-shrink-0 overflow-x-auto">
+        <div className="px-2 py-2 flex-shrink-0 overflow-x-auto" style={{ background: 'var(--pz-panel)', borderBottom: '1px solid var(--pz-border)' }}>
           <div className="flex gap-1 min-w-max">
             {[
               { id: 'PROFILE', label: 'Profile', icon: '👤' },
@@ -697,10 +715,13 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`touch-btn px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all ${activeTab === tab.id
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-slate-100 text-slate-500'
+                className={`touch-btn px-3 py-2 text-[10px] font-black uppercase tracking-wide transition-all ${activeTab === tab.id
+                  ? 'text-[#0B0E13]'
+                  : 'text-slate-400 border border-white/10'
                   }`}
+                style={activeTab === tab.id
+                  ? { background: 'var(--pz-volt)', clipPath: NOTCH_SM }
+                  : { background: 'var(--pz-panel-2)', clipPath: NOTCH_SM }}
               >
                 <span className="mr-1">{tab.icon}</span> {tab.label}
               </button>

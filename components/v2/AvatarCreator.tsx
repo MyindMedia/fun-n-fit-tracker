@@ -73,12 +73,12 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ studentId, onClose, onSav
     return w ? w.filePath : null;
   };
 
-  if (loading) return <div className="p-8 text-center">Loading Wardrobe...</div>;
+  if (loading) return <div className="pz-scope p-8 text-center text-[#ABABAB]">Loading Wardrobe...</div>;
 
   return (
-    <div className="flex flex-col h-full bg-slate-50">
+    <div className="pz-scope flex flex-col h-full" style={{ background: 'var(--pz-bg)' }}>
       {/* Preview Area */}
-      <div className="flex-grow relative flex items-center justify-center bg-gradient-to-b from-blue-100 to-slate-100 p-4 overflow-hidden">
+      <div className="flex-grow relative flex items-center justify-center bg-gradient-to-b from-[#171C27] to-[#0B0E13] p-4 overflow-hidden">
         <div className="relative w-64 h-64 md:w-80 md:h-80">
           {/* Layers - Render order matters! Face -> Top -> Hair -> Accessory */}
           {getAssetUrl(config.baseFaceId) && (
@@ -93,10 +93,10 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ studentId, onClose, onSav
           {getAssetUrl(config.accessoryId) && (
             <img src={getAssetUrl(config.accessoryId)!} className="absolute inset-0 w-full h-full object-contain z-40" alt="Accessory" />
           )}
-          
+
           {/* Fallback if no face selected */}
           {!config.baseFaceId && (
-            <div className="absolute inset-0 flex items-center justify-center text-slate-300 font-black text-2xl uppercase tracking-widest border-4 border-dashed border-slate-300 rounded-full">
+            <div className="absolute inset-0 flex items-center justify-center text-white/20 font-black text-2xl uppercase tracking-widest border-4 border-dashed border-white/15 rounded-full">
               No Face
             </div>
           )}
@@ -104,15 +104,15 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ studentId, onClose, onSav
       </div>
 
       {/* Controls Area */}
-      <div className="bg-white border-t border-slate-200 flex-shrink-0">
+      <div className="border-t border-white/10 flex-shrink-0" style={{ background: 'var(--pz-panel)' }}>
         {/* Category Tabs */}
-        <div className="flex overflow-x-auto border-b border-slate-100 hide-scrollbar">
+        <div className="flex overflow-x-auto border-b border-white/10 hide-scrollbar">
           {(['BASE_FACE', 'HAIRSTYLE', 'TOP', 'ACCESSORY'] as const).map(slot => (
             <button
               key={slot}
               onClick={() => setActiveSlot(slot)}
               className={`flex-1 min-w-[80px] py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${
-                activeSlot === slot ? 'text-brand-blue border-b-2 border-brand-blue bg-blue-50' : 'text-slate-400'
+                activeSlot === slot ? 'text-[#CBFE1C] border-b-2 border-[#CBFE1C] bg-[#CBFE1C]/5' : 'text-[#ABABAB]'
               }`}
             >
               {slot.replace('BASE_', '').replace('_', ' ')}
@@ -128,43 +128,43 @@ const AvatarCreator: React.FC<AvatarCreatorProps> = ({ studentId, onClose, onSav
               <button
                 key={item.id}
                 onClick={() => updateConfig(item.id)}
-                className={`aspect-square rounded-xl border-2 p-1 relative overflow-hidden transition-all ${
-                  isSelected ? 'border-brand-blue ring-2 ring-blue-100' : 'border-slate-100 hover:border-slate-300'
+                className={`aspect-square rounded-xl border-2 p-1 relative overflow-hidden transition-all bg-[#171C27] ${
+                  isSelected ? 'border-[#CBFE1C] ring-2 ring-[#CBFE1C]/20' : 'border-white/10 hover:border-white/30'
                 }`}
               >
                 <img src={item.filePath} className="w-full h-full object-contain" alt={item.name} />
                 {isSelected && (
-                  <div className="absolute top-1 right-1 w-2 h-2 bg-brand-blue rounded-full" />
+                  <div className="absolute top-1 right-1 w-2 h-2 bg-[#CBFE1C] rounded-full" />
                 )}
                 {/* Rarity Indicator */}
                 <div className={`absolute bottom-0 inset-x-0 h-1 ${
                   item.rarity === 'legendary' ? 'bg-yellow-400' :
                   item.rarity === 'epic' ? 'bg-purple-500' :
                   item.rarity === 'rare' ? 'bg-blue-400' :
-                  item.rarity === 'uncommon' ? 'bg-green-400' : 'bg-slate-300'
+                  item.rarity === 'uncommon' ? 'bg-green-400' : 'bg-white/20'
                 }`} />
               </button>
             );
           })}
           {getFilteredWearables().length === 0 && (
-            <div className="col-span-4 text-center py-8 text-slate-400 text-xs">
+            <div className="col-span-4 text-center py-8 text-[#ABABAB] text-xs">
               No items in this category yet.
             </div>
           )}
         </div>
 
         {/* Action Bar */}
-        <div className="p-4 border-t border-slate-100 flex gap-3">
-          <button 
+        <div className="p-4 border-t border-white/10 flex gap-3">
+          <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl border border-slate-200 font-bold text-slate-600 text-sm"
+            className="flex-1 pz-btn-ghost py-3 text-sm"
           >
             Cancel
           </button>
-          <button 
+          <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 py-3 rounded-xl bg-brand-blue text-white font-black uppercase tracking-widest text-sm shadow-lg shadow-blue-200 active:transform active:scale-95 transition-all"
+            className="flex-1 pz-btn py-3 text-sm disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save Avatar'}
           </button>

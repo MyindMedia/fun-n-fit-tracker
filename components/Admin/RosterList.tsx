@@ -46,24 +46,26 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
   }, [groupedStudents]);
 
   return (
-    <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-slate-100 flex flex-col">
+    <div className="pz-card p-8 flex flex-col">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 shrink-0">
         <div>
-          <h2 className="text-3xl font-display font-black text-slate-900 uppercase tracking-tight">Athlete Roster</h2>
-          <p className="text-slate-400 font-medium text-sm">Review profiles and manage houses.</p>
+          <h2 className="text-3xl text-white tracking-tight">Athlete Roster</h2>
+          <p className="font-medium text-sm" style={{ color: 'var(--pz-text)' }}>Review profiles and manage houses.</p>
         </div>
-        <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-inner">
+        <div className="flex bg-white/5 p-1.5 border border-white/10">
           <button
             onClick={() => setViewMode('INDIVIDUAL')}
-            className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'INDIVIDUAL' ? 'bg-white text-brand-blue shadow-md' : 'text-slate-400'}`}
+            className={`relative px-5 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'INDIVIDUAL' ? 'bg-white/5 text-[#CBFE1C]' : 'text-white/40'}`}
           >
             Individual
+            {viewMode === 'INDIVIDUAL' && <span className="absolute left-2 right-2 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
           </button>
           <button
             onClick={() => setViewMode('TEAM')}
-            className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'TEAM' ? 'bg-white text-brand-blue shadow-md' : 'text-slate-400'}`}
+            className={`relative px-5 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'TEAM' ? 'bg-white/5 text-[#CBFE1C]' : 'text-white/40'}`}
           >
             Houses
+            {viewMode === 'TEAM' && <span className="absolute left-2 right-2 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
           </button>
         </div>
       </div>
@@ -72,12 +74,12 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
         {viewMode === 'INDIVIDUAL' ? (
           <div className="space-y-3">
             {list.length === 0 ? (
-              <div className="text-center py-20 text-slate-400 italic font-medium">No athletes enrolled yet.</div>
+              <div className="text-center py-20 italic font-medium" style={{ color: 'var(--pz-text)' }}>No athletes enrolled yet.</div>
             ) : (
               list.map(s => {
                 const studentRank = ranks.find(r => r.id === s.rankId);
                 return (
-                  <div key={s.id} className="p-4 bg-white border-2 border-slate-50 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4 group hover:border-brand-blue/20 hover:shadow-lg transition-all">
+                  <div key={s.id} className="pz-card-sm p-4 flex flex-col md:flex-row justify-between items-center gap-4 group hover:border-[#CBFE1C]/40 transition-all" style={{ background: 'var(--pz-panel-2)' }}>
                     <div className="flex items-center gap-6 flex-grow min-w-0">
                       <StudentAvatar
                         student={s}
@@ -86,28 +88,28 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
                         showPresence={true}
                       />
                       <div className="truncate">
-                        <div className="font-display font-black text-slate-900 text-lg leading-tight truncate">{s.fullName}</div>
+                        <div className="pz-display text-white text-lg leading-tight truncate">{s.fullName}</div>
                         {s.gamerTag && (
-                          <div className="text-slate-400 text-xs truncate">@{s.gamerTag}</div>
+                          <div className="text-xs truncate" style={{ color: 'var(--pz-text)' }}>@{s.gamerTag}</div>
                         )}
                         <div className="flex items-center gap-3 mt-1">
                           <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md text-white shadow-sm" style={{ backgroundColor: HOUSES[s.houseId].colorHex }}>
                             {HOUSES[s.houseId].name}
                           </span>
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.gender}</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>{s.gender}</span>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-4 shrink-0">
                       <div className="text-right mr-2">
-                        <div className="text-[8px] font-black text-slate-400 uppercase">Points</div>
-                        <div className="text-xl font-display font-black text-brand-blue leading-none">{s.points.toLocaleString()}</div>
+                        <div className="text-[8px] font-black uppercase" style={{ color: 'var(--pz-text)' }}>Points</div>
+                        <div className="pz-display text-xl text-[#CBFE1C] leading-none">{s.points.toLocaleString()}</div>
                       </div>
 
                       <button
                         onClick={() => onOpenEdit(s)}
-                        className="bg-slate-900 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-black hover:scale-105 active:scale-95 transition-all"
+                        className="pz-btn-ghost px-6 py-3 text-[10px] hover:scale-105 active:scale-95 transition-all"
                       >
                         Edit
                       </button>
@@ -129,7 +131,7 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
                         }}
                         title={s.isPresent ? "Mark Inactive" : "Mark Active"}
                         aria-label={s.isPresent ? "Mark Inactive" : "Mark Active"}
-                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${s.isPresent ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-700'} ${busyId === s.id ? 'opacity-60 cursor-wait' : 'hover:shadow'}`}
+                        className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all border ${s.isPresent ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400' : 'bg-white/5 border-white/10 text-white/50'} ${busyId === s.id ? 'opacity-60 cursor-wait' : 'hover:border-white/30'}`}
                       >
                         {busyId === s.id ? 'Updating…' : (s.isPresent ? 'Active' : 'Inactive')}
                       </button>
@@ -143,23 +145,23 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
           <div className="space-y-12 pb-10">
             {houseStats.map(house => (
               <div key={house.id} className="space-y-6">
-                <div className="flex items-center justify-between border-b-2 border-slate-100 pb-4">
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
                   <div className="flex items-center gap-4">
                     <img src={house.customIcon} className="w-14 h-14 object-contain drop-shadow-md" />
                     <div>
-                      <h3 className="text-2xl font-display font-black uppercase tracking-tight" style={{ color: house.colorHex }}>{house.name} House</h3>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{house.memberCount} Athletes • {house.mascot} Mascot</p>
+                      <h3 className="text-2xl tracking-tight" style={{ color: house.colorHex }}>{house.name} House</h3>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--pz-text)' }}>{house.memberCount} Athletes • {house.mascot} Mascot</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">House Score</div>
-                    <div className="text-3xl font-display font-black" style={{ color: house.colorHex }}>{house.points.toLocaleString()}</div>
+                    <div className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: 'var(--pz-text)' }}>House Score</div>
+                    <div className="pz-display text-3xl" style={{ color: house.colorHex }}>{house.points.toLocaleString()}</div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {groupedStudents[house.id].length === 0 ? (
-                    <div className="col-span-2 text-center py-6 bg-slate-50 rounded-2xl text-slate-400 text-xs italic">No athletes assigned to this house.</div>
+                    <div className="col-span-2 text-center py-6 bg-white/5 text-xs italic" style={{ color: 'var(--pz-text)' }}>No athletes assigned to this house.</div>
                   ) : (
                     groupedStudents[house.id].map(s => {
                       const studentRank = ranks.find(r => r.id === s.rankId);
@@ -167,8 +169,10 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
                         <div
                           key={s.id}
                           onClick={() => onOpenEdit(s)}
-                          className="p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-brand-blue/30 hover:bg-white transition-all cursor-pointer flex items-center justify-between group"
+                          className="pz-card-sm relative p-4 hover:border-[#CBFE1C]/40 hover:bg-white/5 transition-all cursor-pointer flex items-center justify-between group"
+                          style={{ background: 'var(--pz-panel-2)' }}
                         >
+                          <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: house.colorHex }} />
                           <div className="flex items-center gap-4">
                             <StudentAvatar
                               student={s}
@@ -176,14 +180,14 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
                               size="sm"
                             />
                             <div className="min-w-0">
-                              <div className="text-sm font-black text-slate-800 truncate">{s.fullName}</div>
+                              <div className="text-sm font-black text-white truncate">{s.fullName}</div>
                               {s.gamerTag && (
-                                <div className="text-[9px] text-slate-400 truncate">@{s.gamerTag}</div>
+                                <div className="text-[9px] truncate" style={{ color: 'var(--pz-text)' }}>@{s.gamerTag}</div>
                               )}
-                              <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{s.points} pts</div>
+                              <div className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>{s.points} pts</div>
                             </div>
                           </div>
-                          <div className={`w-2 h-2 rounded-full ${s.isPresent ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                          <div className={`w-2 h-2 rounded-full ${s.isPresent ? 'bg-emerald-500' : 'bg-white/20'}`} />
                         </div>
                       );
                     })

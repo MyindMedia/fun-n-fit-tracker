@@ -18,6 +18,8 @@ const RARITY_RANK: Record<Rarity, number> = {
   legendary: 4,
 };
 
+// NOTE: the pz notch clip-path clips outer box-shadows, so rarity glows are
+// drop-shadow filters applied on a wrapper div around each notched card.
 const RARITY_META: Record<
   Rarity,
   { label: string; border: string; glow: string; header: string; strip: string; cost: string }
@@ -33,7 +35,7 @@ const RARITY_META: Record<
   uncommon: {
     label: 'Uncommon',
     border: 'border-emerald-500/80',
-    glow: 'shadow-lg shadow-emerald-500/20',
+    glow: 'drop-shadow(0 0 10px rgba(16,185,129,0.25))',
     header: 'bg-gradient-to-br from-emerald-500/25 to-emerald-900/40',
     strip: 'bg-emerald-500 text-emerald-950',
     cost: 'text-emerald-400',
@@ -41,7 +43,7 @@ const RARITY_META: Record<
   rare: {
     label: 'Rare',
     border: 'border-blue-500/80',
-    glow: 'shadow-lg shadow-blue-500/25',
+    glow: 'drop-shadow(0 0 10px rgba(59,130,246,0.3))',
     header: 'bg-gradient-to-br from-blue-500/25 to-blue-900/40',
     strip: 'bg-blue-500 text-white',
     cost: 'text-blue-400',
@@ -49,7 +51,7 @@ const RARITY_META: Record<
   epic: {
     label: 'Epic',
     border: 'border-purple-500/80',
-    glow: 'shadow-lg shadow-purple-500/30',
+    glow: 'drop-shadow(0 0 12px rgba(168,85,247,0.35))',
     header: 'bg-gradient-to-br from-purple-500/30 to-purple-900/40',
     strip: 'bg-purple-500 text-white',
     cost: 'text-purple-400',
@@ -57,7 +59,7 @@ const RARITY_META: Record<
   legendary: {
     label: 'Legendary',
     border: 'border-amber-400',
-    glow: 'shadow-xl shadow-amber-500/40',
+    glow: 'drop-shadow(0 0 14px rgba(251,191,36,0.45))',
     header: 'bg-gradient-to-br from-amber-400/30 via-orange-500/25 to-orange-900/40',
     strip: 'bg-gradient-to-r from-amber-400 to-orange-500 text-amber-950',
     cost: 'text-amber-400',
@@ -65,10 +67,13 @@ const RARITY_META: Record<
 };
 
 const STATUS_META: Record<Redemption['status'], { label: string; chip: string }> = {
-  PENDING: { label: 'At the front desk', chip: 'bg-amber-100 text-amber-700' },
-  FULFILLED: { label: 'Fulfilled', chip: 'bg-emerald-100 text-emerald-700' },
-  CANCELLED: { label: 'Refunded', chip: 'bg-slate-100 text-slate-500' },
+  PENDING: { label: 'At the front desk', chip: 'bg-amber-400/15 text-amber-300' },
+  FULFILLED: { label: 'Fulfilled', chip: 'bg-emerald-400/15 text-emerald-300' },
+  CANCELLED: { label: 'Refunded', chip: 'bg-white/10 text-slate-400' },
 };
+
+// Pubzi theme: small notched cut-corner shape for inline elements
+const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
 
 /** Avatar skins auto-equip server-side; everything else is a real-world perk. */
 const isSkin = (reward: Reward): boolean => reward.category === 'Virtual' && !!reward.value;
@@ -151,10 +156,10 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
   return (
     <div className="space-y-6">
       {/* Balance banner */}
-      <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-4 rounded-2xl flex justify-between items-center">
+      <div className="pz-card text-white p-4 flex justify-between items-center">
         <div>
-          <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Your Balance</div>
-          <div className="text-2xl font-black flex items-center gap-2">
+          <div className="pz-eyebrow">Your Balance</div>
+          <div className="pz-display text-2xl flex items-center gap-2" style={{ color: 'var(--pz-volt)' }}>
             <span className="text-xl">🪙</span>
             {student.points.toLocaleString()} PTS
           </div>
@@ -164,9 +169,9 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
 
       {/* Error banner */}
       {errorMsg && (
-        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-3 flex items-start gap-2">
+        <div className="bg-red-500/10 border border-red-500/40 p-3 flex items-start gap-2" style={{ clipPath: NOTCH_SM }}>
           <span className="text-lg">⚠️</span>
-          <div className="flex-grow text-xs font-bold text-red-600 leading-snug">{errorMsg}</div>
+          <div className="flex-grow text-xs font-bold text-red-300 leading-snug">{errorMsg}</div>
           <button
             onClick={() => setErrorMsg(null)}
             className="touch-btn text-red-400 font-black px-1 leading-none"
@@ -178,11 +183,11 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
 
       {/* Item shop grid */}
       <div>
-        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">Item Shop</h3>
+        <h3 className="text-sm text-white uppercase tracking-wide mb-3">Item Shop</h3>
         {loading ? (
-          <div className="text-center py-12 text-slate-400 text-sm">Loading the shop...</div>
+          <div className="text-center py-12 text-sm" style={{ color: 'var(--pz-text)' }}>Loading the shop...</div>
         ) : sortedRewards.length === 0 ? (
-          <div className="text-center py-12 text-slate-400">
+          <div className="text-center py-12" style={{ color: 'var(--pz-text)' }}>
             <div className="text-4xl mb-2">🛒</div>
             <div className="text-sm font-medium">The shop is being restocked — check back soon!</div>
           </div>
@@ -197,10 +202,11 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
               const busy = redeemingKey !== null;
 
               return (
-                <div
-                  key={reward.id}
-                  className={`relative bg-slate-900 rounded-xl border-2 ${meta.border} ${meta.glow} overflow-hidden flex flex-col`}
-                >
+                <div key={reward.id} style={meta.glow ? { filter: meta.glow } : undefined}>
+                  <div
+                    className={`relative h-full border-2 ${meta.border} overflow-hidden flex flex-col`}
+                    style={{ background: 'var(--pz-panel)', clipPath: NOTCH_SM }}
+                  >
                   {/* Preview */}
                   <div className={`${meta.header} h-28 flex items-center justify-center relative`}>
                     {skin ? (
@@ -213,7 +219,7 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
                       <span className="text-5xl drop-shadow-lg">{reward.icon}</span>
                     )}
                     {owned && (
-                      <span className="absolute top-2 right-2 bg-emerald-500 text-emerald-950 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
+                      <span className="absolute top-2 right-2 bg-emerald-500 text-emerald-950 text-[8px] font-black uppercase tracking-widest px-2 py-0.5" style={{ clipPath: NOTCH_SM }}>
                         Owned
                       </span>
                     )}
@@ -228,7 +234,7 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
                   <div className="p-3 flex flex-col flex-grow">
                     <div className="font-black text-sm text-white leading-tight">{reward.name}</div>
                     {reward.description && (
-                      <div className="text-[10px] text-slate-400 leading-snug mt-1">{reward.description}</div>
+                      <div className="text-[10px] leading-snug mt-1" style={{ color: 'var(--pz-text)' }}>{reward.description}</div>
                     )}
                     <div className="mt-auto pt-3 space-y-2">
                       <div className={`text-xs font-black flex items-center gap-1 ${meta.cost}`}>
@@ -236,20 +242,21 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
                         {reward.cost.toLocaleString()} pts
                       </div>
                       {owned ? (
-                        <div className="w-full py-2 rounded-lg bg-emerald-500/15 text-emerald-400 text-[10px] font-black uppercase tracking-widest text-center">
+                        <div className="w-full py-2 bg-emerald-500/15 text-emerald-400 text-[10px] font-black uppercase tracking-widest text-center" style={{ clipPath: NOTCH_SM }}>
                           Owned
                         </div>
                       ) : (
                         <button
                           onClick={() => handleRedeem(reward)}
                           disabled={!canAfford || busy}
-                          className={`touch-btn w-full py-2 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all ${
+                          className={`touch-btn w-full py-2 text-[10px] font-black uppercase tracking-wide transition-all ${
                             !canAfford
-                              ? 'bg-slate-800 text-slate-500'
+                              ? 'bg-white/5 text-slate-500'
                               : busy
-                                ? 'bg-slate-700 text-slate-400'
-                                : 'bg-gradient-to-r from-brand-blue to-blue-500 text-white active:scale-95'
+                                ? 'bg-white/10 text-slate-400'
+                                : 'pz-btn active:scale-95'
                           }`}
+                          style={!canAfford || busy ? { clipPath: NOTCH_SM } : undefined}
                         >
                           {redeemingKey === reward.id
                             ? 'Redeeming...'
@@ -260,6 +267,7 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
                       )}
                     </div>
                   </div>
+                  </div>
                 </div>
               );
             })}
@@ -269,26 +277,27 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
 
       {/* My redemptions */}
       <div>
-        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-3">My Redemptions</h3>
+        <h3 className="text-sm text-white uppercase tracking-wide mb-3">My Redemptions</h3>
         {redemptions.length === 0 ? (
-          <div className="text-center py-8 text-slate-400 text-sm">Nothing redeemed yet — treat yourself!</div>
+          <div className="text-center py-8 text-sm" style={{ color: 'var(--pz-text)' }}>Nothing redeemed yet — treat yourself!</div>
         ) : (
           <div className="space-y-2">
             {redemptions.map((r) => {
               const status = STATUS_META[r.status];
               return (
-                <div key={r.id} className="bg-white rounded-xl p-3 border border-slate-100 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-xl flex-shrink-0">
+                <div key={r.id} className="pz-card-sm p-3 flex items-center gap-3" style={{ background: 'var(--pz-panel-2)' }}>
+                  <div className="w-10 h-10 bg-white/5 border border-white/10 flex items-center justify-center text-xl flex-shrink-0" style={{ clipPath: NOTCH_SM }}>
                     {r.rewardIcon || '🎁'}
                   </div>
                   <div className="flex-grow min-w-0">
-                    <div className="font-black text-sm text-slate-900 truncate">{r.rewardName}</div>
-                    <div className="text-[10px] text-slate-400 font-bold">
+                    <div className="font-black text-sm text-white truncate">{r.rewardName}</div>
+                    <div className="text-[10px] font-bold" style={{ color: 'var(--pz-text)' }}>
                       🪙 {r.cost.toLocaleString()} pts • {new Date(r.createdAt).toLocaleDateString()}
                     </div>
                   </div>
                   <span
-                    className={`text-[9px] font-black uppercase px-2 py-1 rounded-full flex-shrink-0 ${status.chip}`}
+                    className={`text-[9px] font-black uppercase px-2 py-1 flex-shrink-0 ${status.chip}`}
+                    style={{ clipPath: NOTCH_SM }}
                   >
                     {status.label}
                   </span>
@@ -302,13 +311,18 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
       {/* Celebration overlay */}
       {celebration && (
         <div
-          className="fixed inset-0 z-[260] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6"
+          className="fixed inset-0 z-[260] pz-scope bg-black/70 backdrop-blur-sm flex items-center justify-center p-6"
           onClick={() => setCelebration(null)}
         >
           <div
-            className="bg-slate-900 border-2 border-amber-400/60 rounded-3xl p-6 w-full max-w-sm text-center shadow-2xl shadow-amber-500/20 animate-fade-in"
+            className="w-full max-w-sm animate-fade-in"
+            style={{ filter: 'drop-shadow(0 0 24px rgba(251,191,36,0.35))' }}
             onClick={(e) => e.stopPropagation()}
           >
+            <div
+              className="border-2 border-amber-400/60 p-6 text-center"
+              style={{ background: 'var(--pz-panel)', clipPath: 'polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px)' }}
+            >
             <div className="text-5xl mb-3">🎉</div>
             {celebration.skin && celebration.reward.value ? (
               <img
@@ -320,7 +334,7 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
               <div className="text-6xl mb-3">{celebration.reward.icon}</div>
             )}
             <div className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-400 mb-1">Redeemed!</div>
-            <div className="text-xl font-black text-white mb-2">{celebration.reward.name}</div>
+            <div className="pz-display text-xl text-white mb-2">{celebration.reward.name}</div>
             <p className="text-xs text-slate-300 font-medium leading-relaxed mb-5">
               {celebration.skin
                 ? 'Your avatar just changed — the new skin is equipped and live on the leaderboard!'
@@ -328,10 +342,12 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
             </p>
             <button
               onClick={() => setCelebration(null)}
-              className="touch-btn w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-amber-950 font-black text-xs uppercase tracking-widest"
+              className="touch-btn w-full py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-amber-950 font-black text-xs uppercase tracking-widest"
+              style={{ clipPath: NOTCH_SM }}
             >
               Awesome!
             </button>
+            </div>
           </div>
         </div>
       )}
