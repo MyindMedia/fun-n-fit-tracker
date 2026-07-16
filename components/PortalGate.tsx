@@ -38,36 +38,47 @@ const PortalGate: React.FC = () => {
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const { user } = useUser();
   const [error, setError] = useState<string | null>(null);
+  const [bridgingParent, setBridgingParent] = useState(false);
   const bridging = useRef(false);
+
+  const isAdmin = isAdminUser(user);
+
+  // Exchange the Clerk session for the app's parent session, then enter the
+  // parent dashboard. Used automatically for parents; on demand for admins
+  // (who are often parents too).
+  const enterParentPortal = async () => {
+    if (bridging.current) return;
+    bridging.current = true;
+    setBridgingParent(true);
+    try {
+      const clerkToken = await getToken();
+      if (!clerkToken) throw new Error('No session token');
+      const client = new ConvexClient(CONVEX_URL);
+      const result = (await client.action(api.clerkBridge.signIn, {
+        clerkToken,
+      })) as { token: string };
+      parentAuth.adoptToken(result.token);
+      navigate('/parent-dashboard', { replace: true });
+    } catch (e) {
+      console.error('Portal sign-in bridge failed:', e);
+      setError(
+        e instanceof Error && /expired/i.test(e.message)
+          ? 'Your session expired — please sign in again.'
+          : 'Could not finish signing you in. Please try again.'
+      );
+      bridging.current = false;
+      setBridgingParent(false);
+    }
+  };
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !user || bridging.current) return;
-    bridging.current = true;
-    (async () => {
-      try {
-        if (isAdminUser(user)) {
-          navigate('/admin', { replace: true });
-          return;
-        }
-        const clerkToken = await getToken();
-        if (!clerkToken) throw new Error('No session token');
-        const client = new ConvexClient(CONVEX_URL);
-        const result = (await client.action(api.clerkBridge.signIn, {
-          clerkToken,
-        })) as { token: string };
-        parentAuth.adoptToken(result.token);
-        navigate('/parent-dashboard', { replace: true });
-      } catch (e) {
-        console.error('Portal sign-in bridge failed:', e);
-        setError(
-          e instanceof Error && /expired/i.test(e.message)
-            ? 'Your session expired — please sign in again.'
-            : 'Could not finish signing you in. Please try again.'
-        );
-        bridging.current = false;
-      }
-    })();
-  }, [isLoaded, isSignedIn, user, getToken, navigate]);
+    // Admins get a chooser (Admin portal vs Parent portal) instead of a
+    // forced redirect — otherwise they can never reach the parent side.
+    if (isAdmin) return;
+    void enterParentPortal();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, isSignedIn, user]);
 
   return (
     <div
@@ -103,7 +114,29 @@ const PortalGate: React.FC = () => {
 
       {isLoaded && !isSignedIn && <SignIn appearance={clerkAppearance} routing="virtual" />}
 
-      {isLoaded && isSignedIn && !error && (
+      {isLoaded && isSignedIn && !error && isAdmin && !bridgingParent && (
+        <div className="pz-card" style={{ padding: '1.5rem', maxWidth: 380, width: '100%' }}>
+          <p style={{ color: 'var(--pz-text)', fontSize: '0.85rem', textAlign: 'center', marginBottom: '1rem' }}>
+            You're signed in as staff — where to?
+          </p>
+          <button
+            className="pz-btn"
+            style={{ display: 'block', width: '100%', minHeight: 56, marginBottom: '0.75rem', fontSize: '0.85rem' }}
+            onClick={() => navigate('/admin')}
+          >
+            Admin Portal
+          </button>
+          <button
+            className="pz-btn-ghost"
+            style={{ display: 'block', width: '100%', minHeight: 56, fontSize: '0.85rem' }}
+            onClick={() => void enterParentPortal()}
+          >
+            Parent Portal
+          </button>
+        </div>
+      )}
+
+      {isLoaded && isSignedIn && !error && (!isAdmin || bridgingParent) && (
         <div className="pz-card-sm" style={{ padding: '1rem 1.5rem', color: '#fff' }}>
           Signing you in…
         </div>
