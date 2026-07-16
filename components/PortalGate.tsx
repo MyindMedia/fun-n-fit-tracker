@@ -11,6 +11,7 @@ import { api } from '../convex/_generated/api';
 import { parentAuth } from '../services/parentAuth';
 import { isAdminUser } from '../services/adminAccess';
 import { PzPortalCss } from './Parent/shared';
+import { Ic } from './icons';
 
 const CONVEX_URL =
   (import.meta.env.VITE_CONVEX_URL as string | undefined) ||
@@ -93,6 +94,27 @@ const PortalGate: React.FC = () => {
       }}
     >
       <PzPortalCss />
+
+      {/* Escape hatch — the gate must never be a dead end */}
+      <button
+        onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+        className="pz-btn-ghost"
+        style={{
+          position: 'absolute',
+          top: 'calc(1rem + env(safe-area-inset-top, 0px))',
+          left: '1rem',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.45rem',
+          padding: '0.6rem 1rem',
+          minHeight: 44,
+          fontSize: '0.75rem',
+        }}
+        aria-label="Go back"
+      >
+        <Ic.ArrowLeft size={16} /> Back
+      </button>
+
       <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
         <img
           src="/fnfa-logo.png"
@@ -141,6 +163,22 @@ const PortalGate: React.FC = () => {
           Signing you in…
         </div>
       )}
+
+      {/* Always-available exits below the card */}
+      <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1.5rem' }}>
+        <button
+          onClick={() => navigate('/')}
+          style={{ background: 'none', border: 'none', color: 'var(--pz-text)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', minHeight: 44, fontFamily: "'Chakra Petch', sans-serif" }}
+        >
+          Home
+        </button>
+        <button
+          onClick={() => navigate('/live')}
+          style={{ background: 'none', border: 'none', color: 'var(--pz-text)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', minHeight: 44, fontFamily: "'Chakra Petch', sans-serif" }}
+        >
+          Live Board
+        </button>
+      </div>
 
       {error && (
         <div
