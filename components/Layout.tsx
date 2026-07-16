@@ -9,6 +9,7 @@ import { APP_LOGO_URL, HOUSES } from '../constants';
 import StudentProfileModal from './StudentProfileModal';
 import CelebrationOverlay, { Celebration } from './CelebrationOverlay';
 import { AudioService } from '../utils/audio';
+import { Ic } from './icons';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -275,7 +276,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   className="w-full bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-2.5 font-bold text-xs uppercase tracking-widest text-white placeholder-white/40 focus:border-[#CBFE1C] outline-none transition-all"
                   style={{ clipPath: NOTCH_SM }}
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm pointer-events-none opacity-50 group-focus-within:opacity-100">🔍</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 group-focus-within:opacity-100 flex items-center text-white"><Ic.Search size={16} /></span>
               </div>
 
               {filteredStudents.length > 0 && (
@@ -307,7 +308,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   onClick={toggleProjectorMode}
                   className="pz-btn-ghost flex items-center gap-2 px-4 py-2 text-xs"
                 >
-                  <span className="text-lg leading-none">🗖</span>
+                  <Ic.Projector size={18} />
                   <span className="hidden lg:inline">Projector</span>
                 </button>
               )}

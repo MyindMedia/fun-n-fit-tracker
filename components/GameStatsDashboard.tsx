@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { supabaseService } from '../services/supabaseService';
 import { Student, GameSession, HouseId, Transaction } from '../types';
 import { HOUSES, GAME_LIBRARY } from '../constants';
+import { Ic, IconProps } from './icons';
 
 interface PlayerStats {
   student: Student;
@@ -33,7 +34,7 @@ interface HouseStats {
 
 interface AwardCategory {
   title: string;
-  icon: string;
+  icon: React.FC<IconProps>;
   description: string;
   winner: PlayerStats | null;
   runnerUp: PlayerStats | null;
@@ -295,13 +296,13 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const byPoints = sorted.sort((a, b) => b.totalPoints - a.totalPoints);
 
     return [
-      { title: 'MVP', icon: '🏆', description: 'Most MVP titles', winner: byMVP[0] || null, runnerUp: byMVP[1] || null },
-      { title: 'Top Scorer', icon: '⭐', description: 'Highest total points', winner: byPoints[0] || null, runnerUp: byPoints[1] || null },
-      { title: 'Most Improved', icon: '📈', description: 'Greatest points gained', winner: byImproved[0] || null, runnerUp: byImproved[1] || null },
-      { title: 'Iron Athlete', icon: '💪', description: 'Most games played', winner: byGames[0] || null, runnerUp: byGames[1] || null },
-      { title: 'Champion', icon: '🥇', description: 'Most game wins', winner: byWins[0] || null, runnerUp: byWins[1] || null },
-      { title: 'Consistent', icon: '🎯', description: 'Best avg per game', winner: byAvg[0] || null, runnerUp: byAvg[1] || null },
-      { title: 'Rising Star', icon: '🌟', description: 'Closest to next rank', winner: byProgress[0] || null, runnerUp: byProgress[1] || null }
+      { title: 'MVP', icon: Ic.Trophy, description: 'Most MVP titles', winner: byMVP[0] || null, runnerUp: byMVP[1] || null },
+      { title: 'Top Scorer', icon: Ic.Star, description: 'Highest total points', winner: byPoints[0] || null, runnerUp: byPoints[1] || null },
+      { title: 'Most Improved', icon: Ic.Chart, description: 'Greatest points gained', winner: byImproved[0] || null, runnerUp: byImproved[1] || null },
+      { title: 'Iron Athlete', icon: Ic.Muscle, description: 'Most games played', winner: byGames[0] || null, runnerUp: byGames[1] || null },
+      { title: 'Champion', icon: Ic.Medal, description: 'Most game wins', winner: byWins[0] || null, runnerUp: byWins[1] || null },
+      { title: 'Consistent', icon: Ic.Target, description: 'Best avg per game', winner: byAvg[0] || null, runnerUp: byAvg[1] || null },
+      { title: 'Rising Star', icon: Ic.Sparkle, description: 'Closest to next rank', winner: byProgress[0] || null, runnerUp: byProgress[1] || null }
     ];
   }, [playerStats]);
 
@@ -313,9 +314,9 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const byGames = [...sorted].sort((a, b) => b.dodgeballGames - a.dodgeballGames);
 
     return [
-      { title: 'Dodgeball MVP', icon: '🎯', description: 'Most dodgeball MVPs', winner: byMVP[0] || null, runnerUp: byMVP[1] || null },
-      { title: 'Dodgeball Champion', icon: '🏆', description: 'Most dodgeball wins', winner: byWins[0] || null, runnerUp: byWins[1] || null },
-      { title: 'Dodgeball Warrior', icon: '💪', description: 'Most games played', winner: byGames[0] || null, runnerUp: byGames[1] || null },
+      { title: 'Dodgeball MVP', icon: Ic.Target, description: 'Most dodgeball MVPs', winner: byMVP[0] || null, runnerUp: byMVP[1] || null },
+      { title: 'Dodgeball Champion', icon: Ic.Trophy, description: 'Most dodgeball wins', winner: byWins[0] || null, runnerUp: byWins[1] || null },
+      { title: 'Dodgeball Warrior', icon: Ic.Muscle, description: 'Most games played', winner: byGames[0] || null, runnerUp: byGames[1] || null },
     ];
   }, [playerStats]);
 
@@ -350,8 +351,8 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <div className="pz-eyebrow text-[9px]">Season Intel</div>
-                  <h1 className="text-base tracking-tight truncate text-white">
-                    {reportView === 'dodgeball' ? '🏐 Dodgeball Season' : 'Awards Report'}
+                  <h1 className="text-base tracking-tight truncate text-white flex items-center gap-2">
+                    {reportView === 'dodgeball' ? <><Ic.Target size={16} className="shrink-0 text-orange-400" /> Dodgeball Season</> : 'Awards Report'}
                   </h1>
                   <p className="text-[10px]" style={{ color: 'var(--pz-text)' }}>
                     {dateRangeLabel} • {new Date().toLocaleDateString()}
@@ -360,17 +361,17 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <div className="flex gap-1 shrink-0 print:hidden">
                   <button
                     onClick={handlePrint}
-                    className="bg-white/10 border border-white/10 px-2 py-1.5 font-bold text-[10px] active:scale-95 hover:border-[#CBFE1C] transition-all"
+                    className="bg-white/10 border border-white/10 px-2 py-1.5 font-bold text-[10px] active:scale-95 hover:border-[#CBFE1C] transition-all flex items-center justify-center"
                     style={{ clipPath: NOTCH_SM }}
                   >
-                    🖨️
+                    <Ic.Printer size={16} />
                   </button>
                   <button
                     onClick={onClose}
                     className="bg-white/10 border border-white/10 w-8 h-8 font-bold text-sm active:scale-95 flex items-center justify-center hover:border-[#CBFE1C] hover:text-[#CBFE1C] transition-all"
                     style={{ clipPath: NOTCH_SM }}
                   >
-                    ✕
+                    <Ic.XMark size={16} />
                   </button>
                 </div>
               </div>
@@ -380,21 +381,21 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <div className="flex print:hidden" style={{ background: 'var(--pz-panel-2)', borderTop: '1px solid var(--pz-border)' }}>
               <button
                 onClick={() => setReportView('general')}
-                className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all active:opacity-70 ${
+                className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all active:opacity-70 inline-flex items-center justify-center gap-1.5 ${
                   reportView === 'general' ? 'text-[#CBFE1C]' : 'text-white/50'
                 }`}
                 style={reportView === 'general' ? { boxShadow: 'inset 0 -2px 0 var(--pz-volt)' } : undefined}
               >
-                📊 General
+                <Ic.Chart size={14} /> General
               </button>
               <button
                 onClick={() => setReportView('dodgeball')}
-                className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all active:opacity-70 ${
+                className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all active:opacity-70 inline-flex items-center justify-center gap-1.5 ${
                   reportView === 'dodgeball' ? 'text-[#CBFE1C]' : 'text-white/50'
                 }`}
                 style={reportView === 'dodgeball' ? { boxShadow: 'inset 0 -2px 0 var(--pz-volt)' } : undefined}
               >
-                🏐 Dodgeball
+                <Ic.Target size={14} /> Dodgeball
               </button>
             </div>
 
@@ -491,7 +492,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <section className="pz-card overflow-hidden">
                   <div className="px-3 py-2" style={{ background: 'var(--pz-panel-2)', borderBottom: '1px solid var(--pz-border)' }}>
                     <h2 className="text-xs text-white uppercase flex items-center gap-2">
-                      <span>🏠</span> House Championship
+                      <Ic.Home size={16} /> House Championship
                     </h2>
                   </div>
                   <div className="p-3 grid grid-cols-2 gap-2">
@@ -506,7 +507,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                           clipPath: NOTCH_SM
                         }}
                       >
-                        {index === 0 && <div className="absolute top-0.5 right-0.5 text-sm">👑</div>}
+                        {index === 0 && <div className="absolute top-0.5 right-0.5 text-yellow-400"><Ic.Trophy size={14} /></div>}
                         <div className="pz-display text-lg mb-0.5" style={{ color: house.color }}>#{index + 1}</div>
                         <div className="text-xs font-black text-white uppercase">{house.name}</div>
                         <div className="mt-1.5 space-y-0.5 text-[10px]">
@@ -536,7 +537,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <section className="pz-card overflow-hidden">
                   <div className="px-3 py-2" style={{ background: 'var(--pz-panel-2)', borderBottom: '1px solid var(--pz-border)' }}>
                     <h2 className="text-xs text-white uppercase flex items-center gap-2">
-                      <span>🏅</span> Individual Awards
+                      <Ic.Medal size={16} /> Individual Awards
                     </h2>
                   </div>
                   <div className="p-3 space-y-2">
@@ -547,7 +548,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         style={{ background: 'var(--pz-panel-2)' }}
                       >
                         <div className="flex items-center gap-2 mb-1.5">
-                          <div className="text-xl">{award.icon}</div>
+                          <div style={{ color: 'var(--pz-volt)' }}><award.icon size={20} /></div>
                           <div className="min-w-0 flex-1">
                             <h3 className="text-[10px] font-black text-white uppercase">{award.title}</h3>
                             <p className="text-[8px] truncate" style={{ color: 'var(--pz-text)' }}>{award.description}</p>
@@ -556,7 +557,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
                         {award.winner ? (
                           <div className="flex items-center gap-2 bg-amber-400/10 border border-amber-400/30 p-2" style={{ clipPath: NOTCH_SM }}>
-                            <span className="text-sm">🥇</span>
+                            <span className="text-yellow-400 flex items-center"><Ic.Medal size={16} /></span>
                             <img src={award.winner.student.avatarUrl} className="w-7 h-7 rounded-full border-2 border-yellow-400" alt="" />
                             <div className="flex-grow min-w-0">
                               <div className="text-[10px] font-black truncate text-white">{award.winner.student.fullName}</div>
@@ -577,18 +578,18 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <section className="pz-card overflow-hidden">
                   <div className="px-3 py-2" style={{ background: 'var(--pz-panel-2)', borderBottom: '1px solid var(--pz-border)' }}>
                     <h2 className="text-xs text-white uppercase flex items-center gap-2">
-                      <span>📊</span> Top 10 Athletes
+                      <Ic.Chart size={16} /> Top 10 Athletes
                     </h2>
                   </div>
                   <div className="divide-y divide-white/5">
                     {playerStats.slice(0, 10).map((stat, index) => (
                       <div key={stat.student.id} className="flex items-center gap-2 p-2.5">
-                        <div className={`text-sm font-black w-6 text-center shrink-0 ${
+                        <div className={`text-sm font-black w-6 shrink-0 flex justify-center ${
                           index === 0 ? 'text-yellow-400' :
                           index === 1 ? 'text-slate-300' :
                           index === 2 ? 'text-amber-500' : 'text-slate-500'
                         }`}>
-                          {index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`}
+                          {index < 3 ? <Ic.Medal size={16} /> : `#${index + 1}`}
                         </div>
                         <img src={stat.student.avatarUrl} className="w-8 h-8 rounded-full border-2 border-white/20 shrink-0" alt="" />
                         <div className="flex-grow min-w-0">
@@ -614,7 +615,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               <>
                 {/* Dodgeball Season Header */}
                 <div className="pz-card p-4 text-white text-center" style={{ borderColor: 'rgba(249, 115, 22, 0.5)', background: 'linear-gradient(to right, rgba(239, 68, 68, 0.18), rgba(249, 115, 22, 0.12)), var(--pz-panel)' }}>
-                  <div className="text-3xl mb-1">🏐</div>
+                  <div className="mb-1 flex justify-center text-orange-400"><Ic.Target size={32} /></div>
                   <h2 className="text-lg uppercase text-orange-400">Dodgeball Season</h2>
                   <p className="text-xs" style={{ color: 'var(--pz-text)' }}>{dodgeballGames.length} matches played</p>
                 </div>
@@ -623,7 +624,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <section className="pz-card overflow-hidden">
                   <div className="px-3 py-2" style={{ background: 'rgba(239, 68, 68, 0.1)', borderBottom: '1px solid var(--pz-border)' }}>
                     <h2 className="text-xs text-red-400 uppercase flex items-center gap-2">
-                      <span>🏆</span> House Standings
+                      <Ic.Trophy size={16} /> House Standings
                     </h2>
                   </div>
                   <div className="p-3 space-y-2">
@@ -637,10 +638,10 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                           clipPath: NOTCH_SM
                         }}
                       >
-                        <div className={`text-xl font-black shrink-0 ${
+                        <div className={`text-xl font-black shrink-0 flex items-center ${
                           index === 0 ? 'text-yellow-400' : index === 1 ? 'text-slate-300' : index === 2 ? 'text-amber-500' : 'text-slate-500'
                         }`}>
-                          {index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`}
+                          {index < 3 ? <Ic.Medal size={20} /> : `#${index + 1}`}
                         </div>
                         <div className="flex-grow min-w-0">
                           <div className="font-black text-sm uppercase truncate" style={{ color: house.color }}>{house.name}</div>
@@ -661,7 +662,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <section className="pz-card overflow-hidden">
                   <div className="px-3 py-2" style={{ background: 'rgba(239, 68, 68, 0.1)', borderBottom: '1px solid var(--pz-border)' }}>
                     <h2 className="text-xs text-red-400 uppercase flex items-center gap-2">
-                      <span>🎯</span> Season Awards
+                      <Ic.Target size={16} /> Season Awards
                     </h2>
                   </div>
                   <div className="p-3 space-y-2">
@@ -672,7 +673,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         style={{ background: 'linear-gradient(to right, rgba(239, 68, 68, 0.08), rgba(249, 115, 22, 0.05)), var(--pz-panel-2)', border: '1px solid rgba(239, 68, 68, 0.25)', clipPath: NOTCH_SM }}
                       >
                         <div className="flex items-center gap-2 mb-2">
-                          <div className="text-2xl">{award.icon}</div>
+                          <div className="text-red-400"><award.icon size={24} /></div>
                           <div className="min-w-0 flex-1">
                             <h3 className="text-xs font-black text-white uppercase">{award.title}</h3>
                             <p className="text-[9px]" style={{ color: 'var(--pz-text)' }}>{award.description}</p>
@@ -681,7 +682,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
                         {award.winner ? (
                           <div className="flex items-center gap-2 p-2" style={{ background: 'var(--pz-panel)', border: '1px solid var(--pz-border)', clipPath: NOTCH_SM }}>
-                            <span className="text-lg">🥇</span>
+                            <span className="text-yellow-400 flex items-center"><Ic.Medal size={18} /></span>
                             <img src={award.winner.student.avatarUrl} className="w-9 h-9 rounded-full border-2 border-yellow-400 shrink-0" alt="" />
                             <div className="flex-grow min-w-0">
                               <div className="text-sm font-black truncate text-white">{award.winner.student.fullName}</div>
@@ -707,7 +708,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
                         {award.runnerUp && (
                           <div className="flex items-center gap-2 mt-2 bg-white/5 p-2" style={{ clipPath: NOTCH_SM }}>
-                            <span className="text-sm">🥈</span>
+                            <span className="text-slate-300 flex items-center"><Ic.Medal size={14} /></span>
                             <img src={award.runnerUp.student.avatarUrl} className="w-6 h-6 rounded-full border border-white/20" alt="" />
                             <span className="text-[10px] font-bold truncate text-white">{award.runnerUp.student.fullName}</span>
                           </div>
@@ -721,7 +722,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <section className="pz-card overflow-hidden">
                   <div className="px-3 py-2" style={{ background: 'rgba(239, 68, 68, 0.1)', borderBottom: '1px solid var(--pz-border)' }}>
                     <h2 className="text-xs text-red-400 uppercase flex items-center gap-2">
-                      <span>🔥</span> Top Players
+                      <Ic.Fire size={16} /> Top Players
                     </h2>
                   </div>
                   <div className="divide-y divide-white/5">
@@ -731,12 +732,12 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                       .slice(0, 10)
                       .map((stat, index) => (
                       <div key={stat.student.id} className="flex items-center gap-2 p-2.5">
-                        <div className={`text-sm font-black w-6 text-center shrink-0 ${
+                        <div className={`text-sm font-black w-6 shrink-0 flex justify-center ${
                           index === 0 ? 'text-yellow-400' :
                           index === 1 ? 'text-slate-300' :
                           index === 2 ? 'text-amber-500' : 'text-slate-500'
                         }`}>
-                          {index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`}
+                          {index < 3 ? <Ic.Medal size={16} /> : `#${index + 1}`}
                         </div>
                         <img src={stat.student.avatarUrl} className="w-8 h-8 rounded-full border-2 border-white/20 shrink-0" alt="" />
                         <div className="flex-grow min-w-0">
@@ -767,7 +768,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <section className="pz-card overflow-hidden">
                   <div className="px-3 py-2" style={{ background: 'rgba(239, 68, 68, 0.1)', borderBottom: '1px solid var(--pz-border)' }}>
                     <h2 className="text-xs text-red-400 uppercase flex items-center gap-2">
-                      <span>📜</span> Recent Games
+                      <Ic.History size={16} /> Recent Games
                     </h2>
                   </div>
                   <div className="p-3 space-y-2">
@@ -789,7 +790,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                           <div className="flex items-center gap-2">
                             {winningHouse ? (
                               <div className="flex items-center gap-1">
-                                <span className="text-sm">🏆</span>
+                                <span className="flex items-center" style={{ color: winningHouse.colorHex }}><Ic.Trophy size={14} /></span>
                                 <span className="text-xs font-black" style={{ color: winningHouse.colorHex }}>
                                   {winningHouse.name}
                                 </span>
@@ -799,7 +800,7 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                             )}
                             {mvp && (
                               <div className="flex items-center gap-1 ml-auto">
-                                <span className="text-[9px]">⭐</span>
+                                <span className="text-yellow-400 flex items-center"><Ic.Star size={12} /></span>
                                 <img src={mvp.avatarUrl} className="w-4 h-4 rounded-full" alt="" />
                                 <span className="text-[9px] font-bold truncate max-w-[60px]" style={{ color: 'var(--pz-text)' }}>{mvp.fullName}</span>
                               </div>

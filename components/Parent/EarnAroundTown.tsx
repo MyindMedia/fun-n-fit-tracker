@@ -6,6 +6,7 @@ import { Student, PartnerBusiness, SpecialTask, TaskSubmission } from '../../typ
 import { gameCenter, CheckInResult } from '../../services/gameCenter';
 import QRScanSheet from './QRScanSheet';
 import { extractScanParam, cleanErr, fmtDateTime, pStyles, KidSelect, StatusChip, PZ } from './shared';
+import { Ic } from '../icons';
 
 interface EarnAroundTownProps {
     students: Student[];
@@ -167,7 +168,7 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                     border: `1px solid ${PZ.voltDim}`,
                 }}>
                     <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
-                        <div style={{ fontSize: '2.5rem' }}>🌟</div>
+                        <div style={{ color: PZ.volt, marginBottom: '0.35rem' }}><Ic.Sparkle size={40} /></div>
                         <h3 className="pz-display" style={{ margin: 0, color: PZ.white, fontSize: '1.125rem' }}>
                             Visit to {visitOutcome.businessName} logged!
                         </h3>
@@ -179,7 +180,9 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                                 background: PZ.panel2, border: `1px solid ${PZ.border}`,
                                 clipPath: PZ.notchSm, padding: '0.6rem 0.875rem', minHeight: '44px',
                             }}>
-                                <span style={{ fontSize: '1.25rem' }}>{r.status === 'OK' ? '🎉' : '✅'}</span>
+                                <span style={{ color: r.status === 'OK' ? PZ.volt : PZ.muted, display: 'inline-flex', flexShrink: 0 }}>
+                                    {r.status === 'OK' ? <Ic.Confetti size={22} /> : <Ic.CheckCircle size={22} />}
+                                </span>
                                 <span style={{ flex: 1, fontWeight: 700, color: PZ.white, fontSize: '0.875rem' }}>{r.fullName}</span>
                                 <span style={{
                                     fontWeight: 700, fontSize: '0.8125rem',
@@ -242,8 +245,8 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                     Visit our partner businesses, scan the QR at their counter, and your kids earn points!
                 </p>
 
-                <button onClick={() => setScannerOpen(true)} className="pz-btn" style={{ ...pStyles.bigActionBtn, opacity: resolving ? 0.6 : 1 }} disabled={resolving}>
-                    {resolving ? 'Checking that QR…' : 'Scan Business QR'}
+                <button onClick={() => setScannerOpen(true)} className="pz-btn" style={{ ...pStyles.bigActionBtn, opacity: resolving ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} disabled={resolving}>
+                    <Ic.Store size={24} /> {resolving ? 'Checking that QR…' : 'Scan Business QR'}
                 </button>
 
                 {visitError && !visitPreview && (
@@ -273,7 +276,9 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                                     <p style={{ margin: '0.4rem 0 0', color: PZ.muted, fontSize: '0.8125rem', fontWeight: 500 }}>{p.description}</p>
                                 )}
                                 {p.address && (
-                                    <p style={{ margin: '0.35rem 0 0', color: PZ.faint, fontSize: '0.75rem', fontWeight: 600 }}>📍 {p.address}</p>
+                                    <p style={{ margin: '0.35rem 0 0', color: PZ.faint, fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                        <Ic.MapPin size={14} style={{ flexShrink: 0 }} /> {p.address}
+                                    </p>
                                 )}
                             </div>
                         ))
@@ -288,7 +293,11 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                     Off-site challenges — mark them complete and the team awards points after review.
                 </p>
 
-                {taskSuccess && <div style={{ ...pStyles.successBox, marginBottom: '0.875rem' }}>✓ {taskSuccess}</div>}
+                {taskSuccess && (
+                    <div style={{ ...pStyles.successBox, marginBottom: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Ic.CheckCircle size={18} style={{ flexShrink: 0 }} /> {taskSuccess}
+                    </div>
+                )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                     {loading ? (
@@ -307,13 +316,13 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                                         <p style={{ margin: '0.25rem 0 0', color: PZ.muted, fontSize: '0.8125rem', fontWeight: 500 }}>{task.description}</p>
                                         {task.requiresProof && (
                                             <span style={{
-                                                display: 'inline-block', marginTop: '0.4rem',
+                                                display: 'inline-flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.4rem',
                                                 background: PZ.voltFaint, border: `1px solid ${PZ.voltDim}`, color: PZ.volt,
                                                 borderRadius: '3px', padding: '0.15rem 0.6rem',
                                                 fontSize: '0.6875rem', fontWeight: 700,
                                                 textTransform: 'uppercase', letterSpacing: '0.06em',
                                             }}>
-                                                📸 needs proof
+                                                <Ic.Camera size={14} /> needs proof
                                             </span>
                                         )}
                                     </div>

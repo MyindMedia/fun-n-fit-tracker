@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Student, HouseId } from '../../types';
 import { HOUSES } from '../../constants';
 import { supabaseService } from '../../services/supabaseService';
+import { Ic } from '../icons';
 
 interface RollCallPanelProps {
   students: Student[];
@@ -74,7 +75,7 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
             <div className="pz-display text-2xl sm:text-3xl text-[#CBFE1C]">{totalPresent}/{students.length}</div>
             <div className="text-xs sm:text-sm font-bold" style={{ color: 'var(--pz-text)' }}>Athletes Present Today</div>
           </div>
-          <div className="text-4xl sm:text-5xl">📋</div>
+          <Ic.ClipboardCheck size={44} className="text-[#CBFE1C] opacity-80" />
         </div>
       </div>
 
@@ -87,9 +88,9 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search athletes..."
-            className="w-full px-4 py-3 pl-10 text-sm font-medium border border-white/10 bg-[#171C27] text-white placeholder-white/40 focus:outline-none focus:border-[#CBFE1C]"
+            className="w-full min-h-[48px] px-4 py-3 pl-10 text-sm font-medium border border-white/10 bg-[#171C27] text-white placeholder-white/40 focus:outline-none focus:border-[#CBFE1C]"
           />
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">🔍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40"><Ic.Search size={16} /></span>
         </div>
 
         {/* House Filter Tabs */}
@@ -127,20 +128,20 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
         <button
           onClick={() => markAll(true)}
           disabled={isBusy || filtered.length === 0}
-          className={`touch-btn p-3 text-xs font-black uppercase tracking-widest transition-all ${
+          className={`touch-btn min-h-[48px] p-3 text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 ${
             isBusy ? 'bg-white/10 text-white/30' : 'bg-emerald-500 text-white active:bg-emerald-600'
           }`}
         >
-          ✓ All Present
+          <Ic.Check size={14} /> All Present
         </button>
         <button
           onClick={() => markAll(false)}
           disabled={isBusy || filtered.length === 0}
-          className={`touch-btn p-3 text-xs font-black uppercase tracking-widest transition-all border ${
+          className={`touch-btn min-h-[48px] p-3 text-xs font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-1.5 ${
             isBusy ? 'bg-white/10 text-white/30 border-transparent' : 'bg-white/5 text-white border-white/10 active:bg-white/10'
           }`}
         >
-          ✗ All Absent
+          <Ic.XMark size={14} /> All Absent
         </button>
       </div>
 
@@ -191,13 +192,13 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
                 <button
                   onClick={() => setPresent(s.id, !s.isPresent)}
                   disabled={isBusy}
-                  className={`touch-btn px-4 py-2 text-[10px] font-black uppercase tracking-wide transition-all flex-shrink-0 ${
+                  className={`touch-btn px-4 py-2 text-[10px] font-black uppercase tracking-wide transition-all flex-shrink-0 inline-flex items-center gap-1 ${
                     s.isPresent
                       ? 'bg-emerald-500 text-white active:bg-emerald-600'
                       : 'bg-white/10 text-white/60 border border-white/10 active:bg-white/20'
                   } ${isBusy ? 'opacity-50' : ''}`}
                 >
-                  {s.isPresent ? '✓ Here' : 'Absent'}
+                  {s.isPresent ? <><Ic.Check size={12} /> Here</> : 'Absent'}
                 </button>
               </div>
             ))}
@@ -209,7 +210,7 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
       <button
         onClick={resetDay}
         disabled={isBusy}
-        className={`touch-btn w-full px-6 py-4 text-xs font-black uppercase tracking-widest transition-all ${
+        className={`touch-btn w-full min-h-[52px] px-6 py-4 text-xs font-black uppercase tracking-widest transition-all ${
           isBusy ? 'bg-white/10 text-white/30' : 'pz-btn'
         }`}
       >
@@ -219,7 +220,9 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
             Processing...
           </span>
         ) : (
-          '🔄 Reset For New Day'
+          <span className="flex items-center justify-center gap-2">
+            <Ic.Refresh size={16} /> Reset For New Day
+          </span>
         )}
       </button>
     </div>

@@ -11,16 +11,18 @@ import ParentMessages from './Parent/ParentMessages';
 import EarnAroundTown from './Parent/EarnAroundTown';
 import PerksHistory from './Parent/PerksHistory';
 import StudentDetailExtras from './Parent/StudentDetailExtras';
+import KidPassSheet from './Parent/KidPassSheet';
 import { PZ, PzPortalCss, pStyles } from './Parent/shared';
+import { Ic, DataIcon, IconProps } from './icons';
 
 type TabId = 'my-students' | 'add' | 'check-in' | 'messages' | 'earn' | 'perks';
 
-const TABS: Array<{ id: Exclude<TabId, 'add'>; label: string }> = [
-    { id: 'my-students', label: 'My Kids' },
-    { id: 'check-in', label: 'Check In' },
-    { id: 'messages', label: 'Messages' },
-    { id: 'earn', label: 'Earn' },
-    { id: 'perks', label: 'Perks' },
+const TABS: Array<{ id: Exclude<TabId, 'add'>; label: string; icon: React.FC<IconProps> }> = [
+    { id: 'my-students', label: 'My Kids', icon: Ic.Family },
+    { id: 'check-in', label: 'Check In', icon: Ic.QrCode },
+    { id: 'messages', label: 'Messages', icon: Ic.Chat },
+    { id: 'earn', label: 'Earn', icon: Ic.Coin },
+    { id: 'perks', label: 'Perks', icon: Ic.Gift },
 ];
 
 const ParentDashboard: React.FC = () => {
@@ -33,6 +35,7 @@ const ParentDashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<TabId>('my-students');
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+    const [passStudent, setPassStudent] = useState<Student | null>(null);
     const [unreadMessages, setUnreadMessages] = useState(0);
     // Deep-link payloads (#/parent-dashboard?checkin=<token> or ?visit=<secret>)
     const [pendingCheckinToken, setPendingCheckinToken] = useState<string | null>(null);
@@ -152,17 +155,23 @@ const ParentDashboard: React.FC = () => {
         <div className="pz-scope" style={styles.page}>
             <PzPortalCss />
 
-            {/* Header — banner art strip with logo + portal title */}
+            {/* Header — banner art strip, tightened for mobile: logo + title + sign-out icon */}
             <div className="pz-banner" style={styles.banner}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', minWidth: 0 }}>
-                        <img src="/fnfa-logo.png" alt="Fun 'N Fit Academy" style={{ width: '52px', height: '52px', objectFit: 'contain', flexShrink: 0 }} />
-                        <div style={{ minWidth: 0 }}>
-                            <div className="pz-eyebrow">Fun 'N Fit Academy</div>
-                            <h1 className="pz-display" style={styles.heading}>Parent Portal</h1>
-                        </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <img src="/fnfa-logo.png" alt="Fun 'N Fit Academy" style={{ width: '44px', height: '44px', objectFit: 'contain', flexShrink: 0 }} />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                        <div className="pz-eyebrow" style={{ fontSize: '0.6875rem' }}>Fun 'N Fit Academy</div>
+                        <h1 className="pz-display" style={styles.heading}>Parent Portal</h1>
                     </div>
-                    <button onClick={handleSignOut} className="pz-btn-ghost" style={styles.signOutBtn}>Sign Out</button>
+                    <button
+                        onClick={handleSignOut}
+                        className="pz-btn-ghost"
+                        aria-label="Sign out"
+                        title="Sign out"
+                        style={styles.signOutBtn}
+                    >
+                        <Ic.Logout size={20} />
+                    </button>
                 </div>
                 <p style={styles.subheading}>
                     Welcome, <span style={{ color: PZ.white, fontWeight: 700 }}>{parentName}</span>
@@ -177,30 +186,6 @@ const ParentDashboard: React.FC = () => {
                 <StatCard label="Badges" value={myStudents.reduce((a, s) => a + (s.badges?.length || 0), 0)} color="#34d399" />
             </div>
 
-            {/* Tabs — volt underline marks the active tab */}
-            <div style={styles.tabs} role="tablist">
-                {TABS.map(t => {
-                    const isActive = activeTab === t.id || (t.id === 'my-students' && activeTab === 'add');
-                    return (
-                        <button
-                            key={t.id}
-                            role="tab"
-                            aria-selected={isActive}
-                            onClick={() => setActiveTab(t.id)}
-                            style={{
-                                ...styles.tab,
-                                ...(isActive ? styles.tabActive : {}),
-                            }}
-                        >
-                            {t.label}
-                            {t.id === 'messages' && unreadMessages > 0 && (
-                                <span className="pz-live" style={styles.unreadBadge}>{unreadMessages > 9 ? '9+' : unreadMessages}</span>
-                            )}
-                        </button>
-                    );
-                })}
-            </div>
-
             {/* Content */}
             {activeTab === 'my-students' && (
                 myStudents.length === 0 ? (
@@ -213,21 +198,23 @@ const ParentDashboard: React.FC = () => {
                                     key={s.id}
                                     student={s}
                                     onView={() => setSelectedStudent(s)}
+                                    onShowPass={() => setPassStudent(s)}
                                 />
                             ))}
                         </div>
                         <button
                             onClick={() => setActiveTab('add')}
                             style={{
-                                width: '100%', marginTop: '1rem', padding: '0.875rem', minHeight: '48px',
+                                width: '100%', marginTop: '1rem', padding: '0.875rem', minHeight: '52px',
                                 background: 'transparent', border: `1px dashed ${PZ.voltDim}`,
                                 clipPath: PZ.notchSm, color: PZ.volt, fontWeight: 700,
                                 textTransform: 'uppercase', letterSpacing: '0.08em',
                                 fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'inherit',
                                 position: 'relative', zIndex: 1,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                             }}
                         >
-                            + Enroll Another Student
+                            <Ic.Plus size={18} /> Enroll Another Student
                         </button>
                     </>
                 )
@@ -266,9 +253,10 @@ const ParentDashboard: React.FC = () => {
                             fontWeight: 700, fontSize: '0.8125rem', cursor: 'pointer',
                             textTransform: 'uppercase', letterSpacing: '0.08em',
                             padding: '0.25rem 0', marginBottom: '0.75rem', fontFamily: 'inherit',
+                            minHeight: '44px', display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
                         }}
                     >
-                        ← Back to My Kids
+                        <Ic.ArrowLeft size={16} /> Back to My Kids
                     </button>
                     <div className="pz-eyebrow" style={pStyles.eyebrow}>New Athlete</div>
                     <h2 className="pz-display" style={styles.sectionTitle}>Enroll a Student</h2>
@@ -328,6 +316,51 @@ const ParentDashboard: React.FC = () => {
                     </form>
                 </div>
             )}
+
+            {/* Kid QR pass sheet (opened from My Kids cards) */}
+            {passStudent && (
+                <KidPassSheet student={passStudent} onClose={() => setPassStudent(null)} />
+            )}
+
+            {/* ── Fixed bottom tab bar — native-app navigation ─────────────── */}
+            <nav className="pzp-tabbar" aria-label="Parent portal sections">
+                <div className="pzp-tabbar-inner" role="tablist">
+                    {TABS.map(t => {
+                        const isActive = activeTab === t.id || (t.id === 'my-students' && activeTab === 'add');
+                        const Icon = t.icon;
+                        return (
+                            <button
+                                key={t.id}
+                                role="tab"
+                                aria-selected={isActive}
+                                aria-label={t.label}
+                                onClick={() => setActiveTab(t.id)}
+                                style={{
+                                    ...styles.tabItem,
+                                    color: isActive ? PZ.volt : PZ.text,
+                                }}
+                            >
+                                {/* Volt tick above the active tab */}
+                                <span aria-hidden="true" style={{
+                                    position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
+                                    width: '28px', height: '3px', borderRadius: '0 0 2px 2px',
+                                    background: isActive ? PZ.volt : 'transparent',
+                                    transition: 'background 0.15s',
+                                }} />
+                                <span style={{ position: 'relative', display: 'inline-flex' }}>
+                                    <Icon size={26} />
+                                    {t.id === 'messages' && unreadMessages > 0 && (
+                                        <span className="pz-live" style={styles.tabBadge}>
+                                            {unreadMessages > 9 ? '9+' : unreadMessages}
+                                        </span>
+                                    )}
+                                </span>
+                                <span style={styles.tabLabel}>{t.label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </nav>
         </div>
     );
 };
@@ -404,7 +437,9 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
         <div className="pz-scope" style={styles.page}>
             <PzPortalCss />
 
-            <button onClick={onBack} className="pz-btn-ghost" style={styles.backBtn}>← Back</button>
+            <button onClick={onBack} className="pz-btn-ghost" style={{ ...styles.backBtn, display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
+                <Ic.ArrowLeft size={16} /> Back
+            </button>
 
             {/* Hero card */}
             <div style={{ ...styles.card, padding: '1.25rem', marginBottom: '1.25rem', borderLeft: `3px solid ${house.colorHex}` }}>
@@ -429,11 +464,12 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                     background: PZ.volt, border: `2px solid ${PZ.bg}`,
                                     color: PZ.bg, borderRadius: '50%', width: '36px', height: '36px',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    cursor: 'pointer', fontSize: '16px', zIndex: 10
+                                    cursor: 'pointer', zIndex: 10
                                 }}
                                 title="Change Picture"
+                                aria-label="Change picture"
                             >
-                                📷
+                                <Ic.Camera size={18} />
                             </button>
                             <input
                                 type="file"
@@ -545,7 +581,7 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                                 display: 'inline-flex', alignItems: 'center', gap: '0.5rem'
                                             }}
                                         >
-                                            ✏️ Edit Profile
+                                            <Ic.Edit size={16} /> Edit Profile
                                         </button>
                                     </div>
                                     {student.bio && <p style={{ margin: '0.5rem 0 0', color: PZ.muted, fontSize: '0.9375rem' }}>{student.bio}</p>}
@@ -560,7 +596,7 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                             {house.customIcon ? (
                                 <img src={house.customIcon} style={{ width: 'clamp(80px, 25vw, 128px)', height: 'clamp(80px, 25vw, 128px)', objectFit: 'contain', filter: `drop-shadow(0 0 18px ${house.colorHex}40)` }} alt={house.name} />
                             ) : (
-                                <span style={{ fontSize: 'clamp(3rem, 12vw, 6rem)', lineHeight: 1 }}>{house.mascot}</span>
+                                <DataIcon glyph={house.mascot} size={80} style={{ color: house.colorHex }} />
                             )}
                         </div>
                     )}
@@ -606,7 +642,7 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                         {house.customIcon ? (
                             <img src={house.customIcon} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
                         ) : (
-                            <div style={{ fontSize: '1.5rem' }}>{house.mascot}</div>
+                            <DataIcon glyph={house.mascot} size={24} style={{ color: house.colorHex }} />
                         )}
                         <div style={{ fontSize: '1rem', fontWeight: 700, color: house.colorHex }}>{house.name}</div>
                     </div>
@@ -627,14 +663,14 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '1.25rem' }}>
                     <div style={{ background: PZ.panel2, border: `1px solid ${PZ.border}`, borderRadius: '4px', padding: '0.75rem', textAlign: 'center' }}>
                         <div style={{ fontSize: '0.7rem', fontWeight: 700, color: PZ.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>Gender</div>
-                        <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.9375rem' }}>
-                            {student.gender === 'Female' ? '👧' : '👦'} {student.gender}
+                        <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.9375rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <Ic.User size={16} /> {student.gender}
                         </div>
                     </div>
                     <div style={{ background: PZ.panel2, border: `1px solid ${PZ.border}`, borderRadius: '4px', padding: '0.75rem', textAlign: 'center' }}>
                         <div style={{ fontSize: '0.7rem', fontWeight: 700, color: PZ.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>Rewards</div>
-                        <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.9375rem' }}>
-                            🎁 {student.inventory?.length ?? 0}
+                        <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.9375rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <Ic.Gift size={16} /> {student.inventory?.length ?? 0}
                         </div>
                     </div>
                     <div style={{ background: PZ.panel2, border: `1px solid ${PZ.border}`, borderRadius: '4px', padding: '0.75rem', textAlign: 'center' }}>
@@ -674,8 +710,9 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                         background: PZ.voltFaint,
                         border: `1px solid ${PZ.voltDim}`, clipPath: PZ.notchSm, padding: '0.75rem 1rem',
                         textAlign: 'center', fontWeight: 700, color: PZ.volt,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                     }}>
-                        🏆 Max Rank Achieved — top of the class!
+                        <Ic.Trophy size={20} /> Max Rank Achieved — top of the class!
                     </div>
                 )}
             </div>
@@ -692,8 +729,9 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                 background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.35)',
                                 color: '#fcd34d', borderRadius: '3px', padding: '0.375rem 0.75rem',
                                 fontSize: '0.8125rem', fontWeight: 700,
+                                display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
                             }}>
-                                🏅 {b}
+                                <Ic.Medal size={16} /> {b}
                             </div>
                         ))}
                     </div>
@@ -710,8 +748,9 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                 background: 'rgba(16,185,129,0.10)', border: '1px solid rgba(16,185,129,0.3)',
                                 color: '#6ee7b7', borderRadius: '3px', padding: '0.375rem 0.75rem',
                                 fontSize: '0.8125rem', fontWeight: 700,
+                                display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
                             }}>
-                                🎁 {r}
+                                <Ic.Gift size={16} /> {r}
                             </div>
                         ))}
                     </div>
@@ -720,7 +759,7 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
 
             {(student.badges?.length ?? 0) === 0 && (student.inventory?.length ?? 0) === 0 && (
                 <div style={{ ...styles.card, textAlign: 'center', padding: '2rem', marginBottom: '1.25rem' }}>
-                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🌱</div>
+                    <div style={{ marginBottom: '0.5rem', color: PZ.volt }}><Ic.Sparkle size={32} /></div>
                     <p style={{ color: PZ.muted, margin: 0, fontWeight: 500 }}>No badges or rewards yet — keep training!</p>
                 </div>
             )}
@@ -737,7 +776,8 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
 const StudentCard: React.FC<{
     student: Student;
     onView: () => void;
-}> = ({ student, onView }) => {
+    onShowPass: () => void;
+}> = ({ student, onView, onShowPass }) => {
     const house = HOUSES[student.houseId];
     const rank = RANKS.find(r => r.id === student.rankId) || RANKS[0];
     return (
@@ -787,11 +827,28 @@ const StudentCard: React.FC<{
                 </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <div className="pz-display" style={{ color: PZ.volt, fontSize: '1.25rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="pz-display" style={{ color: PZ.volt, fontSize: '1.5rem' }}>
                     {student.points.toLocaleString()} <span style={{ fontSize: '0.6875rem', color: PZ.muted, fontFamily: PZ.bodyFont, fontWeight: 700, letterSpacing: '0.1em' }}>PTS</span>
                 </div>
-                <span style={{ color: PZ.faint, fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>View →</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <button
+                        onClick={e => { e.stopPropagation(); onShowPass(); }}
+                        className="pz-btn-ghost"
+                        aria-label={`Show ${student.fullName}'s check-in pass`}
+                        style={{
+                            cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
+                            padding: '0 0.875rem', minHeight: '44px',
+                            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                            textTransform: 'uppercase', letterSpacing: '0.06em',
+                        }}
+                    >
+                        <Ic.QrCode size={18} /> Pass
+                    </button>
+                    <span style={{ color: PZ.faint, fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                        View <Ic.ChevronRight size={14} />
+                    </span>
+                </div>
             </div>
         </div>
     );
@@ -799,20 +856,20 @@ const StudentCard: React.FC<{
 
 const StatCard: React.FC<{ label: string; value: number; color: string }> = ({ label, value, color }) => (
     <div style={{ ...styles.card, flex: 1, textAlign: 'center', minWidth: 0, padding: '0.875rem 0.5rem' }}>
-        <div className="pz-display" style={{ fontSize: '1.5rem', color, lineHeight: 1.2 }}>{value.toLocaleString()}</div>
+        <div className="pz-display" style={{ fontSize: '1.75rem', color, lineHeight: 1.2 }}>{value.toLocaleString()}</div>
         <div style={{ color: PZ.muted, fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginTop: '0.25rem' }}>{label}</div>
     </div>
 );
 
 const EmptyState: React.FC<{ onAdd: () => void }> = ({ onAdd }) => (
     <div style={{ ...styles.card, textAlign: 'center', padding: '4rem 2rem' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👨‍👩‍👧</div>
+        <div style={{ marginBottom: '1rem', color: PZ.volt }}><Ic.Family size={48} /></div>
         <h3 className="pz-display" style={{ color: PZ.white, margin: '0 0 0.5rem', fontSize: '1.125rem' }}>No Athletes Yet</h3>
         <p style={{ color: PZ.muted, fontSize: '0.9375rem', margin: '0 0 1.5rem' }}>
             Enroll your child to start tracking their Fun 'N Fit progress!
         </p>
-        <button onClick={onAdd} className="pz-btn" style={{ ...pStyles.btnPrimary, padding: '0.875rem 2rem' }}>
-            + Enroll a Student
+        <button onClick={onAdd} className="pz-btn" style={{ ...pStyles.btnPrimary, padding: '0.875rem 2rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Ic.Plus size={18} /> Enroll a Student
         </button>
     </div>
 );
@@ -837,6 +894,8 @@ const styles: Record<string, any> = {
         minHeight: '100vh',
         background: PZ.bg,
         padding: 'clamp(1rem, 4vw, 1.5rem)',
+        // Room for the fixed bottom tab bar (+ home-indicator safe area)
+        paddingBottom: 'calc(88px + var(--safe-area-bottom, 0px))',
         fontFamily: PZ.bodyFont,
         position: 'relative',
         color: PZ.white,
@@ -844,22 +903,28 @@ const styles: Record<string, any> = {
         margin: '0 auto',
         boxSizing: 'border-box',
         overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch',
     },
     banner: {
         clipPath: PZ.notch,
         border: `1px solid ${PZ.border}`,
-        padding: '1.25rem',
+        padding: '1rem 1rem 0.875rem',
         marginBottom: '1rem',
         position: 'relative', zIndex: 1,
     },
     heading: {
-        margin: '0.15rem 0 0', fontSize: 'clamp(1.375rem, 5vw, 1.75rem)',
+        margin: '0.1rem 0 0', fontSize: 'clamp(1.25rem, 5vw, 1.625rem)',
         color: '#ffffff', lineHeight: 1.1,
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
     },
-    subheading: { margin: '0.875rem 0 0', fontSize: '0.875rem', color: PZ.muted, fontWeight: 500 },
+    subheading: {
+        margin: '0.6rem 0 0', fontSize: '0.8125rem', color: PZ.muted, fontWeight: 500,
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+    },
     signOutBtn: {
-        padding: '0.6rem 1rem', fontSize: '0.75rem', cursor: 'pointer',
-        minHeight: '44px', flexShrink: 0,
+        width: '44px', height: '44px', minHeight: '44px', padding: 0,
+        cursor: 'pointer', flexShrink: 0,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     },
     statsRow: { display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem', position: 'relative', zIndex: 1 },
     card: {
@@ -869,30 +934,26 @@ const styles: Record<string, any> = {
         padding: '1.25rem',
         position: 'relative', zIndex: 1,
     },
-    tabs: {
-        display: 'flex', gap: '0.25rem', marginBottom: '1.25rem', position: 'relative', zIndex: 1,
-        overflowX: 'auto', WebkitOverflowScrolling: 'touch',
-        borderBottom: `1px solid ${PZ.border}`,
+    /* Bottom tab bar items (the bar itself is the .pzp-tabbar class) */
+    tabItem: {
+        flex: 1, minHeight: '56px', minWidth: 0,
+        background: 'transparent', border: 'none', cursor: 'pointer',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        gap: '3px', padding: '8px 2px 7px', position: 'relative',
+        fontFamily: 'inherit', transition: 'color 0.15s',
+        WebkitTapHighlightColor: 'transparent',
     },
-    tab: {
-        flex: '1 0 auto', padding: '0.75rem 0.9rem', minHeight: '48px',
-        background: 'transparent', border: 'none',
-        borderBottom: '3px solid transparent',
-        color: PZ.muted, fontWeight: 700, cursor: 'pointer', fontSize: '0.8125rem',
-        textTransform: 'uppercase', letterSpacing: '0.08em',
-        transition: 'color 0.2s, border-color 0.2s', whiteSpace: 'nowrap',
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-        fontFamily: 'inherit',
+    tabLabel: {
+        fontSize: '11px', fontWeight: 700, lineHeight: 1,
+        textTransform: 'uppercase', letterSpacing: '0.05em',
+        whiteSpace: 'nowrap',
     },
-    tabActive: {
-        color: '#ffffff',
-        borderBottom: `3px solid ${PZ.volt}`,
-    },
-    unreadBadge: {
+    tabBadge: {
+        position: 'absolute', top: '-5px', right: '-9px',
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        minWidth: '18px', height: '18px', padding: '0 5px', boxSizing: 'border-box',
-        background: PZ.volt, color: PZ.bg, borderRadius: '3px',
-        fontSize: '0.65rem', fontWeight: 800, lineHeight: 1,
+        minWidth: '17px', height: '17px', padding: '0 4px', boxSizing: 'border-box',
+        background: PZ.volt, color: PZ.bg, borderRadius: '9px',
+        fontSize: '0.625rem', fontWeight: 800, lineHeight: 1,
     },
     grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: '1rem', position: 'relative', zIndex: 1 },
     input: {

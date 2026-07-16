@@ -11,6 +11,7 @@ import CelebrationOverlay, { Celebration } from './CelebrationOverlay';
 import StudentAvatar from './StudentAvatar';
 import { useRef } from 'react';
 import { getStudentDisplayName } from '../utils/studentDisplay';
+import { Ic } from './icons';
 
 // Pubzi theme: small notched cut-corner shape for inline elements
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
@@ -113,7 +114,7 @@ const ActivityTicker: React.FC<{ events: NotificationEvent[] }> = ({ events }) =
                 {/* Show trophy for GAME_END */}
                 {e.type === 'GAME_END' && (
                   <div className="w-8 h-8 rounded-full bg-white/10 border-2 border-yellow-400 p-1 flex items-center justify-center shrink-0">
-                    <span className="text-yellow-400">🏆</span>
+                    <span className="text-yellow-400 flex items-center"><Ic.Trophy size={16} /></span>
                   </div>
                 )}
 
@@ -135,11 +136,11 @@ const ActivityTicker: React.FC<{ events: NotificationEvent[] }> = ({ events }) =
                     </span>
                   )}
                   {/* Event message */}
-                  <span className="text-xs font-bold tracking-wide" style={{ color: isNew && isKey ? '#34d399' : 'var(--pz-text)' }}>
-                    {e.type === 'RANK_UP' && '🏆 '}
-                    {e.type === 'BADGE_EARNED' && '⭐ '}
-                    {e.type === 'POINTS' && '💪 '}
-                    {e.type === 'GAME_END' && '🏁 '}
+                  <span className="text-xs font-bold tracking-wide inline-flex items-center gap-1.5" style={{ color: isNew && isKey ? '#34d399' : 'var(--pz-text)' }}>
+                    {e.type === 'RANK_UP' && <Ic.Trophy size={14} className="shrink-0" />}
+                    {e.type === 'BADGE_EARNED' && <Ic.Star size={14} className="shrink-0" />}
+                    {e.type === 'POINTS' && <Ic.Muscle size={14} className="shrink-0" />}
+                    {e.type === 'GAME_END' && <Ic.Flag size={14} className="shrink-0" />}
                     {e.message}
                   </span>
                   {isNew && isKey && (
@@ -532,8 +533,8 @@ const Leaderboard: React.FC = () => {
               {pointFlash.avatar ? (
                 <img src={pointFlash.avatar} className="w-[64px] h-[64px] rounded-full border-2 object-cover shrink-0" style={{ borderColor: pointFlash.amount >= 0 ? '#10b981' : '#ef4444' }} />
               ) : (
-                <div className="w-[64px] h-[64px] rounded-full bg-white/10 flex items-center justify-center text-3xl shrink-0">
-                  {pointFlash.amount >= 0 ? '⭐' : '💔'}
+                <div className={`w-[64px] h-[64px] rounded-full bg-white/10 flex items-center justify-center shrink-0 ${pointFlash.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {pointFlash.amount >= 0 ? <Ic.Star size={32} /> : <Ic.XCircle size={32} />}
                 </div>
               )}
 
@@ -580,8 +581,8 @@ const Leaderboard: React.FC = () => {
               {statusFlash.avatar ? (
                 <img src={statusFlash.avatar} className="w-[64px] h-[64px] rounded-full border-2 object-cover shrink-0" style={{ borderColor: statusFlash.isOut ? '#ef4444' : '#0ea5e9' }} />
               ) : (
-                <div className="w-[64px] h-[64px] rounded-full bg-white/10 flex items-center justify-center text-3xl shrink-0">
-                  {statusFlash.isOut ? '🚫' : '✅'}
+                <div className={`w-[64px] h-[64px] rounded-full bg-white/10 flex items-center justify-center shrink-0 ${statusFlash.isOut ? 'text-red-400' : 'text-sky-400'}`}>
+                  {statusFlash.isOut ? <Ic.XCircle size={32} /> : <Ic.CheckCircle size={32} />}
                 </div>
               )}
 
@@ -637,7 +638,7 @@ const Leaderboard: React.FC = () => {
           {error && (
             <div className="pz-card flex items-center justify-center min-h-[320px]" style={{ borderColor: 'rgba(239, 68, 68, 0.5)' }}>
               <div className="text-center px-8 py-10">
-                <div className="text-6xl mb-4">⚠️</div>
+                <div className="mb-4 flex justify-center text-red-400"><Ic.Warning size={56} /></div>
                 <h3 className="text-xl text-red-400 mb-2">Error Loading Data</h3>
                 <p className="mb-6" style={{ color: 'var(--pz-text)' }}>{error}</p>
                 <button
@@ -653,7 +654,7 @@ const Leaderboard: React.FC = () => {
           {!isLoading && !error && chartData.length === 0 && (
             <div className="pz-card flex items-center justify-center min-h-[320px]">
               <div className="text-center px-8 py-10">
-                <div className="text-6xl mb-4">🏃‍♂️</div>
+                <div className="mb-4 flex justify-center" style={{ color: 'var(--pz-volt)' }}><Ic.Run size={56} /></div>
                 <h3 className="text-2xl text-white mb-2">Ready to Start!</h3>
                 <p className="font-medium" style={{ color: 'var(--pz-text)' }}>No houses configured. Check your database setup.</p>
               </div>

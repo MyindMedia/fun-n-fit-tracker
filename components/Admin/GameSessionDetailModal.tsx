@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GameSession, Student } from '../../types';
 import { supabaseService } from '../../services/supabaseService';
+import { Ic } from '../icons';
 
 interface GameSessionDetailModalProps {
   game: GameSession;
@@ -59,7 +60,7 @@ const GameSessionDetailModal: React.FC<GameSessionDetailModalProps> = ({ game, s
             <h2 className="text-4xl text-white">{game.title}</h2>
             <p className="font-black text-xs uppercase tracking-widest mt-1 text-[#CBFE1C]">Live Performance Tracking • Coach {game.startedBy}</p>
           </div>
-          <button onClick={onClose} className="w-12 h-12 rounded-full bg-white/5 border border-white/10 text-white/60 flex items-center justify-center font-bold text-xl hover:bg-[#CBFE1C] hover:text-[#0B0E13] transition-all">✕</button>
+          <button onClick={onClose} aria-label="Close" className="w-12 h-12 rounded-full bg-white/5 border border-white/10 text-white/60 flex items-center justify-center hover:bg-[#CBFE1C] hover:text-[#0B0E13] transition-all"><Ic.XMark size={20} /></button>
         </div>
 
         <div className="flex-grow overflow-y-auto p-8 custom-scrollbar space-y-4">

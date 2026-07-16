@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Student } from '../../types';
 import { HOUSES } from '../../constants';
 import { supabaseService } from '../../services/supabaseService';
+import { Ic } from '../icons';
 
 interface BatchAwardFormProps {
   students: Student[];
@@ -144,7 +145,7 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                   selected.has(s.id) ? 'bg-[#CBFE1C] border-[#CBFE1C]' : 'bg-transparent border-white/30'
                 }`}>
-                  {selected.has(s.id) && <span className="text-[#0B0E13] text-[10px] font-black">✓</span>}
+                  {selected.has(s.id) && <Ic.Check size={12} className="text-[#0B0E13]" style={{ strokeWidth: 3 }} />}
                 </div>
                 <img src={s.avatarUrl} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0" alt="" />
                 <div className="min-w-0">
@@ -209,7 +210,7 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
         onClick={handleAward}
         disabled={selected.size === 0 || loading || !parseInt(points || '0', 10)}
         className={`
-          touch-btn w-full font-black py-4 transition-all uppercase tracking-widest text-sm
+          touch-btn w-full min-h-[52px] font-black py-4 transition-all uppercase tracking-widest text-sm
           ${loading ? 'bg-white/10 text-white/50 cursor-wait' : 'pz-btn active:scale-[0.98]'}
           ${(selected.size === 0 || !parseInt(points || '0', 10)) ? 'opacity-30' : ''}
         `}
@@ -220,7 +221,10 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
             Awarding...
           </span>
         ) : selected.size > 0 ? (
-          `⭐ Award ${points} pts to ${selected.size} Athlete${selected.size > 1 ? 's' : ''}`
+          <span className="flex items-center justify-center gap-2">
+            <Ic.Star size={18} />
+            {`Award ${points} pts to ${selected.size} Athlete${selected.size > 1 ? 's' : ''}`}
+          </span>
         ) : (
           'Select Athletes to Award'
         )}

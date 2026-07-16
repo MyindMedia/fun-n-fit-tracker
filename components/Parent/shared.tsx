@@ -18,6 +18,7 @@
 import React from 'react';
 import { Student } from '../../types';
 import { HOUSES } from '../../constants';
+import { Ic } from '../icons';
 
 /* ── Pubzi token palette (mirrors the CSS custom props in index.html) ─────── */
 export const PZ = {
@@ -71,6 +72,22 @@ export const PzPortalCss: React.FC = () => (
         @media (prefers-reduced-motion: reduce) {
             .pzp-scanline { animation: none; top: 50%; }
         }
+        /* ── iOS-app shell: fixed bottom tab bar ────────────────────────────
+         * The bar is fixed full-width; the inner rail centers + caps width on
+         * desktop so the 5 tabs never stretch across a wide screen. */
+        .pzp-tabbar {
+            position: fixed; left: 0; right: 0; bottom: 0; z-index: 220;
+            background: #12161F;
+            border-top: 1px solid rgba(255, 255, 255, 0.10);
+            padding-bottom: var(--safe-area-bottom, env(safe-area-inset-bottom, 0px));
+            box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.45);
+        }
+        .pzp-tabbar-inner { display: flex; width: 100%; margin: 0 auto; }
+        @media (min-width: 768px) {
+            .pzp-tabbar-inner { max-width: 560px; }
+        }
+        /* Momentum scrolling for the portal content */
+        .pz-scope { -webkit-overflow-scrolling: touch; }
     `}</style>
 );
 
@@ -216,10 +233,10 @@ export const KidSelect: React.FC<{
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 background: isSelected ? PZ.volt : 'transparent',
                                 border: isSelected ? `2px solid ${PZ.volt}` : `2px solid ${PZ.borderStrong}`,
-                                color: PZ.bg, fontSize: '0.9rem', fontWeight: 900,
+                                color: PZ.bg,
                             }}
                         >
-                            {isSelected ? '✓' : ''}
+                            {isSelected ? <Ic.Check size={16} strokeWidth={3} /> : null}
                         </div>
                     </button>
                 );
@@ -253,12 +270,12 @@ export const pStyles: Record<string, React.CSSProperties> = {
     /* SIZING-ONLY — always pair with className="pz-btn" */
     btnPrimary: {
         border: 'none', cursor: 'pointer',
-        fontSize: '0.875rem', padding: '0.875rem 1.25rem', minHeight: '48px',
+        fontSize: '0.875rem', padding: '0.875rem 1.25rem', minHeight: '52px',
     },
     /* SIZING-ONLY — always pair with className="pz-btn-ghost" */
     btnSecondary: {
         cursor: 'pointer',
-        fontSize: '0.875rem', padding: '0.875rem 1.25rem', minHeight: '48px',
+        fontSize: '0.875rem', padding: '0.875rem 1.25rem', minHeight: '52px',
     },
     /* SIZING-ONLY — always pair with className="pz-btn" (hero CTA) */
     bigActionBtn: {
@@ -291,7 +308,7 @@ export const pStyles: Record<string, React.CSSProperties> = {
     mutedText: { color: PZ.muted, fontSize: '0.875rem', fontWeight: 500, margin: 0 },
     listRow: {
         display: 'flex', alignItems: 'center', gap: '0.75rem',
-        padding: '0.75rem 0', minHeight: '44px', boxSizing: 'border-box',
+        padding: '0.875rem 0', minHeight: '60px', boxSizing: 'border-box',
         borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
     },
     /* Volt points highlight */

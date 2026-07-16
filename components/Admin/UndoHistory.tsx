@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabaseService } from '../../services/supabaseService';
+import { Ic } from '../icons';
 
 const UndoHistory: React.FC<{ adminName: string }> = ({ adminName }) => {
   const [activeSessions, setActiveSessions] = useState<any[]>([]);
@@ -16,7 +17,7 @@ const UndoHistory: React.FC<{ adminName: string }> = ({ adminName }) => {
   return (
     <div className="pz-scope pz-card p-8" style={{ borderColor: 'rgba(239, 68, 68, 0.25)' }}>
       <h2 className="text-xl text-white mb-6 tracking-tight flex items-center gap-3">
-         <span className="bg-red-500 text-white p-2 text-xs">↩️</span> Scoring Safety Net
+         <span className="bg-red-500 text-white p-2 inline-flex items-center justify-center"><Ic.History size={16} /></span> Scoring Safety Net
       </h2>
       <div className="space-y-4">
         {activeSessions.map(session => (
@@ -27,7 +28,7 @@ const UndoHistory: React.FC<{ adminName: string }> = ({ adminName }) => {
              </div>
              <button
                onClick={() => supabaseService.undoLastScoreEvent(session.id, adminName)}
-               className="bg-red-500/10 border border-red-500/40 text-red-400 px-6 py-2 text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all"
+               className="touch-btn bg-red-500/10 border border-red-500/40 text-red-400 px-6 py-2 min-h-[44px] text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all"
              >
                Undo Last Action
              </button>

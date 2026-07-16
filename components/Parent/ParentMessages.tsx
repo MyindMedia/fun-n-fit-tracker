@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage } from '../../types';
 import { gameCenter } from '../../services/gameCenter';
 import { cleanErr, fmtDateTime, pStyles, PZ } from './shared';
+import { Ic } from '../icons';
 
 const ParentMessages: React.FC = () => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -67,7 +68,7 @@ const ParentMessages: React.FC = () => {
                     <p style={{ ...pStyles.mutedText, textAlign: 'center', margin: 'auto' }}>Loading…</p>
                 ) : messages.length === 0 ? (
                     <div style={{ margin: 'auto', textAlign: 'center', padding: '1.5rem' }}>
-                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👋</div>
+                        <div style={{ marginBottom: '0.5rem', color: PZ.volt }}><Ic.Wave size={32} /></div>
                         <p style={{ ...pStyles.mutedText, fontWeight: 600 }}>
                             Message the Fun 'N Fit team — we'll reply right here.
                         </p>

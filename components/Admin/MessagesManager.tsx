@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { gameCenter } from '../../services/gameCenter';
 import { parentAuth } from '../../services/parentAuth';
 import { ChatMessage, StaffInboxEntry } from '../../types';
+import { Ic } from '../icons';
 
 interface ParentLite {
   id: string;
@@ -141,8 +142,8 @@ const MessagesManager: React.FC<MessagesManagerProps> = ({ adminName }) => {
         className={`${selected ? 'hidden md:flex' : 'flex'} flex-col md:w-80 md:flex-shrink-0 pz-card overflow-hidden`}
       >
         <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="text-lg text-white tracking-tight">
-            💬 Inbox
+          <h2 className="text-lg text-white tracking-tight inline-flex items-center gap-2">
+            <Ic.Chat size={20} className="text-[#CBFE1C]" /> Inbox
             {totalUnread > 0 && (
               <span className="ml-2 bg-[#CBFE1C] text-[#0B0E13] text-[10px] font-black rounded-full px-2 py-0.5 align-middle">
                 {totalUnread}
@@ -160,7 +161,7 @@ const MessagesManager: React.FC<MessagesManagerProps> = ({ adminName }) => {
         <div className="flex-grow overflow-y-auto custom-scrollbar max-h-[45vh] md:max-h-none">
           {inbox.length === 0 ? (
             <div className="text-center py-12 text-[#ABABAB] px-4">
-              <div className="text-4xl mb-2">📭</div>
+              <Ic.Mail size={40} className="mx-auto mb-2 opacity-40" />
               <div className="text-sm font-medium">No conversations yet</div>
               <div className="text-xs">Start one with “+ New”</div>
             </div>
@@ -216,7 +217,7 @@ const MessagesManager: React.FC<MessagesManagerProps> = ({ adminName }) => {
       >
         {!selected ? (
           <div className="flex-grow flex flex-col items-center justify-center text-[#ABABAB] p-6">
-            <div className="text-5xl mb-3">💬</div>
+            <Ic.Chat size={44} className="mb-3 opacity-40" />
             <div className="text-sm font-bold">Pick a conversation</div>
             <div className="text-xs">Messages with parents appear here in real time</div>
           </div>
@@ -226,9 +227,10 @@ const MessagesManager: React.FC<MessagesManagerProps> = ({ adminName }) => {
             <div className="flex items-center gap-3 p-3 sm:p-4 border-b border-white/10 flex-shrink-0">
               <button
                 onClick={() => setSelected(null)}
-                className="touch-btn focus-ring md:hidden px-3 py-2 bg-[#171C27] border border-white/10 rounded-xl text-white font-black text-sm active:bg-white/10"
+                aria-label="Back to inbox"
+                className="touch-btn focus-ring md:hidden px-3 py-2 bg-[#171C27] border border-white/10 rounded-xl text-white active:bg-white/10"
               >
-                ←
+                <Ic.ArrowLeft size={18} />
               </button>
               <div className="bg-[#CBFE1C] text-[#0B0E13] w-9 h-9 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0">
                 {(selected.parent.fullName || '?').charAt(0).toUpperCase()}
@@ -280,12 +282,12 @@ const MessagesManager: React.FC<MessagesManagerProps> = ({ adminName }) => {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder={`Message ${selected.parent.fullName}…`}
-                className="flex-grow px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] min-w-0"
+                className="flex-grow min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] min-w-0"
               />
               <button
                 type="submit"
                 disabled={sending || !draft.trim()}
-                className="touch-btn focus-ring pz-btn px-5 py-3 text-xs disabled:opacity-40 flex-shrink-0"
+                className="touch-btn focus-ring pz-btn min-h-[48px] px-5 py-3 text-xs disabled:opacity-40 flex-shrink-0"
               >
                 {sending ? '…' : 'Send'}
               </button>
@@ -307,10 +309,10 @@ const MessagesManager: React.FC<MessagesManagerProps> = ({ adminName }) => {
               <h3 className="text-sm text-white uppercase tracking-wide">New Message</h3>
               <button
                 onClick={() => setShowPicker(false)}
-                className="touch-btn focus-ring w-9 h-9 rounded-full bg-white/5 border border-white/10 text-[#ABABAB] font-bold active:bg-white/10"
+                className="touch-btn focus-ring w-11 h-11 rounded-full bg-white/5 border border-white/10 text-[#ABABAB] active:bg-white/10"
                 aria-label="Close"
               >
-                ✕
+                <Ic.XMark size={18} />
               </button>
             </div>
             <div className="p-4 flex-shrink-0">
@@ -320,7 +322,7 @@ const MessagesManager: React.FC<MessagesManagerProps> = ({ adminName }) => {
                 onChange={(e) => setParentSearch(e.target.value)}
                 placeholder="Search parents by name or email…"
                 autoFocus
-                className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
               />
             </div>
             <div className="flex-grow overflow-y-auto custom-scrollbar px-4 pb-4">

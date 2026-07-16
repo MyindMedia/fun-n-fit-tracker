@@ -5,6 +5,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import jsQR from 'jsqr';
 import { PZ, PzPortalCss, pStyles } from './shared';
+import { Ic } from '../icons';
 
 interface QRScanSheetProps {
     title: string;
@@ -178,12 +179,12 @@ const QRScanSheet: React.FC<QRScanSheetProps> = ({ title, hint, onScan, onClose 
                             width: '44px', height: '44px', flexShrink: 0,
                             border: `1px solid ${PZ.borderStrong}`, borderRadius: '4px',
                             background: 'transparent', color: PZ.white,
-                            fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer',
+                            cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontFamily: 'inherit',
                         }}
                     >
-                        ✕
+                        <Ic.XMark size={20} />
                     </button>
                 </div>
 

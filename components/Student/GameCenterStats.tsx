@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CheckIn } from '../../types';
 import { gameCenter } from '../../services/gameCenter';
+import { Ic, IconProps } from '../icons';
 
 interface GameCenterStatsProps {
   studentId: string;
@@ -53,21 +54,21 @@ const GameCenterStats: React.FC<GameCenterStatsProps> = ({ studentId }) => {
     };
   }, [studentId]);
 
-  const tiles: Array<{ icon: string; value: number | undefined; label: string }> = [
-    { icon: '🔥', value: stats?.streak, label: 'Day Streak' },
-    { icon: '✅', value: stats?.totalCheckIns, label: 'Check-Ins' },
-    { icon: '🏪', value: stats?.businessVisits, label: 'Town Visits' },
+  const tiles: Array<{ icon: React.FC<IconProps>; value: number | undefined; label: string }> = [
+    { icon: Ic.Fire, value: stats?.streak, label: 'Day Streak' },
+    { icon: Ic.CheckCircle, value: stats?.totalCheckIns, label: 'Check-Ins' },
+    { icon: Ic.Store, value: stats?.businessVisits, label: 'Town Visits' },
   ];
 
   return (
     <div className="pz-card p-5 text-white">
-      <div className="pz-eyebrow mb-3">
-        🎮 Game Center
+      <div className="pz-eyebrow mb-3 flex items-center gap-2">
+        <Ic.Controller size={16} /> Game Center
       </div>
       <div className="grid grid-cols-3 gap-3">
         {tiles.map((t) => (
           <div key={t.label} className="pz-card-sm p-4 text-center" style={{ background: 'var(--pz-panel-2)' }}>
-            <div className="text-xl mb-1">{t.icon}</div>
+            <div className="mb-1 flex justify-center" style={{ color: 'var(--pz-volt)' }}><t.icon size={22} /></div>
             <div className="pz-display text-2xl" style={{ color: 'var(--pz-volt)' }}>{stats ? t.value : '—'}</div>
             <div className="text-[9px] font-bold uppercase" style={{ color: 'var(--pz-text)' }}>{t.label}</div>
           </div>

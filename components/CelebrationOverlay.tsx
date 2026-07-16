@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { Ic } from './icons';
 
 export interface Celebration {
   type: 'RANK_UP' | 'BADGE_EARNED' | 'GAME_END';
@@ -63,9 +64,9 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ celebration, on
 
         <div className="relative z-10">
           {isGameEnd ? (
-            <div className="text-7xl md:text-9xl mb-6 md:mb-8 animate-bounce">🏆</div>
+            <div className="mb-6 md:mb-8 flex justify-center animate-bounce" style={{ color: accent }}><Ic.Trophy size={80} /></div>
           ) : (
-            <div className="text-7xl md:text-9xl mb-6 md:mb-8 animate-bounce">🎉</div>
+            <div className="mb-6 md:mb-8 flex justify-center animate-bounce" style={{ color: accent }}><Ic.Confetti size={80} /></div>
           )}
 
           {/* Student Avatar with Rank Icon */}
@@ -107,8 +108,8 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ celebration, on
                     className="w-32 h-32 md:w-40 md:h-40 mx-auto mb-4 drop-shadow-2xl animate-scale-in"
                     alt="Winning House"
                   />
-                  <div className="pz-display text-4xl md:text-5xl drop-shadow-lg" style={{ color: accent }}>
-                    🏆 {celebration.winningHouseName} Wins!
+                  <div className="pz-display text-4xl md:text-5xl drop-shadow-lg inline-flex items-center justify-center gap-3" style={{ color: accent }}>
+                    <Ic.Trophy size={40} className="shrink-0" /> {celebration.winningHouseName} Wins!
                   </div>
                 </div>
               )}
@@ -116,8 +117,8 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ celebration, on
               {/* MVP */}
               {celebration.mvpName && celebration.mvpAvatar && (
                 <div className="mt-8 pt-8 border-t border-white/10">
-                  <div className="text-2xl md:text-3xl font-bold mb-4 uppercase tracking-[0.25em]" style={{ color: 'var(--pz-volt)' }}>
-                    ⭐ MVP ⭐
+                  <div className="text-2xl md:text-3xl font-bold mb-4 uppercase tracking-[0.25em] flex items-center justify-center gap-3" style={{ color: 'var(--pz-volt)' }}>
+                    <Ic.StarFilled size={26} /> MVP <Ic.StarFilled size={26} />
                   </div>
                   <img
                     src={celebration.mvpAvatar}
@@ -138,8 +139,10 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ celebration, on
                 {celebration.studentName}
               </div>
 
-              <div className="text-2xl md:text-3xl font-bold mb-4 uppercase tracking-wider" style={{ color: 'var(--pz-text)' }}>
-                {celebration.type === 'RANK_UP' ? '⬆️ Promoted to' : '⭐ Earned'}
+              <div className="text-2xl md:text-3xl font-bold mb-4 uppercase tracking-wider flex items-center justify-center gap-2.5" style={{ color: 'var(--pz-text)' }}>
+                {celebration.type === 'RANK_UP'
+                  ? <><Ic.ArrowRight size={26} className="shrink-0" style={{ transform: 'rotate(-90deg)', color: 'var(--pz-volt)' }} /> Promoted to</>
+                  : <><Ic.Star size={26} className="shrink-0" style={{ color: 'var(--pz-volt)' }} /> Earned</>}
               </div>
 
               <div className="pz-display text-6xl md:text-7xl mt-4 drop-shadow-2xl animate-scale-in" style={{ color: accent }}>

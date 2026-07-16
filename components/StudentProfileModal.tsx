@@ -8,6 +8,7 @@ import CelebrationOverlay, { Celebration } from './CelebrationOverlay';
 import { AudioService } from '../utils/audio';
 import QRCode from 'qrcode';
 import { getStudentDisplayName } from '../utils/studentDisplay';
+import { Ic, DataIcon } from './icons';
 
 interface StudentProfileModalProps {
   student: Student;
@@ -343,7 +344,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
         <div className="fixed inset-0 z-[400] pz-scope bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in">
           <div className="pz-card max-w-md w-full p-8 animate-bounce-in">
             <div className="text-center mb-6">
-              <div className="text-6xl mb-4">⚠️</div>
+              <div className="mb-4 flex justify-center text-amber-400"><Ic.Warning size={56} /></div>
               <h3 className="text-2xl text-white mb-2">Confirm Rank Change</h3>
               <p className="text-sm" style={{ color: 'var(--pz-text)' }}>
                 Are you sure you want to promote <span className="font-black" style={{ color: 'var(--pz-volt)' }}>{student.fullName}</span> to <span className="font-black" style={{ color: 'var(--pz-volt)' }}>{pendingRank.name}</span>?
@@ -411,14 +412,14 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                   onClick={startCamera}
                   className="absolute bottom-0 right-0 pz-btn w-10 h-10 md:w-12 md:h-12 flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all"
                 >
-                  📸
+                  <Ic.Camera size={20} />
                 </button>
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   className="absolute bottom-0 left-0 bg-emerald-500 text-white w-10 h-10 md:w-12 md:h-12 flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all"
                   style={{ clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)' }}
                 >
-                  📁
+                  <Ic.Plus size={20} />
                 </button>
                 <input
                   ref={fileInputRef}
@@ -446,7 +447,10 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
             return (
               <>
                 <h2 className="pz-display text-xl md:text-3xl text-white text-center leading-tight mb-1">
-                  {displayName.primary} {student.inventory?.includes('r_shades') && '😎'}
+                  {displayName.primary}{' '}
+                  {student.inventory?.includes('r_shades') && (
+                    <Ic.Sparkle size={20} className="inline-block align-baseline" style={{ color: 'var(--pz-volt)' }} />
+                  )}
                 </h2>
                 {displayName.secondary && (
                   <div className="text-sm text-center mb-2 md:mb-3" style={{ color: 'var(--pz-text)' }}>{displayName.secondary}</div>
@@ -484,15 +488,15 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                  <button onClick={() => setActiveTab('TROPHY')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'TROPHY' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Trophy Case</button>
                  <button onClick={() => setActiveTab('SHOP')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'SHOP' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Rewards Shop</button>
                  <button onClick={() => setActiveTab('PEPTALK')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'PEPTALK' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Coach Pep Talk</button>
-                 <button onClick={() => setActiveTab('QRCODE')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'QRCODE' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>📱 QR Code</button>
+                 <button onClick={() => setActiveTab('QRCODE')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap inline-flex items-center gap-1.5 ${activeTab === 'QRCODE' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}><Ic.QrCode size={14} /> QR Code</button>
                  {isAdminMode && (
                    <>
-                     <button onClick={() => setActiveTab('EDIT')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'EDIT' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>✏️ Edit Info</button>
+                     <button onClick={() => setActiveTab('EDIT')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap inline-flex items-center gap-1.5 ${activeTab === 'EDIT' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}><Ic.Edit size={14} /> Edit Info</button>
                      <button onClick={() => setActiveTab('POINTS')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'POINTS' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Manual Points</button>
                    </>
                  )}
               </div>
-              <button onClick={onClose} className="text-2xl md:text-3xl shrink-0 ml-4 hover:text-white transition-colors" style={{ color: 'var(--pz-text)' }}>✕</button>
+              <button onClick={onClose} className="shrink-0 ml-4 hover:text-white transition-colors" style={{ color: 'var(--pz-text)' }}><Ic.XMark size={24} /></button>
            </div>
 
            <div className="flex-grow overflow-y-auto p-6 md:p-12 custom-scrollbar min-h-0">
@@ -503,7 +507,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                     ) : (
                        earnedBadges.map(b => (
                           <div key={b.id} className="pz-card-sm p-4 flex flex-col items-center text-center gap-3" style={{ background: 'var(--pz-panel-2)' }}>
-                             <div className="text-4xl">{b.icon}</div>
+                             <div className="text-amber-300"><DataIcon glyph={b.icon} size={36} /></div>
                              <div>
                                 <div className="font-black text-white text-xs uppercase mb-1">{b.name}</div>
                                 <div className="text-[10px] leading-tight" style={{ color: 'var(--pz-text)' }}>{b.description}</div>
@@ -524,7 +528,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                           return (
                              <div key={r.id} className={`pz-card-sm p-6 flex items-center justify-between gap-4 transition-all ${isOwned ? 'opacity-60' : ''}`} style={{ background: 'var(--pz-panel-2)' }}>
                                 <div className="flex items-center gap-4">
-                                   <div className="text-3xl">{r.icon}</div>
+                                   <div className="text-white"><DataIcon glyph={r.icon} size={28} /></div>
                                    <div>
                                       <div className="font-black text-white text-sm">{r.name}</div>
                                       <div className="text-[10px] font-black" style={{ color: 'var(--pz-volt)' }}>{r.cost} PTS</div>
@@ -551,7 +555,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
 
               {activeTab === 'PEPTALK' && (
                  <div className="flex flex-col items-center justify-center h-full text-center space-y-8">
-                    <div className="text-6xl">🤖</div>
+                    <div style={{ color: 'var(--pz-volt)' }}><Ic.Controller size={56} /></div>
                     {isAiLoading ? (
                        <div className="font-black uppercase tracking-widest animate-pulse" style={{ color: 'var(--pz-volt)' }}>Consulting AI Coach...</div>
                     ) : aiFeedback ? (
@@ -572,7 +576,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
 
               {activeTab === 'QRCODE' && (
                  <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
-                    <div className="text-6xl mb-4">📱</div>
+                    <div className="mb-4" style={{ color: 'var(--pz-volt)' }}><Ic.QrCode size={56} /></div>
                     <h3 className="text-3xl text-white uppercase">Check-In QR Code</h3>
                     <p className="font-medium max-w-md" style={{ color: 'var(--pz-text)' }}>Scan this code at the door to mark your attendance instantly!</p>
 
@@ -657,9 +661,9 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                               setTimeout(() => printWindow.print(), 250);
                             }
                           }}
-                          className="w-full pz-btn px-8 py-4 text-xs active:scale-95"
+                          className="w-full pz-btn px-8 py-4 text-xs active:scale-95 inline-flex items-center justify-center gap-2"
                        >
-                          🖨️ Print QR Card
+                          <Ic.Printer size={16} /> Print QR Card
                        </button>
 
                        <button
@@ -669,9 +673,9 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                             link.href = qrCodeUrl;
                             link.click();
                           }}
-                          className="w-full pz-btn-ghost px-8 py-4 text-xs active:scale-95"
+                          className="w-full pz-btn-ghost px-8 py-4 text-xs active:scale-95 inline-flex items-center justify-center gap-2"
                        >
-                          💾 Download QR Code
+                          <Ic.QrCode size={16} /> Download QR Code
                        </button>
                     </div>
                  </div>
@@ -819,7 +823,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
       <div className="fixed inset-0 z-[400] pz-scope bg-black/85 backdrop-blur-xl flex items-center justify-center p-4">
         <div className="pz-card max-w-md w-full p-8" style={{ borderColor: 'rgba(239, 68, 68, 0.4)' }}>
           <div className="text-center mb-6">
-            <div className="text-6xl mb-4">⚠️</div>
+            <div className="mb-4 flex justify-center text-red-400"><Ic.Warning size={56} /></div>
             <h3 className="text-2xl text-white mb-2">Delete Athlete</h3>
             <p className="text-sm" style={{ color: 'var(--pz-text)' }}>This cannot be undone. Remove {student.fullName} from the roster?</p>
           </div>

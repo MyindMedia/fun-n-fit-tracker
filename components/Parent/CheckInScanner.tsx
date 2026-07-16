@@ -3,9 +3,18 @@
 // family's recent check-in history.
 import React, { useState, useEffect, useRef } from 'react';
 import { Student, CheckIn } from '../../types';
+import { HOUSES } from '../../constants';
 import { gameCenter, CheckInResult } from '../../services/gameCenter';
 import QRScanSheet from './QRScanSheet';
+import KidPassSheet from './KidPassSheet';
 import { extractScanParam, cleanErr, fmtTime, pStyles, KidSelect, PZ } from './shared';
+import { Ic } from '../icons';
+
+/* Check-in method glyph (history rows) */
+const MethodIcon: React.FC<{ method?: string }> = ({ method }) => {
+    const Icon = method === 'NFC' ? Ic.Nfc : method === 'MANUAL' ? Ic.ClipboardCheck : Ic.QrCode;
+    return <Icon size={18} style={{ color: PZ.muted, flexShrink: 0 }} aria-hidden="true" />;
+};
 
 interface CheckInScannerProps {
     students: Student[];
@@ -34,6 +43,7 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
     const [nfcListening, setNfcListening] = useState(false);
     const [history, setHistory] = useState<HistoryRow[]>([]);
     const [historyLoading, setHistoryLoading] = useState(true);
+    const [passStudent, setPassStudent] = useState<Student | null>(null);
     const nfcAbortRef = useRef<AbortController | null>(null);
 
     const nfcSupported = typeof window !== 'undefined' && 'NDEFReader' in window;
@@ -151,7 +161,9 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
                     background: `linear-gradient(180deg, rgba(203,254,28,0.12), ${PZ.panel})`,
                     border: `1px solid ${PZ.voltDim}`,
                 }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '0.25rem' }}>{okCount > 0 ? '🎉' : '👍'}</div>
+                    <div style={{ marginBottom: '0.5rem', color: PZ.volt }}>
+                        {okCount > 0 ? <Ic.Confetti size={44} /> : <Ic.CheckCircle size={44} />}
+                    </div>
                     <h2 className="pz-display" style={{ margin: '0 0 0.35rem', color: PZ.white, fontSize: '1.375rem' }}>
                         {okCount > 0 ? "They're on the board!" : 'All set!'}
                     </h2>
@@ -168,7 +180,9 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
                             border: r.status === 'OK' ? `1px solid ${PZ.voltDim}` : `1px solid ${PZ.border}`,
                             background: r.status === 'OK' ? 'rgba(203,254,28,0.06)' : PZ.panel2,
                         }}>
-                            <div style={{ fontSize: '1.5rem' }}>{r.status === 'OK' ? '🎮' : '✅'}</div>
+                            <div style={{ color: r.status === 'OK' ? PZ.volt : PZ.muted, display: 'flex', flexShrink: 0 }}>
+                                {r.status === 'OK' ? <Ic.Controller size={26} /> : <Ic.CheckCircle size={26} />}
+                            </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div className="pz-display" style={{ color: PZ.white, fontSize: '0.9375rem' }}>{r.fullName}</div>
                                 <div style={{
@@ -240,9 +254,71 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
         );
     }
 
-    /* ── Step 1: scan ────────────────────────────────────────────────────────── */
+    /* ── Step 1: passes + scan ───────────────────────────────────────────────── */
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* Show-a-pass strip — staff scan the kid's QR at the front desk */}
+            {students.length > 0 && (
+                <div style={pStyles.card}>
+                    <div className="pz-eyebrow" style={{ margin: '0 0 0.5rem' }}>Show a Pass</div>
+                    <p style={{ ...pStyles.mutedText, marginBottom: '0.875rem' }}>
+                        Tap a kid to show their pass — staff scan it at the front desk.
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                        {students.map(s => {
+                            const house = HOUSES[s.houseId];
+                            return (
+                                <button
+                                    key={s.id}
+                                    type="button"
+                                    className="pzp-clip"
+                                    onClick={() => setPassStudent(s)}
+                                    aria-label={`Show ${s.fullName}'s check-in pass`}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%',
+                                        textAlign: 'left', padding: '0.75rem 1rem', cursor: 'pointer',
+                                        minHeight: '64px',
+                                        background: '#10141C', border: `2px solid ${PZ.border}`,
+                                        clipPath: PZ.notchSm, fontFamily: 'inherit',
+                                        transition: 'border-color 0.15s',
+                                    }}
+                                >
+                                    <img
+                                        src={s.avatarUrl}
+                                        alt=""
+                                        onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${s.id}`; }}
+                                        style={{
+                                            width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover',
+                                            border: `3px solid ${house.colorHex}`, flexShrink: 0,
+                                        }}
+                                    />
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div className="pz-display" style={{
+                                            color: PZ.white, fontSize: '0.9375rem',
+                                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                        }}>
+                                            {s.gamerTag || s.fullName}
+                                        </div>
+                                        <div style={{ color: house.colorHex, fontSize: '0.75rem', fontWeight: 700 }}>
+                                            {house.name}
+                                        </div>
+                                    </div>
+                                    <span style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0,
+                                        background: PZ.voltFaint, border: `1px solid ${PZ.voltDim}`, color: PZ.volt,
+                                        borderRadius: '3px', padding: '0.5rem 0.75rem',
+                                        fontSize: '0.75rem', fontWeight: 700,
+                                        textTransform: 'uppercase', letterSpacing: '0.06em',
+                                    }}>
+                                        <Ic.QrCode size={20} /> Pass
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
             <div style={{ ...pStyles.card, textAlign: 'center' }}>
                 <div className="pz-eyebrow" style={{ margin: '0 0 0.5rem' }}>Check In</div>
                 <h2 className="pz-display" style={{ ...pStyles.sectionTitle, marginBottom: '0.35rem' }}>Check In at Fun 'N Fit</h2>
@@ -250,8 +326,8 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
                     Scan the code at the front desk to get your kids on the board.
                 </p>
 
-                <button onClick={() => setScannerOpen(true)} className="pz-btn" style={pStyles.bigActionBtn}>
-                    Scan to Check In
+                <button onClick={() => setScannerOpen(true)} className="pz-btn" style={{ ...pStyles.bigActionBtn, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                    <Ic.Scan size={24} /> Scan to Check In
                 </button>
 
                 {nfcSupported && (
@@ -292,9 +368,7 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
                                         {row.checkIn.checkedOutAt ? ` · out ${fmtTime(row.checkIn.checkedOutAt)}` : ''}
                                     </div>
                                 </div>
-                                <span style={{ fontSize: '1.1rem' }} aria-hidden="true">
-                                    {row.checkIn.method === 'NFC' ? '📶' : row.checkIn.method === 'MANUAL' ? '🖐️' : '📷'}
-                                </span>
+                                <MethodIcon method={row.checkIn.method} />
                             </div>
                         ))}
                     </div>
@@ -311,6 +385,10 @@ const CheckInScanner: React.FC<CheckInScannerProps> = ({
                     }}
                     onClose={() => setScannerOpen(false)}
                 />
+            )}
+
+            {passStudent && (
+                <KidPassSheet student={passStudent} onClose={() => setPassStudent(null)} />
             )}
         </div>
     );

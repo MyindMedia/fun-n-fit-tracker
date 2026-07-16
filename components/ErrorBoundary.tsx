@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Ic } from './icons';
 
 interface Props {
   children: ReactNode;
@@ -39,7 +40,7 @@ class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen pz-scope flex items-center justify-center p-8" style={{ background: 'var(--pz-bg)' }}>
           <div className="pz-card p-12 max-w-lg w-full text-center">
-            <div className="text-7xl mb-6">⚠️</div>
+            <div className="mb-6 flex justify-center text-amber-400"><Ic.Warning size={64} /></div>
             <div className="pz-eyebrow mb-3">Connection Lost</div>
             <h1 className="text-3xl text-white mb-4">
               Something Went Wrong

@@ -6,6 +6,7 @@ import AvatarCreator from './v2/AvatarCreator';
 import PerkShop from './Student/PerkShop';
 import GameCenterStats from './Student/GameCenterStats';
 import { getStudentDisplayName } from '../utils/studentDisplay';
+import { Ic, IconProps } from './icons';
 
 interface StudentPortalProps {
   student: Student;
@@ -272,7 +273,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       <button
         onClick={handleSaveProfile}
         disabled={isSaving}
-        className={`touch-btn w-full py-4 font-black text-sm uppercase tracking-widest transition-all ${isSaving ? 'bg-white/10 text-slate-500' : 'pz-btn'
+        className={`touch-btn min-h-[52px] w-full py-4 font-black text-sm uppercase tracking-widest transition-all ${isSaving ? 'bg-white/10 text-slate-500' : 'pz-btn'
           }`}
         style={isSaving ? { clipPath: NOTCH_SM } : undefined}
       >
@@ -335,7 +336,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           <div className="grid grid-cols-4 gap-2">
             {student.badges.map(badgeId => (
               <div key={badgeId} className="pz-card-sm p-3 text-center">
-                <div className="text-2xl mb-1">🏅</div>
+                <div className="mb-1 flex justify-center text-amber-300"><Ic.Medal size={24} /></div>
                 <div className="text-[9px] font-black uppercase truncate" style={{ color: 'var(--pz-text)' }}>{badgeId}</div>
               </div>
             ))}
@@ -360,7 +361,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
                     {trophy.icon ? (
                       <img src={trophy.icon} className="w-10 h-10 object-contain" alt="" />
                     ) : (
-                      <div className="w-10 h-10 bg-amber-400/15 flex items-center justify-center text-xl" style={{ clipPath: NOTCH_SM }}>🏆</div>
+                      <div className="w-10 h-10 bg-amber-400/15 flex items-center justify-center text-amber-300" style={{ clipPath: NOTCH_SM }}><Ic.Trophy size={20} /></div>
                     )}
                     <div className="flex-grow min-w-0">
                       <div className="font-black text-sm text-white">{trophy.name}</div>
@@ -385,7 +386,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       {/* Add Friend Button */}
       <button
         onClick={() => setShowAddFriend(true)}
-        className="touch-btn pz-btn w-full py-3 text-xs"
+        className="touch-btn min-h-[52px] pz-btn w-full py-3 text-xs"
       >
         + Add Friend
       </button>
@@ -397,7 +398,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
         </h3>
         {friends.length === 0 ? (
           <div className="text-center py-12" style={{ color: 'var(--pz-text)' }}>
-            <div className="text-4xl mb-2">👥</div>
+            <div className="mb-2 flex justify-center"><Ic.Users size={40} /></div>
             <div className="text-sm font-medium">No friends yet</div>
             <div className="text-xs">Add friends to see their progress!</div>
           </div>
@@ -432,10 +433,10 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
                   </div>
                   <button
                     onClick={() => handleRemoveFriend(friend.id)}
-                    className="touch-btn w-8 h-8 bg-red-500/10 border border-red-500/40 text-red-400 text-sm flex items-center justify-center"
+                    className="touch-btn w-8 h-8 bg-red-500/10 border border-red-500/40 text-red-400 flex items-center justify-center"
                     style={{ clipPath: NOTCH_SM }}
                   >
-                    ×
+                    <Ic.XMark size={16} />
                   </button>
                 </div>
               );
@@ -450,7 +451,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           <div className="pz-card w-full max-w-md max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--pz-border)' }}>
               <h3 className="text-sm text-white uppercase">Add Friend</h3>
-              <button onClick={() => setShowAddFriend(false)} className="text-xl" style={{ color: 'var(--pz-text)' }}>×</button>
+              <button onClick={() => setShowAddFriend(false)} className="touch-btn" style={{ color: 'var(--pz-text)' }}><Ic.XMark size={18} /></button>
             </div>
             <div className="p-4">
               <input
@@ -549,7 +550,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           <div>
             <h3 className="text-sm text-white uppercase tracking-wide mb-3">Top Scorer</h3>
             <div className="pz-card-sm p-4 flex items-center gap-4" style={{ background: 'var(--pz-panel-2)' }}>
-              <div className="text-3xl">👑</div>
+              <div style={{ color: 'var(--pz-volt)' }}><Ic.Trophy size={28} /></div>
               <img
                 src={teamStats.topScorer.avatarUrl}
                 className="w-12 h-12 rounded-full border-2 object-cover"
@@ -609,7 +610,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           <div className="pz-eyebrow">Your Balance</div>
           <div className="pz-display text-2xl" style={{ color: 'var(--pz-volt)' }}>{student.points.toLocaleString()} PTS</div>
         </div>
-        <div className="text-3xl">🛍️</div>
+        <div style={{ color: 'var(--pz-volt)' }}><Ic.Store size={28} /></div>
       </div>
 
       {['HAIRSTYLE', 'TOP', 'ACCESSORY', 'BASE_FACE'].map(slot => {
@@ -638,7 +639,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
                         <button
                           onClick={() => handlePurchase(item)}
                           disabled={!canAfford}
-                          className={`px-3 py-1.5 text-[10px] font-black uppercase ${canAfford ? 'pz-btn' : 'bg-white/5 text-slate-500'
+                          className={`touch-btn min-h-[48px] px-4 py-1.5 text-[10px] font-black uppercase ${canAfford ? 'pz-btn' : 'bg-white/5 text-slate-500'
                             }`}
                           style={!canAfford ? { clipPath: NOTCH_SM } : undefined}
                         >
@@ -661,7 +662,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       <h3 className="text-sm text-white uppercase tracking-wide">Academy News</h3>
       {news.length === 0 ? (
         <div className="text-center py-12" style={{ color: 'var(--pz-text)' }}>
-          <div className="text-4xl mb-2">📰</div>
+          <div className="mb-2 flex justify-center"><Ic.Note size={40} /></div>
           <div className="text-sm font-medium">No news yet</div>
         </div>
       ) : (
@@ -703,19 +704,19 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
         {/* Tab Navigation */}
         <div className="px-2 py-2 flex-shrink-0 overflow-x-auto" style={{ background: 'var(--pz-panel)', borderBottom: '1px solid var(--pz-border)' }}>
           <div className="flex gap-1 min-w-max">
-            {[
-              { id: 'PROFILE', label: 'Profile', icon: '👤' },
-              { id: 'PROGRESS', label: 'Stats', icon: '📊' },
-              { id: 'SHOP', label: 'Perk Shop', icon: '🛒' },
-              { id: 'STORE', label: 'Store', icon: '🛍️' },
-              { id: 'NEWS', label: 'News', icon: '📰' },
-              { id: 'FRIENDS', label: 'Friends', icon: '👥' },
-              { id: 'TEAM', label: 'Team', icon: '🏠' }
-            ].map(tab => (
+            {([
+              { id: 'PROFILE', label: 'Profile', icon: Ic.User },
+              { id: 'PROGRESS', label: 'Stats', icon: Ic.Chart },
+              { id: 'SHOP', label: 'Perk Shop', icon: Ic.Cart },
+              { id: 'STORE', label: 'Store', icon: Ic.Store },
+              { id: 'NEWS', label: 'News', icon: Ic.Note },
+              { id: 'FRIENDS', label: 'Friends', icon: Ic.Users },
+              { id: 'TEAM', label: 'Team', icon: Ic.Home }
+            ] as Array<{ id: string; label: string; icon: React.FC<IconProps> }>).map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`touch-btn px-3 py-2 text-[10px] font-black uppercase tracking-wide transition-all ${activeTab === tab.id
+                className={`touch-btn min-h-[48px] px-4 py-2 text-[10px] font-black uppercase tracking-wide transition-all inline-flex items-center gap-2 ${activeTab === tab.id
                   ? 'text-[#0B0E13]'
                   : 'text-slate-400 border border-white/10'
                   }`}
@@ -723,7 +724,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
                   ? { background: 'var(--pz-volt)', clipPath: NOTCH_SM }
                   : { background: 'var(--pz-panel-2)', clipPath: NOTCH_SM }}
               >
-                <span className="mr-1">{tab.icon}</span> {tab.label}
+                <tab.icon size={20} /> {tab.label}
               </button>
             ))}
           </div>

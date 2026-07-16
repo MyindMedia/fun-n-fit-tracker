@@ -4,6 +4,7 @@ import { GameSession, GameResult, Student, Rank } from '../types';
 import { supabaseService } from '../services/supabaseService';
 import { HOUSES } from '../constants';
 import { AudioService } from '../utils/audio';
+import { Ic } from './icons';
 
 interface QueuedLevelUp {
   studentId: string;
@@ -651,7 +652,7 @@ const GameOverlay: React.FC = () => {
           <div key={`go-${g.id}`} className="fixed inset-0 z-[655] pz-scope flex items-center justify-center bg-black/70 backdrop-blur-xl animate-fade-in">
             <div className="animate-bounce-in" style={{ filter: 'drop-shadow(0 0 40px rgba(239, 68, 68, 0.35))' }}>
               <div className="pz-card text-white px-12 md:px-20 py-10 text-center" style={{ borderColor: 'rgba(239, 68, 68, 0.5)' }}>
-                <div className="text-7xl md:text-9xl mb-6">🛑</div>
+                <div className="mb-6 flex justify-center text-red-500"><Ic.Flag size={80} /></div>
                 <div className="pz-display text-4xl md:text-6xl text-red-400">Game Over</div>
                 <div className="text-2xl md:text-3xl font-black mt-3" style={{ color: 'var(--pz-text)' }}>{g.title}</div>
               </div>
@@ -769,7 +770,7 @@ const GameOverlay: React.FC = () => {
           <div className="fixed inset-0 z-[650] pz-scope flex items-center justify-center pointer-events-none animate-fade-in">
             <div className="animate-bounce-in" style={{ filter: 'drop-shadow(0 0 40px rgba(249, 115, 22, 0.45))' }}>
               <div className="pz-card text-white px-12 md:px-20 py-8 md:py-12 text-center" style={{ borderColor: 'rgba(249, 115, 22, 0.6)' }}>
-                <div className="text-6xl md:text-8xl mb-4">⚠️</div>
+                <div className="mb-4 flex justify-center text-orange-400"><Ic.Warning size={72} /></div>
                 <div className="pz-display text-4xl md:text-6xl lg:text-7xl tracking-wider drop-shadow-2xl text-orange-400">
                   30 Seconds
                 </div>
@@ -881,7 +882,7 @@ const GameOverlay: React.FC = () => {
                       <div className={`rounded-full bg-white/10 flex items-center justify-center ${
                         queuedLevelUps.length === 1 ? 'w-32 h-32 md:w-40 md:h-40' : 'w-20 h-20 md:w-28 md:h-28'
                       }`}>
-                        <span className="text-4xl">👤</span>
+                        <span className="text-white/40 flex items-center"><Ic.User size={40} /></span>
                       </div>
                     )}
                     <div className={`text-white font-black mt-3 drop-shadow-lg truncate max-w-full ${

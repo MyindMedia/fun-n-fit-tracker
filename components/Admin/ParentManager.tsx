@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Student } from '../../types';
 import { HOUSES } from '../../constants';
 import { parentAuth } from '../../services/parentAuth';
+import { Ic } from '../icons';
 
 interface ParentRecord {
     id: string;
@@ -16,9 +17,9 @@ interface ParentRecord {
 type Step = 1 | 2 | 3;
 
 const STEPS = [
-    { step: 1, icon: '🏃', label: 'Parent Info' },
-    { step: 2, icon: '🔐', label: 'Account Setup' },
-    { step: 3, icon: '🏆', label: 'Done!' },
+    { step: 1, label: 'Parent Info' },
+    { step: 2, label: 'Account Setup' },
+    { step: 3, label: 'Done!' },
 ];
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -31,7 +32,7 @@ const ParentManager: React.FC<{ students: Student[] }> = ({ students }) => {
     // Link form
     const [linkStudentId, setLinkStudentId] = useState('');
     const [linking, setLinking] = useState(false);
-    const [linkMsg, setLinkMsg] = useState<string | null>(null);
+    const [linkMsg, setLinkMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
     useEffect(() => { loadParents(); }, []);
 
@@ -60,11 +61,11 @@ const ParentManager: React.FC<{ students: Student[] }> = ({ students }) => {
         setLinkMsg(null);
         try {
             await parentAuth.linkStudent(parentId, linkStudentId);
-            setLinkMsg('✅ Student linked!');
+            setLinkMsg({ ok: true, text: 'Student linked!' });
             setLinkStudentId('');
             await loadParents();
         } catch (err: any) {
-            setLinkMsg(`❌ ${err.message}`);
+            setLinkMsg({ ok: false, text: err.message });
         } finally {
             setLinking(false);
         }
@@ -85,8 +86,8 @@ const ParentManager: React.FC<{ students: Student[] }> = ({ students }) => {
         return (
             <div className="pz-scope space-y-4">
                 <button onClick={() => { setSelectedParent(null); setLinkMsg(null); setLinkStudentId(''); }}
-                    className="flex items-center gap-2 text-sm font-black text-[#ABABAB] hover:text-white transition-colors">
-                    ← Back to Parents
+                    className="touch-btn flex items-center gap-2 text-sm font-black text-[#ABABAB] hover:text-white transition-colors">
+                    <Ic.ArrowLeft size={16} /> Back to Parents
                 </button>
 
                 <div className="pz-card p-5">
@@ -99,7 +100,7 @@ const ParentManager: React.FC<{ students: Student[] }> = ({ students }) => {
                             <h2 className="text-white text-lg leading-tight">{parent.fullName}</h2>
                             <p className="text-[#ABABAB] text-sm">{parent.email}</p>
                             {parent.phone !== '—' && (
-                                <p className="text-[#ABABAB] text-xs">📱 {parent.phone}</p>
+                                <p className="text-[#ABABAB] text-xs flex items-center gap-1"><Ic.Phone size={12} /> {parent.phone}</p>
                             )}
                         </div>
                     </div>
@@ -140,17 +141,19 @@ const ParentManager: React.FC<{ students: Student[] }> = ({ students }) => {
                     </h3>
                     <div className="flex gap-2">
                         <select value={linkStudentId} onChange={e => setLinkStudentId(e.target.value)}
-                            className="flex-grow px-3 py-2 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white focus:border-[#CBFE1C] outline-none">
+                            className="flex-grow min-h-[48px] px-3 py-2 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white focus:border-[#CBFE1C] outline-none">
                             <option value="">— Select athlete —</option>
                             {available.map(s => <option key={s.id} value={s.id}>{s.fullName}</option>)}
                         </select>
                         <button onClick={() => handleLinkStudent(parent.id)} disabled={!linkStudentId || linking}
-                            className="pz-btn px-4 py-2 text-sm disabled:opacity-40">
+                            className="touch-btn pz-btn min-h-[48px] px-4 py-2 text-sm disabled:opacity-40">
                             {linking ? '...' : 'Link'}
                         </button>
                     </div>
                     {linkMsg && (
-                        <p className={`text-sm font-medium mt-2 ${linkMsg.startsWith('✅') ? 'text-emerald-400' : 'text-red-400'}`}>{linkMsg}</p>
+                        <p className={`text-sm font-medium mt-2 flex items-center gap-1.5 ${linkMsg.ok ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {linkMsg.ok ? <Ic.CheckCircle size={14} /> : <Ic.XCircle size={14} />} {linkMsg.text}
+                        </p>
                     )}
                 </div>
             </div>
@@ -172,11 +175,11 @@ const ParentManager: React.FC<{ students: Student[] }> = ({ students }) => {
         <div className="pz-scope space-y-4">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-white text-base">👨‍👩‍👧‍👦 Parent Accounts</h2>
+                    <h2 className="text-white text-base inline-flex items-center gap-2"><Ic.Family size={20} className="text-[#CBFE1C]" /> Parent Accounts</h2>
                     <p className="text-[#ABABAB] text-xs">{parents.length} registered</p>
                 </div>
                 <button onClick={() => setActiveView('create')}
-                    className="pz-btn px-4 py-2 text-sm">
+                    className="touch-btn pz-btn min-h-[44px] px-4 py-2 text-sm">
                     + New Parent
                 </button>
             </div>
@@ -185,7 +188,7 @@ const ParentManager: React.FC<{ students: Student[] }> = ({ students }) => {
                 <div className="text-center py-12 text-[#ABABAB] text-sm">Loading...</div>
             ) : parents.length === 0 ? (
                 <div className="pz-card p-8 text-center">
-                    <div className="text-5xl mb-3">👪</div>
+                    <Ic.Family size={44} className="mx-auto mb-3 text-[#ABABAB] opacity-60" />
                     <h3 className="text-white mb-2">No Parent Accounts Yet</h3>
                     <p className="text-[#ABABAB] text-sm mb-4">Create the first parent account to get started.</p>
                     <button onClick={() => setActiveView('create')}
@@ -205,7 +208,7 @@ const ParentManager: React.FC<{ students: Student[] }> = ({ students }) => {
                             <div className="flex-grow min-w-0">
                                 <div className="font-black text-white text-sm truncate">{parent.fullName}</div>
                                 <div className="text-[11px] text-[#ABABAB] truncate">{parent.email}</div>
-                                {parent.phone !== '—' && <div className="text-[10px] text-[#ABABAB]">📱 {parent.phone}</div>}
+                                {parent.phone !== '—' && <div className="text-[10px] text-[#ABABAB] flex items-center gap-1"><Ic.Phone size={11} /> {parent.phone}</div>}
                             </div>
                             <div className="flex-shrink-0 flex flex-col items-end gap-1">
                                 <span className="text-[10px] font-black text-[#ABABAB] uppercase">
@@ -219,7 +222,7 @@ const ParentManager: React.FC<{ students: Student[] }> = ({ students }) => {
                                     ))}
                                 </div>
                             </div>
-                            <span className="text-white/30 text-lg flex-shrink-0">›</span>
+                            <Ic.ChevronRight size={18} className="text-white/30 flex-shrink-0" />
                         </button>
                     ))}
                 </div>
@@ -266,8 +269,8 @@ const OnboardingWizard: React.FC<{ onDone: () => void; onCancel: () => void }> =
     return (
         <div className="pz-scope max-w-md mx-auto">
             {/* Cancel */}
-            <button onClick={onCancel} className="flex items-center gap-2 text-sm font-black text-[#ABABAB] hover:text-white transition-colors mb-4">
-                ← Back to Parents
+            <button onClick={onCancel} className="touch-btn flex items-center gap-2 text-sm font-black text-[#ABABAB] hover:text-white transition-colors mb-4">
+                <Ic.ArrowLeft size={16} /> Back to Parents
             </button>
 
             {/* Branded header */}
@@ -291,7 +294,7 @@ const OnboardingWizard: React.FC<{ onDone: () => void; onCancel: () => void }> =
                         <div className={`flex items-center gap-1.5 ${step >= s.step ? 'opacity-100' : 'opacity-30'} transition-opacity`}>
                             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all ${step > s.step ? 'bg-emerald-500 text-white' : step === s.step ? 'bg-[#CBFE1C] text-[#0B0E13]' : 'bg-white/10 text-[#ABABAB]'
                                 }`}>
-                                {step > s.step ? '✓' : s.step}
+                                {step > s.step ? <Ic.Check size={14} /> : s.step}
                             </div>
                             <span className="text-[10px] font-black text-[#ABABAB] uppercase tracking-wide hidden sm:block">{s.label}</span>
                         </div>
@@ -308,18 +311,18 @@ const OnboardingWizard: React.FC<{ onDone: () => void; onCancel: () => void }> =
             {step === 1 && (
                 <div className="pz-card p-5 space-y-4">
                     <div>
-                        <h2 className="text-white text-base">👋 Let's start with the basics</h2>
+                        <h2 className="text-white text-base inline-flex items-center gap-2"><Ic.User size={18} className="text-[#CBFE1C]" /> Let's start with the basics</h2>
                         <p className="text-[#ABABAB] text-sm">Tell us about the parent joining the Fun 'N Fit family.</p>
                     </div>
                     <WizField label="Parent's Full Name" value={form.fullName} onChange={set('fullName')}
-                        placeholder="e.g. Jane Smith" type="text" icon="👤" />
+                        placeholder="e.g. Jane Smith" type="text" icon={<Ic.User size={16} />} />
                     <WizField label="Phone Number" value={form.phone} onChange={set('phone')}
-                        placeholder="(555) 000-0000" type="tel" icon="📱" />
+                        placeholder="(555) 000-0000" type="tel" icon={<Ic.Phone size={16} />} />
                     <button
                         onClick={() => { if (form.fullName && form.phone) setStep(2); }}
                         disabled={!form.fullName || !form.phone}
-                        className="w-full pz-btn py-3 text-sm disabled:opacity-40">
-                        Continue →
+                        className="w-full pz-btn min-h-[48px] py-3 text-sm disabled:opacity-40 flex items-center justify-center gap-2">
+                        Continue <Ic.ArrowRight size={14} />
                     </button>
                 </div>
             )}
@@ -328,26 +331,26 @@ const OnboardingWizard: React.FC<{ onDone: () => void; onCancel: () => void }> =
             {step === 2 && (
                 <form onSubmit={handleSubmitAccount} className="pz-card p-5 space-y-4">
                     <div>
-                        <h2 className="text-white text-base">🔐 Create their account</h2>
+                        <h2 className="text-white text-base inline-flex items-center gap-2"><Ic.Lock size={18} className="text-[#CBFE1C]" /> Create their account</h2>
                         <p className="text-[#ABABAB] text-sm">Set up login credentials for <strong className="text-white">{form.fullName}</strong>.</p>
                     </div>
                     {error && (
-                        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm font-medium">
-                            ⚠️ {error}
+                        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm font-medium flex items-start gap-2">
+                            <Ic.Warning size={16} className="flex-shrink-0 mt-0.5" /> {error}
                         </div>
                     )}
                     <WizField label="Email Address" value={form.email} onChange={set('email')}
-                        placeholder="parent@email.com" type="email" icon="✉️" />
+                        placeholder="parent@email.com" type="email" icon={<Ic.Mail size={16} />} />
                     <WizField label="Temporary Password" value={form.password} onChange={set('password')}
-                        placeholder="Min 6 characters" type="password" icon="🔑" />
+                        placeholder="Min 6 characters" type="password" icon={<Ic.Key size={16} />} />
                     <div className="flex gap-2">
                         <button type="button" onClick={() => setStep(1)}
-                            className="flex-1 pz-btn-ghost py-3 text-sm">
-                            ← Back
+                            className="flex-1 pz-btn-ghost min-h-[48px] py-3 text-sm flex items-center justify-center gap-2">
+                            <Ic.ArrowLeft size={14} /> Back
                         </button>
                         <button type="submit" disabled={loading || !form.email || !form.password}
-                            className="flex-[2] pz-btn py-3 text-sm disabled:opacity-40">
-                            {loading ? '⏳ Creating...' : '🚀 Create Account'}
+                            className="flex-[2] pz-btn min-h-[48px] py-3 text-sm disabled:opacity-40 flex items-center justify-center gap-2">
+                            {loading ? 'Creating...' : <><Ic.Bolt size={16} /> Create Account</>}
                         </button>
                     </div>
                 </form>
@@ -356,7 +359,7 @@ const OnboardingWizard: React.FC<{ onDone: () => void; onCancel: () => void }> =
             {/* Step 3: Done! */}
             {step === 3 && (
                 <div className="pz-card p-8 text-center space-y-4">
-                    <div className="text-6xl animate-bounce">🎉</div>
+                    <Ic.Confetti size={56} className="mx-auto animate-bounce text-[#CBFE1C]" />
                     <div>
                         <h2 className="text-white text-xl">Welcome to the team, {createdName}!</h2>
                         <p className="text-[#ABABAB] text-sm mt-2">
@@ -365,16 +368,16 @@ const OnboardingWizard: React.FC<{ onDone: () => void; onCancel: () => void }> =
                     </div>
                     <div className="pz-card-sm p-4 text-left space-y-1" style={{ background: 'var(--pz-panel-2)' }}>
                         <p className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest">Account Details</p>
-                        <p className="text-sm font-bold text-white">👤 {form.fullName}</p>
-                        <p className="text-sm font-bold text-white">✉️ {form.email}</p>
-                        <p className="text-sm font-bold text-white">📱 {form.phone}</p>
+                        <p className="text-sm font-bold text-white flex items-center gap-2"><Ic.User size={14} className="text-[#CBFE1C]" /> {form.fullName}</p>
+                        <p className="text-sm font-bold text-white flex items-center gap-2"><Ic.Mail size={14} className="text-[#CBFE1C]" /> {form.email}</p>
+                        <p className="text-sm font-bold text-white flex items-center gap-2"><Ic.Phone size={14} className="text-[#CBFE1C]" /> {form.phone}</p>
                     </div>
-                    <p className="text-xs text-[#ABABAB]">
-                        💡 Next step: open their account to link their athletes.
+                    <p className="text-xs text-[#ABABAB] flex items-center justify-center gap-1.5">
+                        <Ic.Info size={14} /> Next step: open their account to link their athletes.
                     </p>
                     <button onClick={onDone}
-                        className="w-full pz-btn py-3 text-sm">
-                        View All Parents →
+                        className="w-full pz-btn min-h-[48px] py-3 text-sm flex items-center justify-center gap-2">
+                        View All Parents <Ic.ArrowRight size={14} />
                     </button>
                 </div>
             )}
@@ -386,18 +389,18 @@ const OnboardingWizard: React.FC<{ onDone: () => void; onCancel: () => void }> =
 const WizField: React.FC<{
     label: string; value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    placeholder: string; type: string; icon: string;
+    placeholder: string; type: string; icon: React.ReactNode;
 }> = ({ label, value, onChange, placeholder, type, icon }) => (
     <div>
         <label className="block text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-1.5">{label}</label>
         <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base">{icon}</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#ABABAB] flex items-center">{icon}</span>
             <input
                 type={type}
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
-                className="w-full pl-9 pr-4 py-3 rounded-xl border border-white/10 bg-[#171C27] font-bold text-white placeholder:text-white/30 text-sm focus:border-[#CBFE1C] outline-none transition-all"
+                className="w-full min-h-[48px] pl-9 pr-4 py-3 rounded-xl border border-white/10 bg-[#171C27] font-bold text-white placeholder:text-white/30 text-sm focus:border-[#CBFE1C] outline-none transition-all"
             />
         </div>
     </div>

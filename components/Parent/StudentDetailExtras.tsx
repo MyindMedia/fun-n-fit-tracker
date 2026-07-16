@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckIn, Redemption } from '../../types';
 import { gameCenter } from '../../services/gameCenter';
 import { fmtTime, fmtDateTime, pStyles, StatusChip, PZ } from './shared';
+import { Ic, DataIcon } from '../icons';
 
 interface StudentDetailExtrasProps {
     studentId: string;
@@ -61,8 +62,8 @@ const StudentDetailExtras: React.FC<StudentDetailExtrasProps> = ({ studentId }) 
                                     {c.checkedOutAt ? ` · out ${fmtTime(c.checkedOutAt)}` : ''}
                                 </div>
                             </div>
-                            <span style={{ fontSize: '1.1rem' }} aria-hidden="true">
-                                {c.method === 'NFC' ? '📶' : c.method === 'MANUAL' ? '🖐️' : '📷'}
+                            <span style={{ color: PZ.muted, display: 'inline-flex', flexShrink: 0 }} aria-hidden="true">
+                                {c.method === 'NFC' ? <Ic.Nfc size={18} /> : c.method === 'MANUAL' ? <Ic.ClipboardCheck size={18} /> : <Ic.QrCode size={18} />}
                             </span>
                         </div>
                     ))
@@ -95,7 +96,9 @@ const StudentDetailExtras: React.FC<StudentDetailExtrasProps> = ({ studentId }) 
                 ) : (
                     redemptions.slice(0, MAX_ROWS).map(r => (
                         <div key={r.id} style={pStyles.listRow}>
-                            <div style={{ fontSize: '1.35rem', flexShrink: 0 }}>{r.rewardIcon || '🎁'}</div>
+                            <div style={{ flexShrink: 0, color: PZ.volt, display: 'flex' }}>
+                                {r.rewardIcon ? <DataIcon glyph={r.rewardIcon} size={22} /> : <Ic.Gift size={22} />}
+                            </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.875rem' }}>{r.rewardName}</div>
                                 <div style={{ color: PZ.muted, fontSize: '0.75rem', fontWeight: 600 }}>

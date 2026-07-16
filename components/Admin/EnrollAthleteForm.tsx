@@ -3,6 +3,7 @@ import React, { useRef, useState } from 'react';
 import { HouseId } from '../../types';
 import { HOUSES } from '../../constants';
 import { supabaseService } from '../../services/supabaseService';
+import { Ic } from '../icons';
 
 interface EnrollAthleteFormProps {
   onSuccess: () => void;
@@ -145,8 +146,8 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
           {capturedImage ? (
             <img src={capturedImage} className="w-full h-full object-cover" alt="Profile" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-4xl sm:text-5xl bg-[#171C27] text-white/30">
-              👤
+            <div className="w-full h-full flex items-center justify-center bg-[#171C27] text-white/30">
+              <Ic.User size={48} />
             </div>
           )}
           {isCameraOpen && (
@@ -163,15 +164,15 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
             <>
               <button
                 onClick={startCamera}
-                className="touch-btn w-full text-[10px] sm:text-xs font-black text-[#CBFE1C] bg-[#CBFE1C]/10 px-4 py-3 uppercase tracking-widest border border-[#CBFE1C]/30 active:bg-[#CBFE1C] active:text-[#0B0E13] transition-all"
+                className="touch-btn w-full min-h-[48px] text-[10px] sm:text-xs font-black text-[#CBFE1C] bg-[#CBFE1C]/10 px-4 py-3 uppercase tracking-widest border border-[#CBFE1C]/30 active:bg-[#CBFE1C] active:text-[#0B0E13] transition-all flex items-center justify-center gap-2"
               >
-                📷 Take Profile Photo
+                <Ic.Camera size={16} /> Take Profile Photo
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="touch-btn w-full text-[10px] sm:text-xs font-black text-emerald-400 bg-emerald-500/10 px-4 py-3 uppercase tracking-widest border border-emerald-500/30 active:bg-emerald-500 active:text-white transition-all"
+                className="touch-btn w-full min-h-[48px] text-[10px] sm:text-xs font-black text-emerald-400 bg-emerald-500/10 px-4 py-3 uppercase tracking-widest border border-emerald-500/30 active:bg-emerald-500 active:text-white transition-all flex items-center justify-center gap-2"
               >
-                📁 Upload From Gallery
+                <Ic.Phone size={16} /> Upload From Gallery
               </button>
               <input
                 ref={fileInputRef}
@@ -185,17 +186,17 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
           {isCameraOpen && (
             <button
               onClick={capturePhoto}
-              className="touch-btn pz-btn w-full py-4 text-xs active:scale-95 transition-all"
+              className="touch-btn pz-btn w-full min-h-[52px] py-4 text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              📸 Capture Photo
+              <Ic.Camera size={16} /> Capture Photo
             </button>
           )}
           {capturedImage && (
             <button
               onClick={() => setCapturedImage(null)}
-              className="touch-btn w-full text-[10px] sm:text-xs font-black text-red-400 bg-red-500/10 py-3 uppercase border border-red-500/30 active:bg-red-500 active:text-white transition-all"
+              className="touch-btn w-full min-h-[48px] text-[10px] sm:text-xs font-black text-red-400 bg-red-500/10 py-3 uppercase border border-red-500/30 active:bg-red-500 active:text-white transition-all flex items-center justify-center gap-2"
             >
-              🔄 Retake Photo
+              <Ic.Refresh size={16} /> Retake Photo
             </button>
           )}
         </div>
@@ -213,7 +214,7 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Leo Smith"
-            className="w-full px-4 py-4 border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder-white/40 outline-none focus:border-[#CBFE1C] transition-all"
+            className="w-full min-h-[48px] px-4 py-4 border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder-white/40 outline-none focus:border-[#CBFE1C] transition-all"
           />
         </div>
 
@@ -231,7 +232,7 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
                   : 'bg-white/5 border-white/10 text-white/50 active:border-blue-400/50'
               }`}
             >
-              <span className="text-lg">♂</span> Male
+              Male
             </button>
             <button
               onClick={() => setGender('Female')}
@@ -241,7 +242,7 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
                   : 'bg-white/5 border-white/10 text-white/50 active:border-pink-400/50'
               }`}
             >
-              <span className="text-lg">♀</span> Female
+              Female
             </button>
           </div>
         </div>
@@ -285,7 +286,7 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
         <button
           onClick={handleEnroll}
           disabled={!name.trim() || uploading}
-          className={`touch-btn w-full font-black py-4 uppercase tracking-widest transition-all text-sm ${
+          className={`touch-btn w-full min-h-[52px] font-black py-4 uppercase tracking-widest transition-all text-sm ${
             uploading
               ? 'bg-white/20 text-white/60 cursor-not-allowed'
               : !name.trim()
@@ -299,7 +300,9 @@ const EnrollAthleteForm: React.FC<EnrollAthleteFormProps> = ({ onSuccess }) => {
               Processing...
             </span>
           ) : (
-            '✓ Complete Enrollment'
+            <span className="flex items-center justify-center gap-2">
+              <Ic.Check size={18} /> Complete Enrollment
+            </span>
           )}
         </button>
       </div>

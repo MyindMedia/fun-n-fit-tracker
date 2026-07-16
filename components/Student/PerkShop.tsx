@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Student, Reward, Redemption, Rarity } from '../../types';
 import { supabaseService } from '../../services/supabaseService';
 import { gameCenter } from '../../services/gameCenter';
+import { Ic, DataIcon } from '../icons';
 
 interface PerkShopProps {
   student: Student;
@@ -160,23 +161,23 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
         <div>
           <div className="pz-eyebrow">Your Balance</div>
           <div className="pz-display text-2xl flex items-center gap-2" style={{ color: 'var(--pz-volt)' }}>
-            <span className="text-xl">🪙</span>
+            <Ic.Coin size={22} />
             {student.points.toLocaleString()} PTS
           </div>
         </div>
-        <div className="text-3xl">🛒</div>
+        <div style={{ color: 'var(--pz-volt)' }}><Ic.Cart size={28} /></div>
       </div>
 
       {/* Error banner */}
       {errorMsg && (
         <div className="bg-red-500/10 border border-red-500/40 p-3 flex items-start gap-2" style={{ clipPath: NOTCH_SM }}>
-          <span className="text-lg">⚠️</span>
+          <span className="text-red-400 shrink-0 mt-0.5"><Ic.Warning size={18} /></span>
           <div className="flex-grow text-xs font-bold text-red-300 leading-snug">{errorMsg}</div>
           <button
             onClick={() => setErrorMsg(null)}
             className="touch-btn text-red-400 font-black px-1 leading-none"
           >
-            ×
+            <Ic.XMark size={16} />
           </button>
         </div>
       )}
@@ -188,7 +189,7 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
           <div className="text-center py-12 text-sm" style={{ color: 'var(--pz-text)' }}>Loading the shop...</div>
         ) : sortedRewards.length === 0 ? (
           <div className="text-center py-12" style={{ color: 'var(--pz-text)' }}>
-            <div className="text-4xl mb-2">🛒</div>
+            <div className="mb-2 flex justify-center"><Ic.Cart size={40} /></div>
             <div className="text-sm font-medium">The shop is being restocked — check back soon!</div>
           </div>
         ) : (
@@ -216,7 +217,7 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
                         className="w-20 h-20 rounded-full border-2 border-white/30 object-cover"
                       />
                     ) : (
-                      <span className="text-5xl drop-shadow-lg">{reward.icon}</span>
+                      <span className="text-white drop-shadow-lg"><DataIcon glyph={reward.icon} size={48} /></span>
                     )}
                     {owned && (
                       <span className="absolute top-2 right-2 bg-emerald-500 text-emerald-950 text-[8px] font-black uppercase tracking-widest px-2 py-0.5" style={{ clipPath: NOTCH_SM }}>
@@ -238,7 +239,7 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
                     )}
                     <div className="mt-auto pt-3 space-y-2">
                       <div className={`text-xs font-black flex items-center gap-1 ${meta.cost}`}>
-                        <span>🪙</span>
+                        <Ic.Coin size={14} />
                         {reward.cost.toLocaleString()} pts
                       </div>
                       {owned ? (
@@ -249,7 +250,7 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
                         <button
                           onClick={() => handleRedeem(reward)}
                           disabled={!canAfford || busy}
-                          className={`touch-btn w-full py-2 text-[10px] font-black uppercase tracking-wide transition-all ${
+                          className={`touch-btn min-h-[48px] w-full py-2 text-[10px] font-black uppercase tracking-wide transition-all ${
                             !canAfford
                               ? 'bg-white/5 text-slate-500'
                               : busy
@@ -286,13 +287,13 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
               const status = STATUS_META[r.status];
               return (
                 <div key={r.id} className="pz-card-sm p-3 flex items-center gap-3" style={{ background: 'var(--pz-panel-2)' }}>
-                  <div className="w-10 h-10 bg-white/5 border border-white/10 flex items-center justify-center text-xl flex-shrink-0" style={{ clipPath: NOTCH_SM }}>
-                    {r.rewardIcon || '🎁'}
+                  <div className="w-10 h-10 bg-white/5 border border-white/10 flex items-center justify-center text-white flex-shrink-0" style={{ clipPath: NOTCH_SM }}>
+                    <DataIcon glyph={r.rewardIcon || '🎁'} size={20} />
                   </div>
                   <div className="flex-grow min-w-0">
                     <div className="font-black text-sm text-white truncate">{r.rewardName}</div>
-                    <div className="text-[10px] font-bold" style={{ color: 'var(--pz-text)' }}>
-                      🪙 {r.cost.toLocaleString()} pts • {new Date(r.createdAt).toLocaleDateString()}
+                    <div className="text-[10px] font-bold flex items-center gap-1" style={{ color: 'var(--pz-text)' }}>
+                      <Ic.Coin size={12} /> {r.cost.toLocaleString()} pts • {new Date(r.createdAt).toLocaleDateString()}
                     </div>
                   </div>
                   <span
@@ -323,7 +324,7 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
               className="border-2 border-amber-400/60 p-6 text-center"
               style={{ background: 'var(--pz-panel)', clipPath: 'polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px)' }}
             >
-            <div className="text-5xl mb-3">🎉</div>
+            <div className="mb-3 flex justify-center text-amber-400"><Ic.Confetti size={48} /></div>
             {celebration.skin && celebration.reward.value ? (
               <img
                 src={celebration.reward.value}
@@ -331,7 +332,7 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
                 className="w-24 h-24 rounded-full border-4 border-amber-400 object-cover mx-auto mb-3"
               />
             ) : (
-              <div className="text-6xl mb-3">{celebration.reward.icon}</div>
+              <div className="mb-3 flex justify-center text-white"><DataIcon glyph={celebration.reward.icon} size={56} /></div>
             )}
             <div className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-400 mb-1">Redeemed!</div>
             <div className="pz-display text-xl text-white mb-2">{celebration.reward.name}</div>
@@ -342,7 +343,7 @@ const PerkShop: React.FC<PerkShopProps> = ({ student, onRefresh }) => {
             </p>
             <button
               onClick={() => setCelebration(null)}
-              className="touch-btn w-full py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-amber-950 font-black text-xs uppercase tracking-widest"
+              className="touch-btn min-h-[52px] w-full py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-amber-950 font-black text-xs uppercase tracking-widest"
               style={{ clipPath: NOTCH_SM }}
             >
               Awesome!

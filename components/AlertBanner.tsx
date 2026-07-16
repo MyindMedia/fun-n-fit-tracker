@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { BlogPost } from '../types';
 import { supabaseService } from '../services/supabaseService';
+import { Ic } from './icons';
 
 interface AlertBannerProps {
   audience?: 'ALL' | 'STUDENTS' | 'PARENTS';
@@ -70,7 +71,7 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ audience = 'ALL' }) => {
       <div className="flex items-center gap-3 max-w-4xl mx-auto">
         {/* Alert Icon */}
         <div className="flex-shrink-0">
-          <span className="text-xl animate-pulse">🚨</span>
+          <span className="animate-pulse flex items-center" style={{ color: accent.bar }}><Ic.Warning size={22} /></span>
         </div>
 
         {/* Content */}
@@ -86,18 +87,18 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ audience = 'ALL' }) => {
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={() => setCurrentIndex(prev => (prev - 1 + visibleAlerts.length) % visibleAlerts.length)}
-              className="w-6 h-6 bg-white/10 border border-white/10 flex items-center justify-center text-xs hover:border-[#CBFE1C] hover:text-[#CBFE1C] transition-all"
+              className="w-6 h-6 bg-white/10 border border-white/10 flex items-center justify-center hover:border-[#CBFE1C] hover:text-[#CBFE1C] transition-all"
               style={{ clipPath: NOTCH_SM }}
             >
-              ←
+              <Ic.ArrowLeft size={12} />
             </button>
             <span className="text-xs font-bold" style={{ color: 'var(--pz-text)' }}>{currentIndex + 1}/{visibleAlerts.length}</span>
             <button
               onClick={() => setCurrentIndex(prev => (prev + 1) % visibleAlerts.length)}
-              className="w-6 h-6 bg-white/10 border border-white/10 flex items-center justify-center text-xs hover:border-[#CBFE1C] hover:text-[#CBFE1C] transition-all"
+              className="w-6 h-6 bg-white/10 border border-white/10 flex items-center justify-center hover:border-[#CBFE1C] hover:text-[#CBFE1C] transition-all"
               style={{ clipPath: NOTCH_SM }}
             >
-              →
+              <Ic.ArrowRight size={12} />
             </button>
           </div>
         )}
@@ -105,10 +106,10 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ audience = 'ALL' }) => {
         {/* Dismiss Button */}
         <button
           onClick={() => handleDismiss(currentAlert.id)}
-          className="flex-shrink-0 w-6 h-6 bg-white/10 border border-white/10 flex items-center justify-center text-sm hover:border-[#CBFE1C] hover:text-[#CBFE1C] transition-all"
+          className="flex-shrink-0 w-6 h-6 bg-white/10 border border-white/10 flex items-center justify-center hover:border-[#CBFE1C] hover:text-[#CBFE1C] transition-all"
           style={{ clipPath: NOTCH_SM }}
         >
-          ×
+          <Ic.XMark size={12} />
         </button>
       </div>
     </div>

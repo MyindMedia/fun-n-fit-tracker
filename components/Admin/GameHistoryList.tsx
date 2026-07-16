@@ -2,6 +2,7 @@
 import React from 'react';
 import { GameSession } from '../../types';
 import { HOUSES } from '../../constants';
+import { Ic } from '../icons';
 
 interface GameHistoryListProps {
   history: GameSession[];
@@ -10,7 +11,7 @@ interface GameHistoryListProps {
 const GameHistoryList: React.FC<GameHistoryListProps> = ({ history }) => {
   return (
     <section className="pz-scope pz-card p-8">
-      <h2 className="text-3xl text-white mb-8 tracking-tight">📜 Game History</h2>
+      <h2 className="text-3xl text-white mb-8 tracking-tight inline-flex items-center gap-2.5"><Ic.History size={24} className="text-[#CBFE1C]" /> Game History</h2>
       <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
         {history.length === 0 && (
           <div className="text-center py-10 italic" style={{ color: 'var(--pz-text)' }}>No historical data found.</div>

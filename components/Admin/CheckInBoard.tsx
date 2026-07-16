@@ -4,6 +4,7 @@ import { gameCenter } from '../../services/gameCenter';
 import { supabaseService } from '../../services/supabaseService';
 import { BoardEntry, Student } from '../../types';
 import { HOUSES } from '../../constants';
+import { Ic, IconProps } from '../icons';
 
 const QR_ROTATE_MS = 60_000;
 
@@ -17,6 +18,23 @@ const METHOD_STYLES: Record<string, string> = {
   QR: 'bg-sky-500/15 text-sky-400',
   NFC: 'bg-purple-500/15 text-purple-300',
   MANUAL: 'bg-amber-500/15 text-amber-400',
+};
+
+// Brand icons for the DB-driven check-in method chips
+const METHOD_ICONS: Record<string, React.FC<IconProps>> = {
+  QR: Ic.QrCode,
+  NFC: Ic.Nfc,
+  MANUAL: Ic.Edit,
+};
+
+const MethodChip: React.FC<{ method: string }> = ({ method }) => {
+  const MethodIcon = METHOD_ICONS[method];
+  return (
+    <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded inline-flex items-center gap-1 ${METHOD_STYLES[method] || 'bg-white/10 text-[#ABABAB]'}`}>
+      {MethodIcon && <MethodIcon size={10} />}
+      {method}
+    </span>
+  );
 };
 
 const HouseChip: React.FC<{ student: Student }> = ({ student }) => {
@@ -202,8 +220,8 @@ const CheckInBoard: React.FC<CheckInBoardProps> = ({ adminName }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         {/* Rotating QR panel — front-desk display */}
         <section className="pz-card p-6 sm:p-8 text-center" style={{ background: 'var(--pz-bg)', borderColor: 'rgba(203, 254, 28, 0.45)' }}>
-          <h2 className="text-xl sm:text-2xl text-white tracking-tight">
-            📱 Scan to Check In
+          <h2 className="text-xl sm:text-2xl text-white tracking-tight inline-flex items-center gap-2.5">
+            <Ic.QrCode size={24} className="text-[#CBFE1C]" /> Scan to Check In
           </h2>
           <p className="text-[#ABABAB] text-xs sm:text-sm font-bold mt-1 mb-5">
             Point your phone camera here to open the parent portal
@@ -219,8 +237,8 @@ const CheckInBoard: React.FC<CheckInBoardProps> = ({ adminName }) => {
             </div>
           ) : (
             <div className="w-56 h-56 sm:w-72 sm:h-72 mx-auto rounded-2xl bg-[#171C27] border border-white/10 flex items-center justify-center">
-              <span className="text-[#ABABAB] font-bold text-sm">
-                {qrError ? '⚠️ ' + qrError : 'Loading code…'}
+              <span className="text-[#ABABAB] font-bold text-sm inline-flex items-center gap-1.5 px-4 text-center">
+                {qrError ? <><Ic.Warning size={16} className="text-amber-400 flex-shrink-0" /> {qrError}</> : 'Loading code…'}
               </span>
             </div>
           )}
@@ -253,22 +271,22 @@ const CheckInBoard: React.FC<CheckInBoardProps> = ({ adminName }) => {
             </div>
             <button
               onClick={refreshQr}
-              className="touch-btn focus-ring pz-btn-ghost ml-2 px-3 py-2 text-[10px]"
+              className="touch-btn focus-ring pz-btn-ghost ml-2 px-3 py-2 text-[10px] inline-flex items-center gap-1.5"
             >
-              🔄 New Code
+              <Ic.Refresh size={14} /> New Code
             </button>
           </div>
         </section>
 
         {/* Today's board */}
         <section className="pz-card p-4 sm:p-5">
-          <h2 className="text-lg text-white tracking-tight mb-3">
-            🎮 Today's Game Center
+          <h2 className="text-lg text-white tracking-tight mb-3 inline-flex items-center gap-2">
+            <Ic.Controller size={22} className="text-[#CBFE1C]" /> Today's Game Center
           </h2>
 
           {board.length === 0 ? (
             <div className="text-center py-12 text-[#ABABAB]">
-              <div className="text-4xl mb-2">🕹️</div>
+              <Ic.Controller size={40} className="mx-auto mb-2 opacity-40" />
               <div className="text-sm font-medium">Nobody on the board yet</div>
               <div className="text-xs">Kids appear here the moment they check in</div>
             </div>
@@ -289,9 +307,7 @@ const CheckInBoard: React.FC<CheckInBoardProps> = ({ adminName }) => {
                     <div className="font-black text-sm text-white truncate">{student.fullName}</div>
                     <div className="flex items-center gap-2 flex-wrap mt-0.5">
                       <HouseChip student={student} />
-                      <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${METHOD_STYLES[checkIn.method] || 'bg-white/10 text-[#ABABAB]'}`}>
-                        {checkIn.method}
-                      </span>
+                      <MethodChip method={checkIn.method} />
                       <span className="text-[9px] font-bold text-[#ABABAB]">in {fmtTime(checkIn.checkedInAt)}</span>
                     </div>
                   </div>
@@ -320,9 +336,7 @@ const CheckInBoard: React.FC<CheckInBoardProps> = ({ adminName }) => {
                     <div className="font-black text-sm text-[#ABABAB] truncate">{student.fullName}</div>
                     <div className="flex items-center gap-2 flex-wrap mt-0.5">
                       <HouseChip student={student} />
-                      <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${METHOD_STYLES[checkIn.method] || 'bg-white/10 text-[#ABABAB]'}`}>
-                        {checkIn.method}
-                      </span>
+                      <MethodChip method={checkIn.method} />
                       <span className="text-[9px] font-bold text-[#ABABAB]">
                         out {checkIn.checkedOutAt ? fmtTime(checkIn.checkedOutAt) : ''}
                       </span>
@@ -344,7 +358,7 @@ const CheckInBoard: React.FC<CheckInBoardProps> = ({ adminName }) => {
 
       {/* Manual check-in */}
       <section className="pz-card p-4 sm:p-5">
-        <h2 className="text-lg text-white tracking-tight mb-1">✍️ Manual Check-In</h2>
+        <h2 className="text-lg text-white tracking-tight mb-1 inline-flex items-center gap-2"><Ic.Edit size={22} className="text-[#CBFE1C]" /> Manual Check-In</h2>
         <p className="text-xs text-[#ABABAB] mb-3">Search an athlete to check them in without a scan</p>
         <div className="relative">
           <input
@@ -352,9 +366,9 @@ const CheckInBoard: React.FC<CheckInBoardProps> = ({ adminName }) => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search athletes..."
-            className="w-full px-4 py-3 pl-10 text-sm font-medium border border-white/10 rounded-xl focus:outline-none focus:border-[#CBFE1C] bg-[#171C27] text-white placeholder:text-white/30"
+            className="w-full min-h-[48px] px-4 py-3 pl-10 text-sm font-medium border border-white/10 rounded-xl focus:outline-none focus:border-[#CBFE1C] bg-[#171C27] text-white placeholder:text-white/30"
           />
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#ABABAB]">🔍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#ABABAB]"><Ic.Search size={16} /></span>
         </div>
 
         {search.trim() && (
@@ -376,8 +390,8 @@ const CheckInBoard: React.FC<CheckInBoardProps> = ({ adminName }) => {
                       <HouseChip student={s} />
                     </div>
                     {isHere ? (
-                      <span className="text-[10px] font-black uppercase text-emerald-400 px-3 py-2 flex-shrink-0">
-                        ✓ Here
+                      <span className="text-[10px] font-black uppercase text-emerald-400 px-3 py-2 flex-shrink-0 inline-flex items-center gap-1">
+                        <Ic.Check size={12} /> Here
                       </span>
                     ) : (
                       <button
@@ -402,8 +416,8 @@ const CheckInBoard: React.FC<CheckInBoardProps> = ({ adminName }) => {
           onClick={() => setNfcOpen((o) => !o)}
           className="touch-btn focus-ring w-full flex items-center justify-between p-4 sm:p-5"
         >
-          <span className="pz-display text-lg text-white tracking-tight">📳 NFC Kiosk Setup</span>
-          <span className="text-[#ABABAB] text-lg">{nfcOpen ? '▾' : '▸'}</span>
+          <span className="pz-display text-lg text-white tracking-tight inline-flex items-center gap-2"><Ic.Nfc size={22} className="text-[#CBFE1C]" /> NFC Kiosk Setup</span>
+          <Ic.ChevronRight size={18} className="text-[#ABABAB] transition-transform" style={{ transform: nfcOpen ? 'rotate(90deg)' : 'none' }} />
         </button>
 
         {nfcOpen && (
@@ -430,9 +444,9 @@ const CheckInBoard: React.FC<CheckInBoardProps> = ({ adminName }) => {
                     />
                     <button
                       onClick={copyNfcUrl}
-                      className="touch-btn focus-ring pz-btn-ghost px-3 py-2 text-[10px] flex-shrink-0"
+                      className="touch-btn focus-ring pz-btn-ghost px-3 py-2 text-[10px] flex-shrink-0 inline-flex items-center gap-1.5"
                     >
-                      {copied ? '✓ Copied' : '📋 Copy'}
+                      {copied ? <><Ic.Check size={14} /> Copied</> : <><Ic.ClipboardCheck size={14} /> Copy</>}
                     </button>
                   </div>
                   <div className="text-[10px] text-[#ABABAB] mt-1">
@@ -444,9 +458,9 @@ const CheckInBoard: React.FC<CheckInBoardProps> = ({ adminName }) => {
                 <button
                   onClick={rotateNfc}
                   disabled={nfcBusy}
-                  className="touch-btn focus-ring w-full py-3 rounded-xl bg-red-500/10 text-red-400 font-black text-xs uppercase tracking-widest border border-red-500/30 active:bg-red-500/20 disabled:opacity-50"
+                  className="touch-btn focus-ring w-full min-h-[48px] py-3 rounded-xl bg-red-500/10 text-red-400 font-black text-xs uppercase tracking-widest border border-red-500/30 active:bg-red-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {nfcBusy ? 'Rotating…' : '🔁 Rotate Secret'}
+                  {nfcBusy ? 'Rotating…' : <><Ic.Refresh size={16} /> Rotate Secret</>}
                 </button>
               </>
             ) : (

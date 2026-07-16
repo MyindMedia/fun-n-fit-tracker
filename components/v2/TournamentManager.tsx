@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabaseService } from '../../services/supabaseService';
 import { Tournament, TournamentType, TournamentParticipant, TournamentMatch, Student } from '../../types';
+import { Ic } from '../icons';
 
 const TournamentManager: React.FC = () => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -106,9 +107,10 @@ const TournamentManager: React.FC = () => {
         <div className="flex items-center gap-4 mb-6">
           <button
             onClick={() => setSelectedTournament(null)}
-            className="w-10 h-10 rounded-full bg-[#171C27] border border-white/10 flex items-center justify-center font-bold text-white"
+            aria-label="Back to tournaments"
+            className="w-11 h-11 rounded-full bg-[#171C27] border border-white/10 flex items-center justify-center text-white"
           >
-            ←
+            <Ic.ArrowLeft size={18} />
           </button>
           <div>
             <h2 className="text-2xl text-white uppercase tracking-tight">{tournament.name}</h2>
@@ -269,7 +271,7 @@ const TournamentManager: React.FC = () => {
         <h2 className="text-xl text-white uppercase tracking-tight">Tournaments</h2>
         <button
           onClick={() => setShowCreate(true)}
-          className="pz-btn px-4 py-2 text-sm"
+          className="touch-btn pz-btn min-h-[44px] px-4 py-2 text-sm"
         >
           + New Tournament
         </button>
@@ -285,7 +287,7 @@ const TournamentManager: React.FC = () => {
                 type="text"
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
-                className="w-full p-3 rounded-xl border border-white/10 bg-[#171C27] text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                className="w-full min-h-[48px] p-3 rounded-xl border border-white/10 bg-[#171C27] text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 placeholder="e.g. Winter Showdown"
               />
             </div>
@@ -294,7 +296,7 @@ const TournamentManager: React.FC = () => {
               <select
                 value={newType}
                 onChange={e => setNewType(e.target.value as TournamentType)}
-                className="w-full p-3 rounded-xl border border-white/10 bg-[#171C27] text-white outline-none focus:border-[#CBFE1C]"
+                className="w-full min-h-[48px] p-3 rounded-xl border border-white/10 bg-[#171C27] text-white outline-none focus:border-[#CBFE1C]"
               >
                 <option value="SINGLE_ELIM">Single Elimination</option>
                 <option value="DOUBLE_ELIM">Double Elimination</option>
@@ -308,13 +310,13 @@ const TournamentManager: React.FC = () => {
                 type="number"
                 value={newMaxParticipants}
                 onChange={e => setNewMaxParticipants(Number(e.target.value))}
-                className="w-full p-3 rounded-xl border border-white/10 bg-[#171C27] text-white outline-none focus:border-[#CBFE1C]"
+                className="w-full min-h-[48px] p-3 rounded-xl border border-white/10 bg-[#171C27] text-white outline-none focus:border-[#CBFE1C]"
               />
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <button onClick={() => setShowCreate(false)} className="px-4 py-2 text-[#ABABAB] font-bold">Cancel</button>
-            <button onClick={handleCreate} className="pz-btn px-4 py-2 text-sm">Create</button>
+            <button onClick={() => setShowCreate(false)} className="touch-btn px-4 py-2 text-[#ABABAB] font-bold">Cancel</button>
+            <button onClick={handleCreate} className="touch-btn pz-btn min-h-[44px] px-4 py-2 text-sm">Create</button>
           </div>
         </div>
       )}
@@ -339,7 +341,7 @@ const TournamentManager: React.FC = () => {
             </div>
             <button
               onClick={() => setSelectedTournament(t.id)}
-              className="pz-btn-ghost px-3 py-2 text-xs"
+              className="touch-btn pz-btn-ghost min-h-[44px] px-3 py-2 text-xs"
             >
               Manage
             </button>

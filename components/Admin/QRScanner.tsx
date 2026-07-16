@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import jsQR from 'jsqr';
 import { supabaseService } from '../../services/supabaseService';
 import { Student } from '../../types';
+import { Ic } from '../icons';
 
 interface QRScannerProps {
   onClose: () => void;
@@ -188,23 +189,24 @@ const QRScanner: React.FC<QRScannerProps> = ({ onClose, onStudentCheckedIn }) =>
           </div>
           <button
             onClick={onClose}
-            className="w-12 h-12 rounded-full bg-white/5 border border-white/10 hover:bg-[#CBFE1C] hover:text-[#0B0E13] flex items-center justify-center text-white/60 text-2xl font-black transition-all"
+            aria-label="Close"
+            className="w-12 h-12 rounded-full bg-white/5 border border-white/10 hover:bg-[#CBFE1C] hover:text-[#0B0E13] flex items-center justify-center text-white/60 transition-all"
           >
-            ✕
+            <Ic.XMark size={22} />
           </button>
         </div>
 
         <div className="p-8 space-y-6">
           {!isScanning ? (
             <div className="text-center space-y-6">
-              <div className="text-8xl">📱</div>
+              <Ic.QrCode size={80} className="mx-auto text-[#CBFE1C] opacity-70" />
               <h3 className="text-2xl text-white">Ready to Scan</h3>
               <p className="font-medium" style={{ color: 'var(--pz-text)' }}>Students can scan their QR codes to check in instantly</p>
               <button
                 onClick={startScanner}
-                className="pz-btn px-12 py-5 text-xs transition-all active:scale-95"
+                className="pz-btn min-h-[52px] px-12 py-5 text-xs transition-all active:scale-95 inline-flex items-center justify-center gap-2"
               >
-                📷 Start Camera Scanner
+                <Ic.Camera size={16} /> Start Camera Scanner
               </button>
             </div>
           ) : (
@@ -236,7 +238,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onClose, onStudentCheckedIn }) =>
               <canvas ref={canvasRef} className="hidden" />
               <button
                 onClick={stopScanner}
-                className="w-full bg-red-500 text-white px-8 py-4 font-black uppercase text-xs tracking-widest hover:bg-red-600 transition-all"
+                className="w-full min-h-[52px] bg-red-500 text-white px-8 py-4 font-black uppercase text-xs tracking-widest hover:bg-red-600 transition-all"
               >
                 Stop Scanner
               </button>
@@ -245,7 +247,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onClose, onStudentCheckedIn }) =>
 
           {lastScanned && (
             <div className="bg-emerald-500/10 border-2 border-emerald-500 p-6 text-center animate-bounce-in">
-              <div className="text-5xl mb-3">✅</div>
+              <Ic.CheckCircle size={44} className="mx-auto mb-3 text-emerald-400" />
               <h3 className="text-2xl text-white">{lastScanned.fullName}</h3>
               <p className="text-emerald-400 font-bold text-sm uppercase">Checked In Successfully!</p>
             </div>
@@ -253,7 +255,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onClose, onStudentCheckedIn }) =>
 
           {error && (
             <div className="bg-red-500/10 border-2 border-red-500 p-6 text-center">
-              <div className="text-5xl mb-3">❌</div>
+              <Ic.XCircle size={44} className="mx-auto mb-3 text-red-400" />
               <p className="text-red-400 font-bold">{error}</p>
             </div>
           )}

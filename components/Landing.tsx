@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HOUSES, APP_LOGO_URL } from '../constants';
 import { HouseId } from '../types';
+import { Ic, IconProps } from './icons';
 
 /* ────────────────────────────────────────────────────────────────────────────
    Marketing landing page for Fun 'n Fit Academy.
@@ -35,11 +36,11 @@ const ANCHORS = [
   { id: 'visit', label: 'Visit' },
 ];
 
-const BENEFITS = [
-  { title: 'Confidence', copy: 'Kids build confidence and overcome fears, one small win at a time.' },
-  { title: 'Teamwork', copy: 'Collaborative challenges teach kids to win — and lose — together.' },
-  { title: 'Fitness', copy: 'Physical and mental fitness in every session: strong bodies, sharp minds.' },
-  { title: 'Friendship', copy: 'Lasting friendships and memories, made right on the gym floor.' },
+const BENEFITS: Array<{ title: string; copy: string; icon: React.FC<IconProps> }> = [
+  { title: 'Confidence', copy: 'Kids build confidence and overcome fears, one small win at a time.', icon: Ic.Medal },
+  { title: 'Teamwork', copy: 'Collaborative challenges teach kids to win — and lose — together.', icon: Ic.Users },
+  { title: 'Fitness', copy: 'Physical and mental fitness in every session: strong bodies, sharp minds.', icon: Ic.Muscle },
+  { title: 'Friendship', copy: 'Lasting friendships and memories, made right on the gym floor.', icon: Ic.Wave },
 ];
 
 const HOUSE_ORDER: HouseId[] = [HouseId.VALOR, HouseId.SAGE, HouseId.SPARK, HouseId.UNITY];
@@ -99,11 +100,11 @@ const PROGRAMS: Program[] = [
 
 const ALSO_OFFERED = ['Summer Camp', 'Little Leaders (Academy Core)', 'Fitness Results Dance', 'Leadership Program'];
 
-const GAME_CENTER_FEATURES = [
-  'Live house leaderboard on the gym projector',
-  'Check in at the door with a parent QR code',
-  'Kids earn points at partner businesses around Upland',
-  'A perk shop where points turn into real rewards',
+const GAME_CENTER_FEATURES: Array<{ text: string; icon: React.FC<IconProps> }> = [
+  { text: 'Live house leaderboard on the gym projector', icon: Ic.Projector },
+  { text: 'Check in at the door with a parent QR code', icon: Ic.QrCode },
+  { text: 'Kids earn points at partner businesses around Upland', icon: Ic.Store },
+  { text: 'A perk shop where points turn into real rewards', icon: Ic.Gift },
 ];
 
 const FALL_HOURS = [
@@ -335,7 +336,10 @@ const ValueStrip: React.FC = () => (
       {BENEFITS.map(b => (
         <div key={b.title} className="pz-card-sm relative p-5">
           <span aria-hidden="true" className="absolute left-0 top-0 bottom-0 w-1" style={{ background: 'var(--pz-volt)', opacity: 0.85 }} />
-          <h3 className="text-sm text-white mb-1.5">{b.title}</h3>
+          <h3 className="text-sm text-white mb-1.5 flex items-center gap-2">
+            <span aria-hidden="true" className="shrink-0" style={{ color: 'var(--pz-volt)' }}><b.icon size={18} /></span>
+            {b.title}
+          </h3>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--pz-text)' }}>
             {b.copy}
           </p>
@@ -424,12 +428,16 @@ const ProgramCard: React.FC<{ program: Program }> = ({ program }) => (
     )}
     <div className="flex flex-wrap items-center gap-2 mb-4 pr-24">
       <span
-        className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.12em] border"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.12em] border"
         style={{ clipPath: NOTCH_SM, color: 'var(--pz-volt)', borderColor: 'rgba(203, 254, 28, 0.35)', background: 'rgba(203, 254, 28, 0.08)' }}
       >
+        <Ic.Calendar size={12} className="shrink-0" />
         {program.days}
       </span>
-      <span className="text-xs font-bold uppercase tracking-widest text-white/80">{program.time}</span>
+      <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-white/80">
+        <Ic.Timer size={14} className="shrink-0" />
+        {program.time}
+      </span>
     </div>
     <h3 className="text-lg text-white leading-snug">{program.name}</h3>
     {program.note && (
@@ -567,9 +575,9 @@ const GameCenterSection: React.FC = () => (
 
         <ul className="mt-7 flex flex-col gap-3.5">
           {GAME_CENTER_FEATURES.map(f => (
-            <li key={f} className="flex items-start gap-3">
-              <span aria-hidden="true" className="mt-1.5 w-2.5 h-2.5 shrink-0" style={{ background: 'var(--pz-volt)', clipPath: 'polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px)' }} />
-              <span className="text-sm md:text-base font-medium text-white/85">{f}</span>
+            <li key={f.text} className="flex items-start gap-3">
+              <span aria-hidden="true" className="mt-0.5 shrink-0" style={{ color: 'var(--pz-volt)' }}><f.icon size={18} /></span>
+              <span className="text-sm md:text-base font-medium text-white/85">{f.text}</span>
             </li>
           ))}
         </ul>
@@ -601,7 +609,10 @@ const VisitSection: React.FC = () => (
       <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
         {/* Hours */}
         <div className="pz-card p-6">
-          <h3 className="text-base text-white mb-4">Fall hours</h3>
+          <h3 className="text-base text-white mb-4 flex items-center gap-2">
+            <span aria-hidden="true" style={{ color: 'var(--pz-volt)' }}><Ic.Calendar size={16} /></span>
+            Fall hours
+          </h3>
           <dl>
             {FALL_HOURS.map(row => (
               <div
@@ -631,8 +642,8 @@ const VisitSection: React.FC = () => (
               rel="noopener noreferrer"
               className={`group text-sm leading-relaxed text-white/85 hover:text-white ${FOCUS_RING}`}
             >
-              <span className="block text-[10px] font-bold uppercase tracking-[0.25em] mb-1" style={{ color: 'var(--pz-volt)' }}>
-                Address
+              <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.25em] mb-1" style={{ color: 'var(--pz-volt)' }}>
+                <Ic.MapPin size={12} className="shrink-0" /> Address
               </span>
               167 S Third Ave, Upland, CA 91786
               <span className="block mt-0.5 text-xs underline underline-offset-2 opacity-70 group-hover:opacity-100">
@@ -640,8 +651,8 @@ const VisitSection: React.FC = () => (
               </span>
             </a>
             <a href="tel:+19516128233" className={`text-sm text-white/85 hover:text-white ${FOCUS_RING}`}>
-              <span className="block text-[10px] font-bold uppercase tracking-[0.25em] mb-1" style={{ color: 'var(--pz-volt)' }}>
-                Phone
+              <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.25em] mb-1" style={{ color: 'var(--pz-volt)' }}>
+                <Ic.Phone size={12} className="shrink-0" /> Phone
               </span>
               (951) 612-8233
             </a>
@@ -651,8 +662,8 @@ const VisitSection: React.FC = () => (
               rel="noopener noreferrer"
               className={`text-sm text-white/85 hover:text-white ${FOCUS_RING}`}
             >
-              <span className="block text-[10px] font-bold uppercase tracking-[0.25em] mb-1" style={{ color: 'var(--pz-volt)' }}>
-                Instagram
+              <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.25em] mb-1" style={{ color: 'var(--pz-volt)' }}>
+                <Ic.Camera size={12} className="shrink-0" /> Instagram
               </span>
               @funnfitupland
             </a>
@@ -731,23 +742,26 @@ const LandingFooter: React.FC = () => (
           <p className="text-[10px] font-bold uppercase tracking-[0.3em] mb-1" style={{ color: 'var(--pz-volt)' }}>
             Contact
           </p>
-          <a href="tel:+19516128233" className={`text-sm font-semibold text-white/70 hover:text-white ${FOCUS_RING}`}>
+          <a href="tel:+19516128233" className={`inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white ${FOCUS_RING}`}>
+            <Ic.Phone size={14} className="shrink-0" style={{ color: 'var(--pz-volt)' }} />
             (951) 612-8233
           </a>
           <a
             href={MAPS_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className={`text-sm font-semibold text-white/70 hover:text-white ${FOCUS_RING}`}
+            className={`inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white ${FOCUS_RING}`}
           >
+            <Ic.MapPin size={14} className="shrink-0" style={{ color: 'var(--pz-volt)' }} />
             167 S Third Ave, Upland, CA 91786
           </a>
           <a
             href={INSTAGRAM_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className={`text-sm font-semibold text-white/70 hover:text-white ${FOCUS_RING}`}
+            className={`inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white ${FOCUS_RING}`}
           >
+            <Ic.Camera size={14} className="shrink-0" style={{ color: 'var(--pz-volt)' }} />
             @funnfitupland
           </a>
         </div>

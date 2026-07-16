@@ -459,6 +459,31 @@ class GameCenterService {
       adminName,
     });
   }
+
+  // ── Staff / coach management (Clerk invitations) ───────────────────────────
+
+  public async inviteStaff(
+    email: string,
+    invitedBy: string
+  ): Promise<{ id: string; email: string; status: string }> {
+    return await this.client.action(api.staff.invite, { email, invitedBy });
+  }
+
+  public async listStaffInvitations(): Promise<
+    Array<{ id: string; email: string; status: string; createdAt: number }>
+  > {
+    return await this.client.action(api.staff.listInvitations, {});
+  }
+
+  public async revokeStaffInvitation(invitationId: string): Promise<void> {
+    await this.client.action(api.staff.revokeInvitation, { invitationId });
+  }
+
+  public async listStaff(): Promise<
+    Array<{ id: string; name: string; email: string; imageUrl: string; lastActiveAt: number | null }>
+  > {
+    return await this.client.action(api.staff.listStaff, {});
+  }
 }
 
 export const gameCenter = new GameCenterService();

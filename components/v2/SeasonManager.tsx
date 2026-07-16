@@ -51,7 +51,7 @@ const SeasonManager: React.FC = () => {
         <h2 className="text-xl text-white uppercase tracking-tight">Season Management</h2>
         <button
           onClick={() => setShowCreate(true)}
-          className="pz-btn px-4 py-2 text-sm"
+          className="touch-btn pz-btn min-h-[44px] px-4 py-2 text-sm"
         >
           + New Season
         </button>
@@ -67,7 +67,7 @@ const SeasonManager: React.FC = () => {
                 type="text"
                 value={newSeasonName}
                 onChange={e => setNewSeasonName(e.target.value)}
-                className="w-full p-3 rounded-xl border border-white/10 bg-[#171C27] text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                className="w-full min-h-[48px] p-3 rounded-xl border border-white/10 bg-[#171C27] text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 placeholder="e.g. Winter 2024"
               />
             </div>
@@ -77,13 +77,13 @@ const SeasonManager: React.FC = () => {
                 type="date"
                 value={newSeasonDate}
                 onChange={e => setNewSeasonDate(e.target.value)}
-                className="w-full p-3 rounded-xl border border-white/10 bg-[#171C27] text-white outline-none focus:border-[#CBFE1C]"
+                className="w-full min-h-[48px] p-3 rounded-xl border border-white/10 bg-[#171C27] text-white outline-none focus:border-[#CBFE1C]"
               />
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <button onClick={() => setShowCreate(false)} className="px-4 py-2 text-[#ABABAB] font-bold">Cancel</button>
-            <button onClick={handleCreate} className="pz-btn px-4 py-2 text-sm">Launch Season</button>
+            <button onClick={() => setShowCreate(false)} className="touch-btn px-4 py-2 text-[#ABABAB] font-bold">Cancel</button>
+            <button onClick={handleCreate} className="touch-btn pz-btn min-h-[44px] px-4 py-2 text-sm">Launch Season</button>
           </div>
         </div>
       )}
@@ -108,7 +108,7 @@ const SeasonManager: React.FC = () => {
             {season.isActive && (
               <button
                 onClick={() => handleEndSeason(season.id)}
-                className="text-red-400 bg-red-500/10 border border-red-500/30 px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wide hover:bg-red-500/20"
+                className="touch-btn min-h-[44px] text-red-400 bg-red-500/10 border border-red-500/30 px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wide hover:bg-red-500/20"
               >
                 End Season
               </button>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { gameCenter } from '../../services/gameCenter';
 import { PartnerBusiness } from '../../types';
+import { Ic } from '../icons';
 
 const visitLink = (qrSecret: string) =>
   `${window.location.origin}${window.location.pathname}#/parent-dashboard?visit=${qrSecret}`;
@@ -161,7 +162,7 @@ const PartnerManager: React.FC = () => {
         <p class="points">Earn ${p.pointsReward} points per visit</p>
         <img src="${dataUrl}" alt="QR code" />
         <p class="hint">Scan with your Fun 'N Fit parent portal to earn ${p.pointsReward} points!</p>
-        <button class="print-btn" onclick="window.print()">🖨️ Print</button>
+        <button class="print-btn" onclick="window.print()">Print</button>
       `);
       win.document.close();
     } catch (err: any) {
@@ -172,12 +173,12 @@ const PartnerManager: React.FC = () => {
   return (
     <section className="pz-scope pz-card p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl sm:text-2xl text-white uppercase tracking-tight">
-          🏪 Partners
+        <h2 className="text-xl sm:text-2xl text-white uppercase tracking-tight inline-flex items-center gap-2.5">
+          <Ic.Store size={24} className="text-[#CBFE1C]" /> Partners
         </h2>
         <button
           onClick={() => setForm({ ...EMPTY_FORM })}
-          className="touch-btn focus-ring pz-btn px-4 py-2 text-xs"
+          className="touch-btn focus-ring pz-btn min-h-[44px] px-4 py-2 text-xs"
         >
           + New Partner
         </button>
@@ -201,7 +202,7 @@ const PartnerManager: React.FC = () => {
           <div className="text-center py-12 text-[#ABABAB]">Loading…</div>
         ) : partners.length === 0 ? (
           <div className="text-center py-12 text-[#ABABAB]">
-            <div className="text-4xl mb-2">🏪</div>
+            <Ic.Store size={40} className="mx-auto mb-2 opacity-40" />
             <div className="text-sm font-medium">No partner businesses yet</div>
             <div className="text-xs">Add a local business so families can earn points around town</div>
           </div>
@@ -228,7 +229,7 @@ const PartnerManager: React.FC = () => {
                     </span>
                   </div>
                   {p.description && <div className="text-xs text-[#ABABAB] mb-0.5">{p.description}</div>}
-                  {p.address && <div className="text-[10px] text-[#ABABAB]">📍 {p.address}</div>}
+                  {p.address && <div className="text-[10px] text-[#ABABAB] flex items-center gap-1"><Ic.MapPin size={11} /> {p.address}</div>}
                 </div>
                 <button
                   onClick={() => toggleActive(p)}
@@ -244,9 +245,9 @@ const PartnerManager: React.FC = () => {
               <div className="flex gap-2 mt-3 flex-wrap">
                 <button
                   onClick={() => handlePrint(p)}
-                  className="touch-btn focus-ring pz-btn px-3 py-2 text-[10px]"
+                  className="touch-btn focus-ring pz-btn px-3 py-2 text-[10px] inline-flex items-center gap-1.5"
                 >
-                  🖨️ Print QR
+                  <Ic.Printer size={14} /> Print QR
                 </button>
                 <button
                   onClick={() =>
@@ -259,23 +260,23 @@ const PartnerManager: React.FC = () => {
                       pointsReward: p.pointsReward,
                     })
                   }
-                  className="touch-btn focus-ring pz-btn-ghost px-3 py-2 text-[10px]"
+                  className="touch-btn focus-ring pz-btn-ghost px-3 py-2 text-[10px] inline-flex items-center gap-1.5"
                 >
-                  ✏️ Edit
+                  <Ic.Edit size={14} /> Edit
                 </button>
                 <button
                   onClick={() => handleRotate(p)}
                   disabled={busyId === p.id}
-                  className="touch-btn focus-ring px-3 py-2 rounded-xl bg-amber-500/10 text-amber-400 text-[10px] font-black uppercase tracking-wide border border-amber-500/30 active:bg-amber-500/20 disabled:opacity-50"
+                  className="touch-btn focus-ring px-3 py-2 rounded-xl bg-amber-500/10 text-amber-400 text-[10px] font-black uppercase tracking-wide border border-amber-500/30 active:bg-amber-500/20 disabled:opacity-50 inline-flex items-center gap-1.5"
                 >
-                  🔁 Rotate QR
+                  <Ic.Refresh size={14} /> Rotate QR
                 </button>
                 <button
                   onClick={() => handleDelete(p)}
                   disabled={busyId === p.id}
-                  className="touch-btn focus-ring px-3 py-2 rounded-xl bg-red-500/10 text-red-400 text-[10px] font-black uppercase tracking-wide border border-red-500/30 active:bg-red-500/20 disabled:opacity-50"
+                  className="touch-btn focus-ring px-3 py-2 rounded-xl bg-red-500/10 text-red-400 text-[10px] font-black uppercase tracking-wide border border-red-500/30 active:bg-red-500/20 disabled:opacity-50 inline-flex items-center gap-1.5"
                 >
-                  🗑️ Delete
+                  <Ic.Trash size={14} /> Delete
                 </button>
               </div>
             </div>
@@ -321,7 +322,7 @@ const PartnerManager: React.FC = () => {
                   value={form.name}
                   onChange={(e) => updateField('name', e.target.value)}
                   placeholder="e.g. Tony's Pizza"
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                  className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
               </div>
 
@@ -334,7 +335,7 @@ const PartnerManager: React.FC = () => {
                   onChange={(e) => updateField('description', e.target.value)}
                   placeholder="What families should know…"
                   rows={2}
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] resize-none"
+                  className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] resize-none"
                 />
               </div>
 
@@ -347,7 +348,7 @@ const PartnerManager: React.FC = () => {
                   value={form.category}
                   onChange={(e) => updateField('category', e.target.value)}
                   placeholder="e.g. Food, Books, Sports"
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                  className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
               </div>
 
@@ -360,7 +361,7 @@ const PartnerManager: React.FC = () => {
                   value={form.address}
                   onChange={(e) => updateField('address', e.target.value)}
                   placeholder="123 Main St"
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                  className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
               </div>
 
@@ -373,7 +374,7 @@ const PartnerManager: React.FC = () => {
                   min={1}
                   value={form.pointsReward}
                   onChange={(e) => updateField('pointsReward', Number(e.target.value))}
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white outline-none focus:border-[#CBFE1C]"
+                  className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white outline-none focus:border-[#CBFE1C]"
                 />
                 <p className="text-[10px] text-[#ABABAB] mt-1">
                   Each athlete can earn this once per business per day

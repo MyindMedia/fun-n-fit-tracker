@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { supabaseService } from '../../services/supabaseService';
 import { AppSettings, Rank, Trophy } from '../../types';
 import { AudioService } from '../../utils/audio';
+import { Ic } from '../icons';
 
 type EditingItem = (Partial<Rank> & { itemType: 'RANK' }) | (Partial<Trophy> & { itemType: 'TROPHY' }) | null;
 
@@ -239,26 +240,26 @@ const BrandingSettings: React.FC = () => {
     <div className="space-y-4">
       <p className="text-xs text-[#ABABAB] font-medium">Tap to preview each sound from the system.</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <button onClick={() => AudioService.playRandomAward()} className="touch-btn px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-emerald-500 text-white shadow-md active:bg-emerald-600 active:scale-[0.98] transition-all">
-          🎵 Award Pop
+        <button onClick={() => AudioService.playRandomAward()} className="touch-btn min-h-[52px] px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-emerald-500 text-white shadow-md active:bg-emerald-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+          <Ic.Music size={18} /> Award Pop
         </button>
-        <button onClick={() => AudioService.playPointLost()} className="touch-btn px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-red-500 text-white shadow-md active:bg-red-600 active:scale-[0.98] transition-all">
-          🔻 Points Lost
+        <button onClick={() => AudioService.playPointLost()} className="touch-btn min-h-[52px] px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-red-500 text-white shadow-md active:bg-red-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+          <Ic.XCircle size={18} /> Points Lost
         </button>
-        <button onClick={() => AudioService.playGameStartAssetOnly()} className="touch-btn px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-indigo-500 text-white shadow-md active:bg-indigo-600 active:scale-[0.98] transition-all">
-          🚀 Game Start
+        <button onClick={() => AudioService.playGameStartAssetOnly()} className="touch-btn min-h-[52px] px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-indigo-500 text-white shadow-md active:bg-indigo-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+          <Ic.Bolt size={18} /> Game Start
         </button>
-        <button onClick={() => AudioService.playTenSecondCountdown()} className="touch-btn px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-orange-500 text-white shadow-md active:bg-orange-600 active:scale-[0.98] transition-all">
-          ⏱️ Countdown
+        <button onClick={() => AudioService.playTenSecondCountdown()} className="touch-btn min-h-[52px] px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-orange-500 text-white shadow-md active:bg-orange-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+          <Ic.Timer size={18} /> Countdown
         </button>
-        <button onClick={() => AudioService.playGameOverLogo()} className="touch-btn px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-slate-700 text-white shadow-md active:bg-slate-800 active:scale-[0.98] transition-all">
-          🛑 Game Over
+        <button onClick={() => AudioService.playGameOverLogo()} className="touch-btn min-h-[52px] px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-slate-700 text-white shadow-md active:bg-slate-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+          <Ic.Flag size={18} /> Game Over
         </button>
-        <button onClick={() => AudioService.playGameWinner()} className="touch-btn px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-blue-500 text-white shadow-md active:bg-blue-600 active:scale-[0.98] transition-all">
-          🏆 Winner
+        <button onClick={() => AudioService.playGameWinner()} className="touch-btn min-h-[52px] px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-blue-500 text-white shadow-md active:bg-blue-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+          <Ic.Trophy size={18} /> Winner
         </button>
-        <button onClick={() => AudioService.playLevelUp()} className="touch-btn px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-yellow-500 text-white shadow-md active:bg-yellow-600 active:scale-[0.98] transition-all">
-          ⬆️ Level Up
+        <button onClick={() => AudioService.playLevelUp()} className="touch-btn min-h-[52px] px-4 py-4 rounded-xl font-black text-xs uppercase tracking-widest bg-yellow-500 text-white shadow-md active:bg-yellow-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+          <Ic.Sparkle size={18} /> Level Up
         </button>
       </div>
     </div>
@@ -327,7 +328,7 @@ const BrandingSettings: React.FC = () => {
 
       {trophies.length === 0 ? (
         <div className="text-center py-12 text-[#ABABAB]">
-          <div className="text-4xl mb-2">🏆</div>
+          <Ic.Trophy size={40} className="mx-auto mb-2 opacity-40" />
           <div className="text-sm font-medium">No trophies yet</div>
           <div className="text-xs">Create your first trophy above</div>
         </div>
@@ -345,10 +346,10 @@ const BrandingSettings: React.FC = () => {
                   <img src={trophy.icon} className="w-full h-full object-contain" alt="" />
                 ) : (
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-xl"
-                    style={{ backgroundColor: trophy.color + '20' }}
+                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: trophy.color + '20', color: trophy.color }}
                   >
-                    🏆
+                    <Ic.Trophy size={22} />
                   </div>
                 )}
               </div>
@@ -409,7 +410,7 @@ const BrandingSettings: React.FC = () => {
                 {editingItem.icon ? (
                   <img src={editingItem.icon} className="w-full h-full object-contain" alt="" />
                 ) : (
-                  <span className="text-4xl">{isRank ? '⭐' : '🏆'}</span>
+                  <span className="text-white/50">{isRank ? <Ic.Star size={40} /> : <Ic.Trophy size={40} />}</span>
                 )}
               </div>
               <input
@@ -437,7 +438,7 @@ const BrandingSettings: React.FC = () => {
                 value={editingItem.name || ''}
                 onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
                 placeholder={isRank ? "e.g. Elite" : "e.g. Champion's Cup"}
-                className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
               />
             </div>
 
@@ -451,7 +452,7 @@ const BrandingSettings: React.FC = () => {
                 onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
                 placeholder="Short description of this achievement..."
                 rows={2}
-                className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] resize-none"
+                className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] resize-none"
               />
             </div>
 
@@ -487,7 +488,7 @@ const BrandingSettings: React.FC = () => {
                   value={editingItem.threshold || 0}
                   onChange={(e) => setEditingItem({ ...editingItem, threshold: parseInt(e.target.value) || 0 })}
                   placeholder="0"
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                  className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
                 <p className="text-[10px] text-[#ABABAB] mt-1">Points needed to reach this rank</p>
               </div>
@@ -504,7 +505,7 @@ const BrandingSettings: React.FC = () => {
                   value={editingItem.pointsRequired || 0}
                   onChange={(e) => setEditingItem({ ...editingItem, pointsRequired: parseInt(e.target.value) || 0 })}
                   placeholder="500"
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                  className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
               </div>
             )}
@@ -519,7 +520,7 @@ const BrandingSettings: React.FC = () => {
                 value={editingItem.xpReward || 0}
                 onChange={(e) => setEditingItem({ ...editingItem, xpReward: parseInt(e.target.value) || 0 })}
                 placeholder="100"
-                className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
               />
               <p className="text-[10px] text-[#ABABAB] mt-1">XP awarded when this is achieved</p>
             </div>
@@ -541,9 +542,10 @@ const BrandingSettings: React.FC = () => {
                     />
                     <button
                       onClick={() => removeCriteria(idx)}
-                      className="touch-btn w-8 h-8 rounded-lg bg-red-500/15 text-red-400 text-sm font-black flex items-center justify-center"
+                      aria-label="Remove criteria"
+                      className="touch-btn w-11 h-11 rounded-lg bg-red-500/15 text-red-400 flex items-center justify-center"
                     >
-                      ×
+                      <Ic.XMark size={16} />
                     </button>
                   </div>
                 ))}
@@ -602,21 +604,21 @@ const BrandingSettings: React.FC = () => {
       {/* Tab Navigation */}
       <div className="mobile-scroll-x -mx-4 px-4 mb-4">
         {[
-          { id: 'logo', label: 'Logo', icon: '🎨' },
-          { id: 'sounds', label: 'Sounds', icon: '🔊' },
-          { id: 'ranks', label: 'Ranks', icon: '⭐' },
-          { id: 'trophies', label: 'Trophies', icon: '🏆' }
+          { id: 'logo', label: 'Logo', Icon: Ic.Sparkle },
+          { id: 'sounds', label: 'Sounds', Icon: Ic.Sound },
+          { id: 'ranks', label: 'Ranks', Icon: Ic.Star },
+          { id: 'trophies', label: 'Trophies', Icon: Ic.Trophy }
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`touch-btn px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wide transition-all whitespace-nowrap ${
+            className={`touch-btn min-h-[44px] px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wide transition-all whitespace-nowrap inline-flex items-center gap-1.5 ${
               activeTab === tab.id
                 ? 'bg-[#CBFE1C] text-[#0B0E13]'
                 : 'bg-[#171C27] text-[#ABABAB] border border-white/10'
             }`}
           >
-            {tab.icon} {tab.label}
+            <tab.Icon size={16} /> {tab.label}
           </button>
         ))}
       </div>

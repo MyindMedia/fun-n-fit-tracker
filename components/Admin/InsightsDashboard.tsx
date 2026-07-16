@@ -10,6 +10,7 @@ import {
   generateDrillHistory,
   generateTransactionReport
 } from '../../utils/reportGenerator';
+import { Ic } from '../icons';
 
 interface InsightsDashboardProps {
   students: Student[];
@@ -168,37 +169,37 @@ const InsightsDashboard: React.FC<InsightsDashboardProps> = ({ students }) => {
 
       {/* Export Reports Section */}
       <div className="pz-card p-8">
-        <h3 className="text-xl text-white mb-6 uppercase tracking-tight">📊 Export Reports</h3>
+        <h3 className="text-xl text-white mb-6 uppercase tracking-tight inline-flex items-center gap-2.5"><Ic.Chart size={22} className="text-[#CBFE1C]" /> Export Reports</h3>
         <p className="text-sm text-[#ABABAB] font-medium mb-6">
           Download comprehensive CSV reports for record-keeping, parent updates, and data analysis.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <button
             onClick={() => generateStudentReport(students, ranks, badges)}
-            className="bg-[#0ea5e9] hover:bg-sky-400 text-white px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+            className="min-h-[52px] bg-[#0ea5e9] hover:bg-sky-400 text-white px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
           >
-            📈 Student Progress
+            <Ic.Chart size={16} /> Student Progress
           </button>
           <button
             onClick={async () => {
               const { houses } = await supabaseService.getLeaderboardData('ALL');
               generateHouseReport(houses);
             }}
-            className="bg-[#10b981] hover:bg-emerald-400 text-white px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+            className="min-h-[52px] bg-[#10b981] hover:bg-emerald-400 text-white px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
           >
-            🏆 House Rankings
+            <Ic.Trophy size={16} /> House Rankings
           </button>
           <button
             onClick={() => generateDrillHistory(games, students)}
-            className="bg-[#f97316] hover:bg-orange-400 text-white px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+            className="min-h-[52px] bg-[#f97316] hover:bg-orange-400 text-white px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
           >
-            📋 Game History
+            <Ic.ClipboardCheck size={16} /> Game History
           </button>
           <button
             onClick={() => generateTransactionReport(students, transactions)}
-            className="bg-[#8b5cf6] hover:bg-violet-400 text-white px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+            className="min-h-[52px] bg-[#8b5cf6] hover:bg-violet-400 text-white px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
           >
-            💰 Transactions
+            <Ic.Coin size={16} /> Transactions
           </button>
         </div>
       </div>

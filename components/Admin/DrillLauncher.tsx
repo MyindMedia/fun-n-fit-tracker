@@ -8,6 +8,7 @@ import OneHandScorer from './OneHandScorer';
 import BulkAwardForm from './BulkAwardForm';
 import { generateGameIdeas } from '../../services/geminiService';
 import { AdminNotifications } from '../../utils/notifications';
+import { Ic } from '../icons';
 
 interface DrillLauncherProps {
   adminName: string;
@@ -211,15 +212,15 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
           <button
             onClick={askAiStrategist}
             disabled={isAiLoading}
-            className="pz-btn-ghost flex-1 px-4 py-3 text-[10px] flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+            className="pz-btn-ghost flex-1 min-h-[48px] px-4 py-3 text-[10px] flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
           >
-            {isAiLoading ? 'Analyzing...' : '✨ AI'}
+            {isAiLoading ? 'Analyzing...' : <><Ic.Sparkle size={16} /> AI</>}
           </button>
           <button
             onClick={() => setShowLibrary(true)}
-            className="pz-btn flex-[2] px-4 py-3 text-[10px] flex items-center justify-center gap-2 active:scale-95"
+            className="pz-btn flex-[2] min-h-[48px] px-4 py-3 text-[10px] flex items-center justify-center gap-2 active:scale-95"
           >
-            🎮 Launch Game
+            <Ic.Controller size={18} /> Launch Game
           </button>
         </div>
       </div>
@@ -227,7 +228,7 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
       {/* AI Suggestion */}
       {aiSuggestion && (
         <div className="pz-card p-4 text-white relative overflow-hidden" style={{ borderColor: 'rgba(14, 165, 233, 0.5)' }}>
-          <div className="absolute top-0 right-0 p-4 text-6xl opacity-10 font-black">🤖</div>
+          <div className="absolute top-0 right-0 p-4 opacity-10"><Ic.Controller size={72} /></div>
           <div className="relative z-10">
             <div className="text-[9px] font-black uppercase tracking-widest mb-1 text-[#0ea5e9]">AI Pick for {aiSuggestion.targetHouse}</div>
             <h3 className="text-lg mb-1 text-white">{aiSuggestion.title}</h3>
@@ -241,7 +242,7 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
       <div className="space-y-4">
         {activeSessions.length === 0 ? (
           <div className="border border-dashed border-white/15 bg-white/[0.02] p-8 text-center">
-            <span className="text-4xl mb-3 block opacity-20">🏃‍♂️</span>
+            <Ic.Run size={40} className="mx-auto mb-3 block opacity-20 text-white" />
             <h3 className="text-lg text-white/40 mb-3 tracking-tight">No Active Games</h3>
             <button
               onClick={() => setShowLibrary(true)}
@@ -302,9 +303,10 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
             <h2 className="text-lg text-white tracking-tight">Game Library</h2>
             <button
               onClick={() => setShowLibrary(false)}
-              className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 text-xl font-bold active:scale-95"
+              aria-label="Close"
+              className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 active:scale-95"
             >
-              ✕
+              <Ic.XMark size={20} />
             </button>
           </div>
 
@@ -312,11 +314,11 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
           <div className="flex-grow overflow-y-auto p-4 space-y-4" style={{ background: 'var(--pz-bg)' }}>
             {/* Quick Start Buttons */}
             <div className="grid grid-cols-2 gap-3">
-              <button onClick={openCustomPoints} className="p-4 border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-black uppercase text-[10px] tracking-widest active:scale-95">
-                ⭐ Custom Points
+              <button onClick={openCustomPoints} className="min-h-[52px] p-4 border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-black uppercase text-[10px] tracking-widest active:scale-95 flex items-center justify-center gap-2">
+                <Ic.Star size={16} /> Custom Points
               </button>
-              <button onClick={openCustomLap} className="p-4 border border-sky-500/40 bg-sky-500/10 text-sky-400 font-black uppercase text-[10px] tracking-widest active:scale-95">
-                ⏱️ Lap Timer
+              <button onClick={openCustomLap} className="min-h-[52px] p-4 border border-sky-500/40 bg-sky-500/10 text-sky-400 font-black uppercase text-[10px] tracking-widest active:scale-95 flex items-center justify-center gap-2">
+                <Ic.Timer size={16} /> Lap Timer
               </button>
             </div>
 
@@ -354,9 +356,10 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
             </div>
             <button
               onClick={() => setPendingGame(null)}
-              className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 text-xl font-bold active:scale-95"
+              aria-label="Close"
+              className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 active:scale-95"
             >
-              ✕
+              <Ic.XMark size={20} />
             </button>
           </div>
 

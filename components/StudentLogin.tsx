@@ -4,6 +4,7 @@ import { Student } from '../types';
 import StudentPortal from './StudentPortal';
 import { HOUSES } from '../constants';
 import { getStudentDisplayName } from '../utils/studentDisplay';
+import { Ic } from './icons';
 
 const StudentLogin: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -63,7 +64,7 @@ const StudentLogin: React.FC = () => {
 
         <div className="pz-card p-5 sm:p-6">
           <div className="relative mb-5">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">🔍</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 flex items-center"><Ic.Search size={16} /></span>
             <input
               type="text"
               placeholder="Search your name..."
@@ -113,7 +114,7 @@ const StudentLogin: React.FC = () => {
                         className="w-8 h-8 flex items-center justify-center text-white/40 border border-white/10 group-hover:bg-[#CBFE1C] group-hover:text-[#0B0E13] group-hover:border-[#CBFE1C] transition-all shrink-0"
                         style={{ clipPath: NOTCH_SM }}
                       >
-                        ➜
+                        <Ic.ChevronRight size={16} />
                       </div>
                     </button>
                   );

@@ -6,8 +6,8 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f8fafc",
-  "theme_color": "#0ea5e9",
+  "background_color": "#0B0E13",
+  "theme_color": "#0B0E13",
   "icons": [
     {
       "src": "/fnfa-logo.png",

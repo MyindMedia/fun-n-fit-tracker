@@ -5,6 +5,7 @@ import { Student, Reward, Redemption, Rarity } from '../../types';
 import { gameCenter } from '../../services/gameCenter';
 import { supabaseService } from '../../services/supabaseService';
 import { cleanErr, fmtDateTime, pStyles, KidSelect, StatusChip, PZ } from './shared';
+import { Ic, DataIcon } from '../icons';
 
 interface PerksHistoryProps {
     students: Student[];
@@ -67,7 +68,7 @@ const PerksHistory: React.FC<PerksHistoryProps> = ({ students, onRefresh }) => {
         setError(null);
         try {
             await gameCenter.redeem(kid.id, chosen.id, 'PARENT');
-            setSuccess(`🎉 ${chosen.icon} ${chosen.name} redeemed for ${kid.gamerTag || kid.fullName}!`);
+            setSuccess(`${chosen.name} redeemed for ${kid.gamerTag || kid.fullName} — enjoy!`);
             setRedeemOpen(false);
             setChosen(null);
             loadAll();
@@ -88,11 +89,15 @@ const PerksHistory: React.FC<PerksHistoryProps> = ({ students, onRefresh }) => {
                     Kids redeem perks themselves from the Student Portal — or you can redeem one for them here.
                 </p>
 
-                {success && <div style={{ ...pStyles.successBox, marginBottom: '0.875rem' }}>{success}</div>}
+                {success && (
+                    <div style={{ ...pStyles.successBox, marginBottom: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Ic.Confetti size={20} style={{ flexShrink: 0 }} /> {success}
+                    </div>
+                )}
 
                 {!redeemOpen ? (
-                    <button onClick={openRedeem} className="pz-btn" style={pStyles.bigActionBtn}>
-                        Redeem a Perk
+                    <button onClick={openRedeem} className="pz-btn" style={{ ...pStyles.bigActionBtn, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                        <Ic.Gift size={24} /> Redeem a Perk
                     </button>
                 ) : (
                     <div style={{ border: `2px solid ${PZ.voltDim}`, clipPath: PZ.notchSm, padding: '1rem', background: PZ.panel2 }}>
@@ -133,7 +138,9 @@ const PerksHistory: React.FC<PerksHistoryProps> = ({ students, onRefresh }) => {
                                                         minHeight: '44px',
                                                     }}
                                                 >
-                                                    <div style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>{r.icon}</div>
+                                                    <div style={{ marginBottom: '0.25rem', color: rarityColor, display: 'flex', justifyContent: 'center' }}>
+                                                        <DataIcon glyph={r.icon} size={28} />
+                                                    </div>
                                                     <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.8125rem', lineHeight: 1.2 }}>{r.name}</div>
                                                     {r.rarity && (
                                                         <div style={{
@@ -198,7 +205,11 @@ const PerksHistory: React.FC<PerksHistoryProps> = ({ students, onRefresh }) => {
                 ) : (
                     rows.map(row => (
                         <div key={row.redemption.id} style={pStyles.listRow}>
-                            <div style={{ fontSize: '1.5rem', flexShrink: 0 }}>{row.redemption.rewardIcon || '🎁'}</div>
+                            <div style={{ flexShrink: 0, color: PZ.volt, display: 'flex' }}>
+                                {row.redemption.rewardIcon
+                                    ? <DataIcon glyph={row.redemption.rewardIcon} size={24} />
+                                    : <Ic.Gift size={24} />}
+                            </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ fontWeight: 700, color: PZ.white, fontSize: '0.875rem' }}>
                                     {row.redemption.rewardName} <span style={{ color: PZ.faint, fontWeight: 600 }}>· {row.studentName}</span>

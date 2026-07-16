@@ -119,6 +119,11 @@ export const upsertParentSession = internalMutation({
         createdAt: Date.now(),
       });
       parent = (await ctx.db.get(parentId))!;
+      // First sign-up: send the how-it-works welcome email (fire and forget).
+      await ctx.scheduler.runAfter(0, internal.email.sendParentWelcome, {
+        email,
+        fullName,
+      });
     } else if (parent.fullName !== fullName && fullName) {
       await ctx.db.patch(parent._id, { fullName });
       parent = (await ctx.db.get(parent._id))!;

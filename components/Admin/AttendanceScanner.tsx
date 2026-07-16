@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { supabaseService } from '../../services/supabaseService';
 import { Student } from '../../types';
+import { Ic } from '../icons';
 
 interface AttendanceScannerProps {
   students: Student[];
@@ -17,7 +18,7 @@ const AttendanceScanner: React.FC<AttendanceScannerProps> = ({ students, adminNa
       onClick={onOpenQRScanner}
       className="pz-btn px-4 md:px-6 lg:px-8 py-3 md:py-4 lg:py-5 text-xs md:text-sm flex items-center gap-2 md:gap-3 transition-all active:scale-95"
     >
-      <span className="text-base md:text-lg">📱</span>
+      <Ic.QrCode size={18} />
       <span className="hidden sm:inline">QR Check-in</span>
       <span className="sm:hidden">QR</span>
     </button>

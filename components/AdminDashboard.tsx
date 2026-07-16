@@ -24,9 +24,11 @@ import MessagesManager from './Admin/MessagesManager';
 import PartnerManager from './Admin/PartnerManager';
 import TaskManager from './Admin/TaskManager';
 import RedemptionQueue from './Admin/RedemptionQueue';
+import StaffManager from './Admin/StaffManager';
+import { Ic } from './icons';
 
 // Sub-pages that swap the tab switcher for a back button + page title
-const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS'];
+const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF'];
 
 // Pubzi theme: small notched cut-corner shape for inline elements
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
@@ -36,7 +38,7 @@ const MobileModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   children: React.ReactNode;
   fullHeight?: boolean;
 }> = ({ isOpen, onClose, title, icon, children, fullHeight = true }) => {
@@ -64,15 +66,15 @@ const MobileModal: React.FC<{
         {/* Header - always sticky */}
         <div className="mobile-modal-header" style={{ background: 'var(--pz-panel)', borderBottom: '1px solid var(--pz-border)' }}>
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-xl sm:text-2xl flex-shrink-0">{icon}</span>
+            <span className="flex-shrink-0 text-[#CBFE1C] flex items-center">{icon}</span>
             <h2 className="pz-display text-sm sm:text-lg text-white tracking-tight truncate">{title}</h2>
           </div>
           <button
             onClick={onClose}
-            className="touch-btn w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white/60 text-lg font-bold active:scale-95 transition-transform flex-shrink-0 focus-ring"
+            className="touch-btn w-11 h-11 rounded-full bg-white/5 border border-white/10 text-white/60 active:scale-95 transition-transform flex-shrink-0 focus-ring"
             aria-label="Close modal"
           >
-            ✕
+            <Ic.XMark size={20} />
           </button>
         </div>
 
@@ -107,7 +109,7 @@ const ActivityLog: React.FC<{ events: NotificationEvent[] }> = ({ events }) => (
 
 // Quick Action Button for bottom bar - touch-optimized
 const QuickActionButton: React.FC<{
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   onClick: () => void;
   active?: boolean;
@@ -115,13 +117,13 @@ const QuickActionButton: React.FC<{
 }> = ({ icon, label, onClick, active, badge }) => (
   <button
     onClick={onClick}
-    className={`touch-btn flex flex-col items-center justify-center py-2 px-2 sm:px-3 min-w-[56px] sm:min-w-[64px] relative transition-all active:scale-95 focus-ring rounded-xl ${active ? 'text-[#CBFE1C] bg-[#CBFE1C]/10' : 'text-white/50 hover:bg-white/5'
+    className={`touch-btn flex flex-col items-center justify-center gap-1 py-2 px-2 sm:px-3 min-w-[56px] min-h-[56px] sm:min-w-[64px] relative transition-all active:scale-95 focus-ring rounded-xl ${active ? 'text-[#CBFE1C] bg-[#CBFE1C]/10' : 'text-white/50 hover:bg-white/5'
       }`}
   >
-    <span className="text-lg sm:text-xl mb-0.5">{icon}</span>
-    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wide whitespace-nowrap">{label}</span>
+    <span className="flex items-center justify-center">{icon}</span>
+    <span className="text-[10px] font-black uppercase tracking-wide whitespace-nowrap leading-none">{label}</span>
     {badge !== undefined && badge > 0 && (
-      <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[7px] sm:text-[8px] font-black rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+      <span className="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-black rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
         {badge > 99 ? '99+' : badge}
       </span>
     )}
@@ -131,7 +133,7 @@ const QuickActionButton: React.FC<{
 const AdminDashboard: React.FC = () => {
   const [adminName, setAdminName] = useState<string>('');
   const [showLoginModal, setShowLoginModal] = useState(true);
-  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS'>('GAMES');
+  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS' | 'STAFF'>('GAMES');
   const [students, setStudents] = useState<Student[]>([]);
   const [gameHistory, setGameHistory] = useState<GameSession[]>([]);
   const [globalActivity, setGlobalActivity] = useState<NotificationEvent[]>([]);
@@ -337,184 +339,195 @@ const AdminDashboard: React.FC = () => {
       )}
 
       {/* Roll Call Modal */}
-      <MobileModal isOpen={showRollCall} onClose={() => setShowRollCall(false)} title="Roll Call" icon="📋">
+      <MobileModal isOpen={showRollCall} onClose={() => setShowRollCall(false)} title="Roll Call" icon={<Ic.ClipboardCheck size={22} />}>
         <RollCallPanel students={students} adminName={adminName} onRefresh={refreshData} />
       </MobileModal>
 
       {/* Batch Award Modal */}
-      <MobileModal isOpen={showBatchAward} onClose={() => setShowBatchAward(false)} title="Batch Award" icon="⭐">
+      <MobileModal isOpen={showBatchAward} onClose={() => setShowBatchAward(false)} title="Batch Award" icon={<Ic.Star size={22} />}>
         <BatchAwardForm students={students} adminName={adminName} onSuccess={() => { refreshData(); setShowBatchAward(false); }} />
       </MobileModal>
 
       {/* Enroll Athlete Modal */}
-      <MobileModal isOpen={showEnrollAthlete} onClose={() => setShowEnrollAthlete(false)} title="Enroll Athlete" icon="🆕">
+      <MobileModal isOpen={showEnrollAthlete} onClose={() => setShowEnrollAthlete(false)} title="Enroll Athlete" icon={<Ic.UserPlus size={22} />}>
         <EnrollAthleteForm onSuccess={() => { refreshData(); setShowEnrollAthlete(false); }} />
       </MobileModal>
 
       {/* Game History Modal */}
-      <MobileModal isOpen={showGameHistory} onClose={() => setShowGameHistory(false)} title="Game History" icon="📜">
+      <MobileModal isOpen={showGameHistory} onClose={() => setShowGameHistory(false)} title="Game History" icon={<Ic.History size={22} />}>
         <GameHistoryList history={gameHistory} />
       </MobileModal>
 
       {/* Activity Log Modal */}
-      <MobileModal isOpen={showActivityLog} onClose={() => setShowActivityLog(false)} title="Activity Log" icon="📜">
+      <MobileModal isOpen={showActivityLog} onClose={() => setShowActivityLog(false)} title="Activity Log" icon={<Ic.Chart size={22} />}>
         <ActivityLog events={globalActivity} />
       </MobileModal>
 
       {/* More Menu Modal */}
-      <MobileModal isOpen={showMoreMenu} onClose={() => setShowMoreMenu(false)} title="Quick Actions" icon="⚡">
+      <MobileModal isOpen={showMoreMenu} onClose={() => setShowMoreMenu(false)} title="Quick Actions" icon={<Ic.Bolt size={22} />}>
         <div className="space-y-3">
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('CHECKIN'); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 text-[#0B0E13] active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 text-[#0B0E13] active:scale-[0.98] transition-transform"
             style={{ background: 'var(--pz-volt)', borderColor: 'var(--pz-volt)' }}
           >
-            <span className="text-2xl">🎮</span>
+            <span className="flex-shrink-0"><Ic.Controller size={24} /></span>
             <div className="text-left">
-              <div className="font-black uppercase tracking-wide">Check-In Board</div>
+              <div className="font-black uppercase tracking-wide text-[15px]">Check-In Board</div>
               <div className="text-xs opacity-70 font-bold">Today's board, rotating QR & NFC kiosk</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('MESSAGES'); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
-            <span className="text-2xl">💬</span>
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Chat size={24} /></span>
             <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide">Messages</div>
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Messages</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Chat with parents in real time</div>
             </div>
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('PARTNERS'); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            onClick={() => { setShowMoreMenu(false); setActiveTab('STAFF'); }}
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
-            <span className="text-2xl">🏪</span>
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Users size={24} /></span>
             <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide">Partners</div>
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Staff & Coaches</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Invite coaches & manage admin access</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => { setShowMoreMenu(false); setActiveTab('PARTNERS'); }}
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+          >
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Store size={24} /></span>
+            <div className="text-left">
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Partners</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Local businesses & printable QR codes</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('TASKS'); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
-            <span className="text-2xl">⭐</span>
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Star size={24} /></span>
             <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide">Special Tasks</div>
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Special Tasks</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Off-site challenges & approval queue</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('REDEMPTIONS'); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
-            <span className="text-2xl">🎁</span>
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Gift size={24} /></span>
             <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide">Redemptions</div>
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Redemptions</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Fulfill perks kids have claimed</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setShowGameHistory(true); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
-            <span className="text-2xl">📜</span>
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.History size={24} /></span>
             <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide">Game History</div>
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Game History</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>View past games and results</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setShowActivityLog(true); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
-            <span className="text-2xl">📊</span>
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Chart size={24} /></span>
             <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide">Activity Log</div>
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Activity Log</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Recent point changes and events</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setShowQRScanner(true); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
-            <span className="text-2xl">📷</span>
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Camera size={24} /></span>
             <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide">QR Scanner</div>
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">QR Scanner</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Scan athlete QR codes</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('SEASONS'); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
-            <span className="text-2xl">📅</span>
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Calendar size={24} /></span>
             <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide">Seasons</div>
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Seasons</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Manage competitive seasons</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('TOURNAMENTS'); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
-            <span className="text-2xl">🏆</span>
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Trophy size={24} /></span>
             <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide">Tournaments</div>
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Tournaments</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Brackets and match management</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('BRANDING'); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
-            <span className="text-2xl">🎨</span>
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Sparkle size={24} /></span>
             <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide">Branding</div>
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Branding</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Customize app appearance</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('PARENTS'); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
-            <span className="text-2xl">👨‍👩‍👧‍👦</span>
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Family size={24} /></span>
             <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide">Parent Accounts</div>
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Parent Accounts</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Manage parents & link athletes</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('BLOG'); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
-            <span className="text-2xl">📝</span>
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Note size={24} /></span>
             <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide">Blog & Alerts</div>
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Blog & Alerts</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Post announcements and alerts</div>
             </div>
           </button>
 
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('INSIGHTS'); }}
-            className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
-            <span className="text-2xl">📊</span>
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Chart size={24} /></span>
             <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide">Insights & Reports</div>
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Insights & Reports</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>View analytics and generate reports</div>
             </div>
           </button>
@@ -522,12 +535,12 @@ const AdminDashboard: React.FC = () => {
           <div className="pt-2 border-t border-white/10 mt-4">
             <button
               onClick={handleChangeCoach}
-              className="pz-card-sm w-full flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+              className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
               style={{ background: 'var(--pz-panel-2)' }}
             >
-              <span className="text-2xl">🔄</span>
+              <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Refresh size={24} /></span>
               <div className="text-left">
-                <div className="font-black text-white uppercase tracking-wide">Switch Coach</div>
+                <div className="font-black text-white uppercase tracking-wide text-[15px]">Switch Coach</div>
                 <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Currently: {adminName}</div>
               </div>
             </button>
@@ -537,12 +550,12 @@ const AdminDashboard: React.FC = () => {
             <button
               onClick={() => { setShowMoreMenu(false); handleSeed(); }}
               disabled={isSeeding}
-              className="pz-card-sm w-full flex items-center gap-4 p-4 text-white active:scale-[0.98] transition-transform disabled:opacity-50"
+              className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 text-white active:scale-[0.98] transition-transform disabled:opacity-50"
               style={{ background: 'var(--pz-sage)', borderColor: 'var(--pz-sage)' }}
             >
-              <span className="text-2xl">🌱</span>
+              <span className="flex-shrink-0"><Ic.Dice size={24} /></span>
               <div className="text-left">
-                <div className="font-black uppercase tracking-wide">{isSeeding ? 'Seeding...' : 'Seed Demo Data'}</div>
+                <div className="font-black uppercase tracking-wide text-[15px]">{isSeeding ? 'Seeding...' : 'Seed Demo Data'}</div>
                 <div className="text-xs opacity-80">Add sample athletes to test</div>
               </div>
             </button>
@@ -557,10 +570,10 @@ const AdminDashboard: React.FC = () => {
           {SUB_PAGES.includes(activeTab) ? (
             <button
               onClick={() => setActiveTab('GAMES')}
-              className="touch-btn flex items-center gap-2 text-white font-black text-sm px-3 py-2 bg-white/5 border border-white/10 active:bg-white/10 transition-all"
+              className="touch-btn flex items-center gap-2 text-white font-black text-sm px-3 py-2 min-h-[44px] bg-white/5 border border-white/10 active:bg-white/10 transition-all"
               style={{ clipPath: NOTCH_SM }}
             >
-              <span className="text-lg">←</span>
+              <Ic.ArrowLeft size={18} />
               <span className="hidden sm:inline uppercase tracking-wider text-xs">Back</span>
             </button>
           ) : (
@@ -577,19 +590,20 @@ const AdminDashboard: React.FC = () => {
 
           {/* Page Title (for sub-pages) OR Tab Switcher */}
           {SUB_PAGES.includes(activeTab) ? (
-            <div className="flex-grow text-center">
-              <h1 className="pz-display text-sm sm:text-base text-white tracking-tight">
-                {activeTab === 'INSIGHTS' && '📊 Insights'}
-                {activeTab === 'BRANDING' && '🎨 Branding'}
-                {activeTab === 'SEASONS' && '📅 Seasons'}
-                {activeTab === 'TOURNAMENTS' && '🏆 Tournaments'}
-                {activeTab === 'BLOG' && '📝 Blog & Alerts'}
-                {activeTab === 'PARENTS' && '👨‍👩‍👧‍👦 Parent Accounts'}
-                {activeTab === 'CHECKIN' && '🎮 Check-In Board'}
-                {activeTab === 'MESSAGES' && '💬 Messages'}
-                {activeTab === 'PARTNERS' && '🏪 Partners'}
-                {activeTab === 'TASKS' && '⭐ Special Tasks'}
-                {activeTab === 'REDEMPTIONS' && '🎁 Redemptions'}
+            <div className="flex-grow flex justify-center">
+              <h1 className="pz-display text-sm sm:text-base tracking-tight inline-flex items-center gap-2 text-[#CBFE1C]">
+                {activeTab === 'INSIGHTS' && <><Ic.Chart size={20} /><span className="text-white">Insights</span></>}
+                {activeTab === 'BRANDING' && <><Ic.Sparkle size={20} /><span className="text-white">Branding</span></>}
+                {activeTab === 'SEASONS' && <><Ic.Calendar size={20} /><span className="text-white">Seasons</span></>}
+                {activeTab === 'TOURNAMENTS' && <><Ic.Trophy size={20} /><span className="text-white">Tournaments</span></>}
+                {activeTab === 'BLOG' && <><Ic.Note size={20} /><span className="text-white">Blog & Alerts</span></>}
+                {activeTab === 'PARENTS' && <><Ic.Family size={20} /><span className="text-white">Parent Accounts</span></>}
+                {activeTab === 'CHECKIN' && <><Ic.Controller size={20} /><span className="text-white">Check-In Board</span></>}
+                {activeTab === 'MESSAGES' && <><Ic.Chat size={20} /><span className="text-white">Messages</span></>}
+                {activeTab === 'PARTNERS' && <><Ic.Store size={20} /><span className="text-white">Partners</span></>}
+                {activeTab === 'TASKS' && <><Ic.Star size={20} /><span className="text-white">Special Tasks</span></>}
+                {activeTab === 'REDEMPTIONS' && <><Ic.Gift size={20} /><span className="text-white">Redemptions</span></>}
+                {activeTab === 'STAFF' && <><Ic.Users size={20} /><span className="text-white">Staff & Coaches</span></>}
               </h1>
             </div>
           ) : (
@@ -598,13 +612,14 @@ const AdminDashboard: React.FC = () => {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 touch-btn relative px-2 sm:px-4 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all focus-ring ${activeTab === tab
+                  className={`flex-1 touch-btn relative px-2 sm:px-4 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all focus-ring inline-flex items-center justify-center gap-1 ${activeTab === tab
                     ? 'text-white bg-white/5'
                     : 'text-white/50'
                     }`}
                 >
-                  {tab === 'GAMES' ? '🎮' : '👥'} <span className="hidden sm:inline ml-1">{tab}</span>
-                  <span className="sm:hidden ml-0.5">{tab.slice(0, 4)}</span>
+                  {tab === 'GAMES' ? <Ic.Controller size={16} /> : <Ic.Users size={16} />}
+                  <span className="hidden sm:inline">{tab}</span>
+                  <span className="sm:hidden">{tab.slice(0, 4)}</span>
                   {activeTab === tab && <span className="absolute left-2 right-2 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
                 </button>
               ))}
@@ -670,9 +685,9 @@ const AdminDashboard: React.FC = () => {
                   </div>
                   <button
                     onClick={() => setShowStatsDashboard(true)}
-                    className="pz-btn w-full py-3 text-sm active:scale-95 transition-all flex items-center justify-center gap-2"
+                    className="pz-btn w-full min-h-[48px] py-3 text-sm active:scale-95 transition-all flex items-center justify-center gap-2"
                   >
-                    <span>🏆</span>
+                    <Ic.Trophy size={18} />
                     Generate Report
                   </button>
                 </div>
@@ -721,6 +736,10 @@ const AdminDashboard: React.FC = () => {
           {activeTab === 'REDEMPTIONS' && (
             <RedemptionQueue adminName={adminName} />
           )}
+
+          {activeTab === 'STAFF' && (
+            <StaffManager adminName={adminName} />
+          )}
         </div>
       </main>
 
@@ -728,28 +747,28 @@ const AdminDashboard: React.FC = () => {
       <nav className="mobile-action-bar" role="navigation" aria-label="Quick actions" style={{ background: 'var(--pz-panel)', borderTop: '1px solid var(--pz-border)', boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.4)' }}>
         <div className="flex items-center justify-around px-1 sm:px-2 py-1.5 sm:py-2 max-w-lg mx-auto">
           <QuickActionButton
-            icon="📋"
+            icon={<Ic.ClipboardCheck size={25} />}
             label="Roll Call"
             onClick={() => setShowRollCall(true)}
             badge={students.length - presentCount}
           />
           <QuickActionButton
-            icon="⭐"
+            icon={<Ic.Star size={25} />}
             label="Award"
             onClick={() => setShowBatchAward(true)}
           />
           <QuickActionButton
-            icon="🆕"
+            icon={<Ic.UserPlus size={25} />}
             label="Enroll"
             onClick={() => setShowEnrollAthlete(true)}
           />
           <QuickActionButton
-            icon="📜"
+            icon={<Ic.History size={25} />}
             label="History"
             onClick={() => setShowGameHistory(true)}
           />
           <QuickActionButton
-            icon="⚙️"
+            icon={<Ic.Settings size={25} />}
             label="More"
             onClick={() => setShowMoreMenu(true)}
           />

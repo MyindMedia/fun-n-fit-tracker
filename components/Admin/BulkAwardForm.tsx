@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { Student, HouseId } from '../../types';
 import { HOUSES } from '../../constants';
 import { supabaseService } from '../../services/supabaseService';
+import { Ic } from '../icons';
 
 interface BulkAwardFormProps {
   students: Student[];
@@ -74,15 +75,15 @@ const BulkAwardForm: React.FC<BulkAwardFormProps> = ({ students, adminName, onCo
       if (awardType === 'HOUSE') {
         if (actionType === 'DEDUCT') {
           const count = await supabaseService.deductHousePoints(selectedHouse!, amount, description || 'Manual House Deduction', adminName);
-          alert(`✅ Deducted ${amount} points from ${count} students in ${HOUSES[selectedHouse!].name} house!`);
+          alert(`Deducted ${amount} points from ${count} students in ${HOUSES[selectedHouse!].name} house!`);
         } else {
           const count = await supabaseService.awardHouseBonus(selectedHouse!, amount, description, adminName);
-          alert(`✅ Awarded ${amount} points to ${count} students in ${HOUSES[selectedHouse!].name} house!`);
+          alert(`Awarded ${amount} points to ${count} students in ${HOUSES[selectedHouse!].name} house!`);
         }
       } else {
         await supabaseService.addBatchPoints(Array.from(selectedStudents), actionType === 'DEDUCT' ? -amount : amount, description, adminName);
         const verb = actionType === 'DEDUCT' ? 'Deducted' : 'Awarded';
-        alert(`✅ ${verb} ${amount} points ${actionType === 'DEDUCT' ? 'from' : 'to'} ${selectedStudents.size} students!`);
+        alert(`${verb} ${amount} points ${actionType === 'DEDUCT' ? 'from' : 'to'} ${selectedStudents.size} students!`);
       }
 
       // Reset form
@@ -94,7 +95,7 @@ const BulkAwardForm: React.FC<BulkAwardFormProps> = ({ students, adminName, onCo
       onComplete();
     } catch (err: any) {
       console.error('Bulk award failed:', err);
-      alert(`❌ Failed to award points: ${err.message || 'Unknown error'}`);
+      alert(`Failed to award points: ${err.message || 'Unknown error'}`);
     } finally {
       setIsAwarding(false);
     }
@@ -204,13 +205,13 @@ const BulkAwardForm: React.FC<BulkAwardFormProps> = ({ students, adminName, onCo
               </select>
               <button
                 onClick={selectAllFiltered}
-                className="px-4 py-1 text-xs font-black bg-[#CBFE1C] text-[#0B0E13] hover:brightness-110 transition-all"
+                className="touch-btn px-4 py-2 text-xs font-black bg-[#CBFE1C] text-[#0B0E13] hover:brightness-110 transition-all"
               >
                 Select All Visible
               </button>
               <button
                 onClick={clearSelection}
-                className="px-4 py-1 text-xs font-black bg-white/10 text-white/60 border border-white/10 hover:bg-white/20 transition-all"
+                className="touch-btn px-4 py-2 text-xs font-black bg-white/10 text-white/60 border border-white/10 hover:bg-white/20 transition-all"
               >
                 Clear
               </button>
@@ -310,13 +311,20 @@ const BulkAwardForm: React.FC<BulkAwardFormProps> = ({ students, adminName, onCo
       <button
         onClick={handleAward}
         disabled={isAwarding || (awardType === 'INDIVIDUAL' && selectedStudents.size === 0) || (awardType === 'HOUSE' && !selectedHouse)}
-        className={`w-full py-4 font-black text-lg uppercase tracking-widest transition-all ${
+        className={`w-full min-h-[52px] py-4 font-black text-lg uppercase tracking-widest transition-all ${
           isAwarding || (awardType === 'INDIVIDUAL' && selectedStudents.size === 0) || (awardType === 'HOUSE' && !selectedHouse)
             ? 'bg-white/10 text-white/30 cursor-not-allowed'
             : 'pz-btn active:scale-95'
         }`}
       >
-        {isAwarding ? (actionType === 'DEDUCT' ? 'Deducting Points...' : 'Awarding Points...') : (actionType === 'DEDUCT' ? '➖ Deduct Points' : '🎁 Award Points')}
+        {isAwarding ? (
+          actionType === 'DEDUCT' ? 'Deducting Points...' : 'Awarding Points...'
+        ) : (
+          <span className="flex items-center justify-center gap-2">
+            {actionType === 'DEDUCT' ? <Ic.XCircle size={20} /> : <Ic.Gift size={20} />}
+            {actionType === 'DEDUCT' ? 'Deduct Points' : 'Award Points'}
+          </span>
+        )}
       </button>
     </div>
   );

@@ -4,6 +4,7 @@ import { GameSession, Student } from '../../types';
 // Fix: Import supabaseService instead of deprecated mockBackend
 import { supabaseService } from '../../services/supabaseService';
 import GameSessionDetailModal from './GameSessionDetailModal';
+import { Ic } from '../icons';
 
 interface GameManagerProps {
   adminName: string;
@@ -46,7 +47,7 @@ const GameManager: React.FC<GameManagerProps> = ({ adminName, activeGames, stude
 
   return (
     <section className="pz-scope pz-card p-8">
-      <h2 className="text-3xl text-white mb-8 tracking-tight">⏱️ Active Session Manager</h2>
+      <h2 className="text-3xl text-white mb-8 tracking-tight inline-flex items-center gap-2.5"><Ic.Timer size={24} className="text-[#CBFE1C]" /> Active Session Manager</h2>
 
       {!isSelectingRoster ? (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { BlogPost } from '../../types';
 import { supabaseService } from '../../services/supabaseService';
+import { Ic } from '../icons';
 
 const BlogManager: React.FC = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -172,7 +173,7 @@ const BlogManager: React.FC = () => {
           <div className="text-center py-12 text-[#ABABAB]">Loading...</div>
         ) : posts.length === 0 ? (
           <div className="text-center py-12 text-[#ABABAB]">
-            <div className="text-4xl mb-2">📝</div>
+            <Ic.Note size={40} className="mx-auto mb-2 opacity-40" />
             <div className="text-sm font-medium">No posts yet</div>
             <div className="text-xs">Create your first post above</div>
           </div>
@@ -256,7 +257,7 @@ const BlogManager: React.FC = () => {
                   value={editingPost.title || ''}
                   onChange={(e) => updateField('title', e.target.value)}
                   placeholder="Enter post title..."
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                  className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
               </div>
 
@@ -271,7 +272,7 @@ const BlogManager: React.FC = () => {
                   onChange={(e) => updateField('excerpt', e.target.value)}
                   placeholder="Short preview text..."
                   maxLength={200}
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                  className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
               </div>
 
@@ -285,7 +286,7 @@ const BlogManager: React.FC = () => {
                   onChange={(e) => updateField('content', e.target.value)}
                   placeholder="Write your post content..."
                   rows={8}
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] resize-none"
+                  className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] resize-none"
                 />
               </div>
 

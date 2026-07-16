@@ -4,6 +4,7 @@ import { Student, HouseId } from '../../types';
 import { HOUSES } from '../../constants';
 import { supabaseService } from '../../services/supabaseService';
 import { AudioService } from '../../utils/audio';
+import { Ic } from '../icons';
 
 interface EditAthleteModalProps {
   student: Student;
@@ -135,9 +136,10 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
               {!isCameraOpen && !capturedImage && (
                 <button
                   onClick={startCamera}
+                  aria-label="Take new photo"
                   className="absolute bottom-4 right-4 pz-btn w-14 h-14 flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
                 >
-                  📸
+                  <Ic.Camera size={24} />
                 </button>
               )}
            </div>
@@ -180,7 +182,7 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
                    {activeTab === 'POINTS' && <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: 'var(--pz-volt)' }} />}
                  </button>
               </div>
-              <button onClick={onClose} className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-white/50 text-2xl mb-4 shrink-0">✕</button>
+              <button onClick={onClose} aria-label="Close" className="w-11 h-11 rounded-full hover:bg-white/10 flex items-center justify-center text-white/50 mb-4 shrink-0"><Ic.XMark size={22} /></button>
            </div>
 
            <div className="flex-grow overflow-y-auto p-10 custom-scrollbar min-h-0">
@@ -271,7 +273,7 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
         <div className="fixed inset-0 z-[400] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
           <div className="pz-card max-w-md w-full p-8">
             <div className="text-center mb-6">
-              <div className="text-6xl mb-4">⚠️</div>
+              <Ic.Warning size={56} className="mx-auto mb-4 text-red-400" />
               <h3 className="text-2xl text-white mb-2">Delete Athlete</h3>
               <p className="text-sm" style={{ color: 'var(--pz-text)' }}>This cannot be undone. Remove {student.fullName} from the roster?</p>
             </div>
