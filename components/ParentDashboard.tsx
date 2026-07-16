@@ -395,6 +395,32 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
         }
     };
 
+    // Student self-login (kid picks their name + PIN on /#/login)
+    const [portalEnabled, setPortalEnabled] = useState(false);
+    const [portalPin, setPortalPin] = useState('');
+    const [portalBusy, setPortalBusy] = useState(false);
+    useEffect(() => {
+        gameCenter.portalSettings(student.id)
+            .then(s => { setPortalEnabled(s.enabled); setPortalPin(s.pin); })
+            .catch(err => console.warn('Failed to load portal settings:', err));
+    }, [student.id]);
+
+    const savePortalAccess = async (enabled: boolean) => {
+        if (enabled && !/^\d{4}$/.test(portalPin)) {
+            alert('Set a 4-digit PIN first, then turn on Student Login.');
+            return;
+        }
+        setPortalBusy(true);
+        try {
+            await gameCenter.setPortalAccess(student.id, enabled, portalPin || undefined);
+            setPortalEnabled(enabled);
+        } catch (error: any) {
+            alert(error?.message || 'Failed to update Student Login');
+        } finally {
+            setPortalBusy(false);
+        }
+    };
+
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -465,61 +491,45 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                     {/* Left Column: Avatar and Info */}
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', flex: '1 1 220px', minWidth: 0 }}>
                         <div style={{ position: 'relative', flexShrink: 0 }}>
-                            {avatarMode === 'AVATAR' ? (
-                                <div style={{
-                                    width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden',
-                                    border: `4px solid ${house.colorHex}`,
-                                    boxShadow: `0 0 16px ${house.colorHex}50`,
-                                    background: 'radial-gradient(circle at 50% 30%, #232B3B 0%, #14171E 80%)',
-                                    display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-                                }}>
-                                    <AvatarRig look={student.avatarLook} size="100%" />
-                                </div>
-                            ) : (
-                            <img src={currentAvatarUrl} alt="" onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${student.id}`; }} style={{
-                                width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover',
-                                border: `4px solid ${house.colorHex}`,
-                                boxShadow: `0 0 16px ${house.colorHex}50`,
-                                opacity: uploadingAvatar ? 0.5 : 1
-                            }} />
-                            )}
-
-                            {/* Photo vs game avatar switch */}
-                            <div style={{ display: 'flex', gap: '4px', marginTop: '0.6rem', justifyContent: 'center' }}>
-                                {(['PHOTO', 'AVATAR'] as const).map(mode => (
-                                    <button
-                                        key={mode}
-                                        onClick={() => handleModeSwitch(mode)}
-                                        style={{
-                                            padding: '4px 8px', fontSize: '0.55rem', fontWeight: 900,
-                                            textTransform: 'uppercase', letterSpacing: '0.06em', cursor: 'pointer',
-                                            clipPath: 'polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px)',
-                                            background: avatarMode === mode ? PZ.volt : PZ.panel2,
-                                            color: avatarMode === mode ? PZ.bg : PZ.muted,
-                                            border: 'none',
-                                        }}
-                                    >
-                                        {mode === 'PHOTO' ? 'Photo' : 'Avatar'}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Upload button overlay */}
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={uploadingAvatar}
-                                style={{
-                                    position: 'absolute', bottom: -5, right: -5,
-                                    background: PZ.volt, border: `2px solid ${PZ.bg}`,
-                                    color: PZ.bg, borderRadius: '50%', width: '36px', height: '36px',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    cursor: 'pointer', zIndex: 10
-                                }}
-                                title="Change Picture"
-                                aria-label="Change picture"
+                            {/* Clean picture on display; in edit mode tapping it opens the camera/photo picker */}
+                            <div
+                                role={isEditingProfile ? 'button' : undefined}
+                                tabIndex={isEditingProfile ? 0 : undefined}
+                                aria-label={isEditingProfile ? 'Change picture' : undefined}
+                                onClick={() => { if (isEditingProfile && !uploadingAvatar) fileInputRef.current?.click(); }}
+                                onKeyDown={e => { if (isEditingProfile && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); fileInputRef.current?.click(); } }}
+                                style={{ position: 'relative', cursor: isEditingProfile ? 'pointer' : 'default', width: '80px' }}
                             >
-                                <Ic.Camera size={18} />
-                            </button>
+                                {avatarMode === 'AVATAR' ? (
+                                    <div style={{
+                                        width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden',
+                                        border: `4px solid ${house.colorHex}`,
+                                        boxShadow: `0 0 16px ${house.colorHex}50`,
+                                        background: 'radial-gradient(circle at 50% 30%, #232B3B 0%, #14171E 80%)',
+                                        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+                                    }}>
+                                        <AvatarRig look={student.avatarLook} size="100%" />
+                                    </div>
+                                ) : (
+                                    <img src={currentAvatarUrl} alt="" onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${student.id}`; }} style={{
+                                        width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover',
+                                        border: `4px solid ${house.colorHex}`,
+                                        boxShadow: `0 0 16px ${house.colorHex}50`,
+                                        opacity: uploadingAvatar ? 0.5 : 1
+                                    }} />
+                                )}
+                                {isEditingProfile && (
+                                    <span style={{
+                                        position: 'absolute', bottom: -4, right: -4,
+                                        background: PZ.volt, border: `2px solid ${PZ.bg}`,
+                                        color: PZ.bg, borderRadius: '50%', width: '28px', height: '28px',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        pointerEvents: 'none',
+                                    }}>
+                                        <Ic.Camera size={14} />
+                                    </span>
+                                )}
+                            </div>
                             <input
                                 type="file"
                                 ref={fileInputRef}
@@ -577,6 +587,31 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                             </select>
                                         </div>
                                     </div>
+                                    <div>
+                                        <label style={styles.label}>Picture Shown On Boards</label>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            {(['PHOTO', 'AVATAR'] as const).map(mode => (
+                                                <button
+                                                    key={mode}
+                                                    type="button"
+                                                    onClick={() => handleModeSwitch(mode)}
+                                                    style={{
+                                                        flex: 1, padding: '0.6rem', fontSize: '0.7rem', fontWeight: 900,
+                                                        textTransform: 'uppercase', letterSpacing: '0.06em', cursor: 'pointer',
+                                                        clipPath: 'polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)',
+                                                        background: avatarMode === mode ? PZ.volt : PZ.panel2,
+                                                        color: avatarMode === mode ? PZ.bg : PZ.muted,
+                                                        border: 'none',
+                                                    }}
+                                                >
+                                                    {mode === 'PHOTO' ? 'Photo' : 'Game Avatar'}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <p style={{ margin: '0.4rem 0 0', color: PZ.faint, fontSize: '0.7rem', fontWeight: 600 }}>
+                                            Tap the picture to take or choose a new photo.
+                                        </p>
+                                    </div>
                                     <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                                         <button
                                             onClick={() => setIsEditingProfile(false)}
@@ -602,11 +637,11 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                             const dn = getStudentDisplayName(student);
                                             return (
                                                 <>
-                                                    <h2 className="pz-display" style={{ margin: '0 0 0.25rem', color: PZ.white, fontSize: 'clamp(1.25rem, 4vw, 1.625rem)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                    <h2 className="pz-display" style={{ margin: '0 0 0.25rem', color: PZ.white, fontSize: 'clamp(1.25rem, 4vw, 1.625rem)', lineHeight: 1.15, wordBreak: 'break-word' }}>
                                                         {dn.primary}
                                                     </h2>
                                                     {dn.secondary && (
-                                                        <p style={{ margin: '0 0 0.5rem', color: PZ.muted, fontSize: '0.9375rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dn.secondary}</p>
+                                                        <p style={{ margin: '0 0 0.5rem', color: PZ.muted, fontSize: '0.9375rem', wordBreak: 'break-word' }}>{dn.secondary}</p>
                                                     )}
                                                 </>
                                             );
@@ -617,9 +652,9 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                             display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
                                             background: `${house.colorHex}1a`, border: `1px solid ${house.colorHex}55`,
                                             color: house.colorHex, borderRadius: '3px',
-                                            padding: '0.375rem 0.875rem', fontSize: '0.8125rem', fontWeight: 700,
+                                            padding: '0.375rem 0.75rem', fontSize: '0.75rem', fontWeight: 700,
                                             textTransform: 'uppercase', letterSpacing: '0.04em',
-                                            marginBottom: '0.5rem', whiteSpace: 'nowrap', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis'
+                                            marginBottom: '0.5rem', maxWidth: '100%'
                                         }}>
                                             {house.customIcon && (
                                                 <img src={house.customIcon} alt="" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
@@ -659,6 +694,48 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                 </div>
             </div>
 
+
+            {/* ── Student self-login (parent-granted) ───────────────────── */}
+            <div style={{ ...styles.card, marginBottom: '1.25rem' }}>
+                <div className="pz-eyebrow" style={pStyles.eyebrow}>Student Login</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+                        <p style={{ margin: 0, color: PZ.muted, fontSize: '0.85rem', fontWeight: 500, lineHeight: 1.45 }}>
+                            Let {student.fullName.split(' ')[0]} sign in on their own at the
+                            <span style={{ color: PZ.white, fontWeight: 700 }}> Players page</span> to customize
+                            their avatar, open crates, and spend perks. They pick their name and enter this PIN.
+                        </p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                        <input
+                            type="tel"
+                            inputMode="numeric"
+                            maxLength={4}
+                            value={portalPin}
+                            onChange={e => setPortalPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                            onBlur={() => { if (portalEnabled && /^\d{4}$/.test(portalPin)) savePortalAccess(true); }}
+                            placeholder="PIN"
+                            aria-label="4-digit login PIN"
+                            style={{
+                                ...styles.input, width: '86px', textAlign: 'center',
+                                fontWeight: 900, letterSpacing: '0.35em', fontSize: '1rem',
+                            }}
+                        />
+                        <button
+                            onClick={() => savePortalAccess(!portalEnabled)}
+                            disabled={portalBusy}
+                            className={portalEnabled ? 'pz-btn' : 'pz-btn-ghost'}
+                            style={{
+                                ...(portalEnabled ? pStyles.btnPrimary : pStyles.btnSecondary),
+                                minHeight: '44px', padding: '0 1rem', opacity: portalBusy ? 0.6 : 1,
+                                whiteSpace: 'nowrap',
+                            }}
+                        >
+                            {portalBusy ? 'Saving…' : portalEnabled ? 'Login ON' : 'Login OFF'}
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             {/* ── Stats Summary ─────────────────────────────────────────── */}
             <div style={{ ...styles.card, marginBottom: '1.25rem' }}>

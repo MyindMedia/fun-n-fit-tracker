@@ -27,6 +27,7 @@ import type * as nfc from "../nfc.js";
 import type * as parents from "../parents.js";
 import type * as partners from "../partners.js";
 import type * as points from "../points.js";
+import type * as portalAccess from "../portalAccess.js";
 import type * as redemptions from "../redemptions.js";
 import type * as scanlog from "../scanlog.js";
 import type * as seasons from "../seasons.js";
@@ -65,6 +66,7 @@ declare const fullApi: ApiFromModules<{
   parents: typeof parents;
   partners: typeof partners;
   points: typeof points;
+  portalAccess: typeof portalAccess;
   redemptions: typeof redemptions;
   scanlog: typeof scanlog;
   seasons: typeof seasons;

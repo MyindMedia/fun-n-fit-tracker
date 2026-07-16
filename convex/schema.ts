@@ -248,6 +248,15 @@ export default defineSchema({
     upgradeLevel: v.optional(v.number()), // 0 base → 3 volt (duplicates upgrade)
   }).index("by_student", ["studentId"]),
 
+  // Kid self-login: parent-granted portal access + PIN. Separate table so the
+  // PIN never travels with the public students list.
+  portalAccess: defineTable({
+    studentId: v.id("students"),
+    enabled: v.boolean(),
+    pin: v.string(), // 4-digit, set by the parent
+    updatedAt: v.number(),
+  }).index("by_student", ["studentId"]),
+
   // One row per crate opened — the loot ledger (odds audit + daily cap).
   lootBoxOpens: defineTable({
     studentId: v.id("students"),

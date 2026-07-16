@@ -541,6 +541,38 @@ class GameCenterService {
     });
   }
 
+  // ── Student self-login (parent-granted, PIN) ───────────────────────────────
+
+  public async portalStatus(studentId: string): Promise<{ enabled: boolean }> {
+    return (await this.client.query(api.portalAccess.status, {
+      studentId: studentId as Id<'students'>,
+    })) as { enabled: boolean };
+  }
+
+  public async portalSettings(studentId: string): Promise<{ enabled: boolean; pin: string }> {
+    return (await this.client.query(api.portalAccess.settings, {
+      studentId: studentId as Id<'students'>,
+    })) as { enabled: boolean; pin: string };
+  }
+
+  public async setPortalAccess(studentId: string, enabled: boolean, pin?: string): Promise<void> {
+    await this.client.mutation(api.portalAccess.setAccess, {
+      studentId: studentId as Id<'students'>,
+      enabled,
+      pin,
+    });
+  }
+
+  public async verifyPortalPin(
+    studentId: string,
+    pin: string
+  ): Promise<{ ok: boolean; reason: 'DISABLED' | 'WRONG_PIN' | null }> {
+    return (await this.client.mutation(api.portalAccess.verify, {
+      studentId: studentId as Id<'students'>,
+      pin,
+    })) as { ok: boolean; reason: 'DISABLED' | 'WRONG_PIN' | null };
+  }
+
   // ── Avatar studio + loot crates ────────────────────────────────────────────
 
   public async ownedWearables(studentId: string): Promise<Array<{ key: string; upgradeLevel: number }>> {

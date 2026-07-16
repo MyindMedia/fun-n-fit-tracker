@@ -197,6 +197,22 @@ accessories / merch. Decisions:
    shard refunds can't be amplified.
 6. Wearables catalog seeded via `seed:wearables` (26 items, upsert by key).
 
+# Student self-login + profile polish (2026-07-16)
+
+1. **Kid login, parent-granted** — `portalAccess` table (separate from students so
+   the PIN never rides the public roster) + `convex/portalAccess.ts`
+   (status/settings/setAccess/verify). Parent detail view gets a "Student Login"
+   card: 4-digit PIN + ON/OFF. The kid goes to /#/login ("Players"), taps their
+   name: disabled → locked notice pointing at the Parent Portal; enabled → PIN pad
+   (server-side verify, activity-logged) → their portal (avatar studio, crates,
+   perks). Default is OFF for every kid.
+2. **Profile display cleanup** (Lawrence's screenshot): camera button and
+   Photo/Avatar chips removed from the display view — the picture is clean; in
+   Edit Profile, tapping the picture opens the camera/photo picker (volt camera
+   badge shows the affordance) and the Photo vs Game Avatar choice lives in the
+   edit form. Name and house chip no longer truncate ("BLOSSO…", "SPARK HOUS") —
+   they wrap instead.
+
 ## Open questions from E2E verification (2026-07-15)
 - **Spending can demote.** Ranks are computed from *current* points (pre-existing
   mechanic), so a big perk purchase that drops a kid below a rank threshold triggers the
