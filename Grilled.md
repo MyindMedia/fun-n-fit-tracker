@@ -263,6 +263,20 @@ AND downsides — earnable via achievements or purchasable at premium prices.
    purchases can trip the pre-existing spend-demotion mechanic (open question
    from the migration phase).
 
+# Player cards + trading (2026-07-16)
+
+1. **Player cards** — kids tap any friend (Friends tab) or any Top 5 player /
+   top scorer (Team tab) to inspect their card: avatar or photo, rank, points,
+   equipped gear with its live perk/downside stats, badges, recent coach medals.
+2. **Trading (friends only)** — badges and avatar items, both-sides consent:
+   offer builder inside the player card (pick one thing from each side), Trades
+   inbox on the Friends tab with Accept / Decline / Cancel. Server revalidates
+   ownership at accept; upgrade tiers travel with items; a traded-away equipped
+   item falls back to a starter piece; starter items and power GEAR are not
+   tradable (achievements stay earned); 5 open offers max per kid.
+3. Verified on prod end-to-end with a temporary QA student (created + deleted):
+   propose → inbox → accept → inventories swapped.
+
 # Parent invites (2026-07-16)
 
 Invite links parents can sign up from, sendable by admins and by the GoHighLevel
