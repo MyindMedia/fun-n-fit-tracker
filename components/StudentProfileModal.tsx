@@ -38,6 +38,10 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isSavingPhoto, setIsSavingPhoto] = useState(false);
+  // Set once a new photo has been uploaded + persisted (source of truth for
+  // the avatar from then on — the `student` prop may be stale).
+  const [savedAvatarUrl, setSavedAvatarUrl] = useState<string | null>(null);
   const [showRankConfirm, setShowRankConfirm] = useState(false);
   const [pendingRankId, setPendingRankId] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -149,6 +153,28 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
     }
   };
 
+  // Persist a new photo the moment it's chosen — waiting for the Edit tab's
+  // Save button silently lost photos when the modal was closed from any other
+  // tab.
+  const savePhoto = async (dataUrl: string) => {
+    setCapturedImage(dataUrl);
+    setIsSavingPhoto(true);
+    try {
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+      const uploadedUrl = await supabaseService.uploadAsset(blob, 'avatars');
+      if (!uploadedUrl) throw new Error('Upload failed');
+      await supabaseService.updateStudent(student.id, { avatarUrl: uploadedUrl });
+      setSavedAvatarUrl(uploadedUrl);
+    } catch (err) {
+      console.error('Photo save failed:', err);
+      alert('Could not save the photo — check your connection and try again.');
+      setCapturedImage(null);
+    } finally {
+      setIsSavingPhoto(false);
+    }
+  };
+
   const capturePhoto = () => {
     if (videoRef.current && canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
@@ -156,8 +182,9 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
       canvasRef.current.width = 512;
       canvasRef.current.height = 512;
       ctx.drawImage(videoRef.current, 0, 0, 512, 512);
-      setCapturedImage(canvasRef.current.toDataURL('image/jpeg', 0.8));
+      const dataUrl = canvasRef.current.toDataURL('image/jpeg', 0.8);
       stopCamera();
+      void savePhoto(dataUrl);
     }
   };
 
@@ -177,7 +204,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
       }
       const reader = new FileReader();
       reader.onload = (event) => {
-        setCapturedImage(event.target?.result as string);
+        void savePhoto(event.target?.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -186,8 +213,9 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
   const handleSaveInfo = async () => {
     setIsSaving(true);
     try {
-      let finalAvatar = student.avatarUrl;
-      if (capturedImage) {
+      // Photos are persisted on selection (savePhoto); don't re-upload here.
+      let finalAvatar = savedAvatarUrl ?? student.avatarUrl;
+      if (capturedImage && !savedAvatarUrl) {
         const response = await fetch(capturedImage);
         const blob = await response.blob();
         const uploadedUrl = await supabaseService.uploadAsset(blob, 'avatars');
@@ -397,11 +425,16 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
           <div className="relative mb-6 md:mb-10 group">
             <div className={`w-32 h-32 md:w-48 md:h-48 rounded-full border-4 md:border-8 shadow-xl overflow-hidden relative ${student.inventory?.includes('r_aura') ? 'ring-4 md:ring-8 ring-yellow-400 animate-pulse' : ''}`} style={{ borderColor: HOUSES[student.houseId].colorHex, background: 'var(--pz-panel)' }}>
               {capturedImage ? (
-                <img src={capturedImage} className="w-full h-full object-cover" />
+                <img src={capturedImage} className="w-full h-full object-cover" style={{ opacity: isSavingPhoto ? 0.5 : 1 }} />
               ) : isCameraOpen ? (
                 <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover scale-x-[-1]" />
               ) : (
-                <img src={student.avatarUrl} className="w-full h-full object-cover" />
+                <img src={savedAvatarUrl ?? student.avatarUrl} className="w-full h-full object-cover" />
+              )}
+              {isSavingPhoto && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                  <span className="w-8 h-8 border-2 border-white/30 border-t-[#CBFE1C] rounded-full animate-spin" />
+                </div>
               )}
             </div>
             <canvas ref={canvasRef} className="hidden" />
@@ -439,8 +472,13 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
             </div>
           )}
 
-          {isAdminMode && capturedImage && (
-            <button onClick={() => setCapturedImage(null)} className="mb-4 bg-red-500 text-white py-3 px-6 font-black uppercase text-[10px] shadow-lg" style={{ clipPath: NOTCH_SM }}>Clear Photo</button>
+          {isAdminMode && capturedImage && !isSavingPhoto && (
+            <div className="mb-4 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-2 bg-[#CBFE1C]/10 border border-[#CBFE1C]/40 text-[#CBFE1C]">
+                <Ic.CheckCircle size={14} /> Photo saved
+              </span>
+              <button onClick={() => { setCapturedImage(null); startCamera(); }} className="pz-btn-ghost py-2 px-4 text-[10px]">Retake</button>
+            </div>
           )}
           {(() => {
             const displayName = getStudentDisplayName(student);

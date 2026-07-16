@@ -9,10 +9,11 @@ interface GameHistoryListProps {
 }
 
 const GameHistoryList: React.FC<GameHistoryListProps> = ({ history }) => {
+  // Rendered inside the Game History modal, whose sticky header already
+  // carries the title — no duplicate heading here.
   return (
-    <section className="pz-scope pz-card p-8">
-      <h2 className="text-3xl text-white mb-8 tracking-tight inline-flex items-center gap-2.5"><Ic.History size={24} className="text-[#CBFE1C]" /> Game History</h2>
-      <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+    <section className="pz-scope pz-card p-4 sm:p-8">
+      <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
         {history.length === 0 && (
           <div className="text-center py-10 italic" style={{ color: 'var(--pz-text)' }}>No historical data found.</div>
         )}

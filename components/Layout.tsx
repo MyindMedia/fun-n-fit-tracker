@@ -266,7 +266,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </Link>
             </div>
 
-            <div className="flex-grow max-w-md relative group">
+            {/* Global player search — desktop only; phones get roster search inside each screen */}
+            <div className="flex-grow max-w-md relative group hidden md:block">
               <div className="relative">
                 <input
                   type="text"
@@ -302,31 +303,31 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               )}
             </div>
 
-            <div className="flex items-center space-x-2 md:space-x-4 shrink-0">
+            <div className="flex items-center gap-1 md:gap-4 shrink min-w-0 justify-end flex-nowrap">
               {!isProjectorMode && (
                 <button
                   onClick={toggleProjectorMode}
-                  className="pz-btn-ghost flex items-center gap-2 px-4 py-2 text-xs"
+                  className="pz-btn-ghost hidden md:flex items-center gap-2 px-4 py-2 text-xs"
                 >
                   <Ic.Projector size={18} />
                   <span className="hidden lg:inline">Projector</span>
                 </button>
               )}
 
-              <Link to="/" className="relative px-3 md:px-4 py-2 text-xs font-bold transition-colors uppercase tracking-widest text-white/60 hover:text-white">
+              <Link to="/" className="relative px-2 md:px-4 py-2 text-[11px] md:text-xs font-bold transition-colors uppercase tracking-wide md:tracking-widest text-white/60 hover:text-white whitespace-nowrap">
                 Home
               </Link>
-              <Link to="/live" className={`relative px-3 md:px-4 py-2 text-xs font-bold transition-colors uppercase tracking-widest ${isLive ? 'text-white' : 'text-white/60 hover:text-white'}`}>
+              <Link to="/live" className={`relative px-2 md:px-4 py-2 text-[11px] md:text-xs font-bold transition-colors uppercase tracking-wide md:tracking-widest whitespace-nowrap ${isLive ? 'text-white' : 'text-white/60 hover:text-white'}`}>
                 Live
-                {isLive && <span className="absolute left-3 right-3 md:left-4 md:right-4 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
+                {isLive && <span className="absolute left-2 right-2 md:left-4 md:right-4 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
               </Link>
               {isAdmin && (
-                <Link to="/admin" className={`relative px-3 md:px-4 py-2 text-xs font-bold transition-colors uppercase tracking-widest ${!isLive ? 'text-white' : 'text-white/60 hover:text-white'}`}>
+                <Link to="/admin" className={`relative px-2 md:px-4 py-2 text-[11px] md:text-xs font-bold transition-colors uppercase tracking-wide md:tracking-widest whitespace-nowrap ${!isLive ? 'text-white' : 'text-white/60 hover:text-white'}`}>
                   Admin
-                  {!isLive && <span className="absolute left-3 right-3 md:left-4 md:right-4 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
+                  {!isLive && <span className="absolute left-2 right-2 md:left-4 md:right-4 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
                 </Link>
               )}
-              <a href="/#/parent-login" className="pz-btn-ghost px-3 md:px-4 py-2 text-xs">Portal</a>
+              <a href="/#/parent-login" className="pz-btn-ghost px-2.5 md:px-4 py-2 text-[11px] md:text-xs whitespace-nowrap shrink-0">Portal</a>
             </div>
           </div>
         </div>

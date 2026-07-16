@@ -39,10 +39,10 @@ export const REWARDS: Reward[] = [
 ];
 
 export const HOUSES: Record<HouseId, House> = {
-  [HouseId.UNITY]: { id: HouseId.UNITY, name: 'Unity', colorHex: '#0ea5e9', mascot: 'Wolf', totalPoints: 0, customIcon: `${TEAMS_URL}/unity.svg` },
-  [HouseId.SAGE]: { id: HouseId.SAGE, name: 'Sage', colorHex: '#10b981', mascot: 'Owl', totalPoints: 0, customIcon: `${TEAMS_URL}/sage.svg` },
-  [HouseId.SPARK]: { id: HouseId.SPARK, name: 'Spark', colorHex: '#f97316', mascot: 'Fox', totalPoints: 0, customIcon: `${TEAMS_URL}/spark.svg` },
-  [HouseId.VALOR]: { id: HouseId.VALOR, name: 'Valor', colorHex: '#8b5cf6', mascot: 'Honey Badger', totalPoints: 0, customIcon: `${TEAMS_URL}/valor.svg` },
+  [HouseId.UNITY]: { id: HouseId.UNITY, name: 'Unity', colorHex: '#0ea5e9', mascot: 'Wolf', totalPoints: 0, customIcon: `${TEAMS_URL}/unity.png` },
+  [HouseId.SAGE]: { id: HouseId.SAGE, name: 'Sage', colorHex: '#10b981', mascot: 'Owl', totalPoints: 0, customIcon: `${TEAMS_URL}/sage.png` },
+  [HouseId.SPARK]: { id: HouseId.SPARK, name: 'Spark', colorHex: '#f97316', mascot: 'Fox', totalPoints: 0, customIcon: `${TEAMS_URL}/spark.png` },
+  [HouseId.VALOR]: { id: HouseId.VALOR, name: 'Valor', colorHex: '#8b5cf6', mascot: 'Honey Badger', totalPoints: 0, customIcon: `${TEAMS_URL}/valor.png` },
 };
 
 export const GAME_LIBRARY: GameDefinition[] = [
