@@ -67,6 +67,9 @@ export default defineSchema({
     isActive: v.boolean(),
     startedBy: v.optional(v.string()),
     roster: v.array(v.string()), // student _ids
+    // Coach picks at launch: MANUAL scoring or NFC bands. In NFC mode every
+    // tap is auto-routed to this session and processed per the game's rules.
+    captureMode: v.optional(v.union(v.literal("MANUAL"), v.literal("NFC"))),
     results: v.optional(gameResults),
     createdAt: v.number(),
   })

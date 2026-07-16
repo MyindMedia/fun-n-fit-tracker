@@ -160,9 +160,10 @@ const AdminDashboard: React.FC = () => {
   const [boostMult, setBoostMult] = useState(1);
   useEffect(() => gameCenter.subscribePointMultiplier(setBoostMult), []);
 
-  // ── Global band scans: a tap checks the kid in from ANY admin screen ──────
-  // The NFC Bands page owns scans while it's open (modes); everywhere else —
-  // Roll Call, Games, sub-pages — a tap is a check-in with a toast.
+  // ── Global band scans: every tap routes itself from ANY admin screen ──────
+  // The NFC Bands page owns scans while it's open (assign flows); everywhere
+  // else a tap is smart: live NFC-mode game → the game's rules decide (timed
+  // games log splits, score games bank points); no game → door check-in.
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
   const adminNameRef = useRef(adminName);
@@ -180,10 +181,22 @@ const AdminDashboard: React.FC = () => {
     if (!adminNameRef.current || scanBusyRef.current) return;
     scanBusyRef.current = true;
     try {
-      const res = await gameCenter.nfcCheckInByTag(scan.uid, adminNameRef.current);
-      if (res.status === 'UNKNOWN_TAG') {
+      const res = await gameCenter.nfcAutoScan(scan.uid, adminNameRef.current);
+      if (res.mode === 'UNKNOWN_TAG') {
         haptic('warning');
         pushScanToast('Unknown band — open NFC Bands to assign it');
+      } else if (res.mode === 'GAME_TIME') {
+        haptic('success');
+        pushScanToast(
+          res.splitMs
+            ? `${res.fullName} — lap ${res.lap - 1} · ${(res.splitMs / 1000).toFixed(1)}s`
+            : `${res.fullName} is on the clock — ${res.gameTitle}`
+        );
+        refreshData();
+      } else if (res.mode === 'GAME_POINTS') {
+        haptic('success');
+        pushScanToast(`${res.fullName} banked +${res.amount} — ${res.gameTitle}`, res.amount);
+        refreshData();
       } else if (res.status === 'ALREADY') {
         haptic('tap');
         pushScanToast(`${res.fullName} is already checked in`);

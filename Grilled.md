@@ -213,6 +213,28 @@ accessories / merch. Decisions:
    edit form. Name and house chip no longer truncate ("BLOSSO…", "SPARK HOUS") —
    they wrap instead.
 
+# Automatic NFC game capture (2026-07-16)
+
+Lawrence's directive: NFC processing must be automatic per game — no opening the
+NFC Bands page, no picking Timing/Points modes. Decisions:
+
+1. **Game mode at launch** — NFC-capable games require a Manual / NFC Bands
+   choice in the config screen before Start is enabled (in case bands aren't in
+   play). Stored as `gameSessions.captureMode`; manual-only games skip the
+   selector and default MANUAL.
+2. **`nfc.autoScan` router** — the single tap entry point for every admin screen
+   (wedge + desk agent). Presence first, then: live NFC-mode session containing
+   the kid → the game definition decides (leaderboardMetric 'time' or
+   nfc_split_ms/lap_time fields → splits/laps; otherwise +10 banked per tap);
+   no session → plain door check-in. Toasts show lap · split, banked points, or
+   check-in accordingly.
+3. **Instructions rewritten** — all "Start NFC Timing mode…", "opens NFC Points
+   mode…" steps removed from the game library (seeded) and the Rules & Guide
+   NFC section now says: launch in NFC Bands mode, everything is automatic.
+4. NFC Bands page remains for assigning wristbands and its manual modes still
+   work when open, but gameplay no longer needs it. Verified on prod: timed game
+   (lap 1 → split 1140ms), Gold Rush (+10/tap), no-game fallback to check-in.
+
 ## Open questions from E2E verification (2026-07-15)
 - **Spending can demote.** Ranks are computed from *current* points (pre-existing
   mechanic), so a big perk purchase that drops a kid below a rank threshold triggers the

@@ -49,6 +49,7 @@ export const start = mutation({
     roster: v.array(v.string()),
     durationSeconds: v.number(),
     customTitle: v.optional(v.string()),
+    captureMode: v.optional(v.union(v.literal("MANUAL"), v.literal("NFC"))),
     clientId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -78,6 +79,7 @@ export const start = mutation({
       isActive: true,
       startedBy: args.adminName,
       roster: args.roster,
+      captureMode: args.captureMode ?? "MANUAL",
       createdAt: Date.now(),
     });
 

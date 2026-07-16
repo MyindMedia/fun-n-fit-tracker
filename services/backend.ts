@@ -885,7 +885,8 @@ class ConvexBackendService {
     adminName: string,
     roster: string[],
     durationSeconds: number,
-    customTitle?: string
+    customTitle?: string,
+    captureMode?: "MANUAL" | "NFC"
   ) {
     try {
       const doc = await this.client.mutation(api.games.start, {
@@ -894,6 +895,7 @@ class ConvexBackendService {
         roster,
         durationSeconds,
         customTitle,
+        captureMode,
         clientId: this.clientId,
       });
       const session = mapSession(doc as unknown as SessionDoc);

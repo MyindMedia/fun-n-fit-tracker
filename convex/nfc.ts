@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { applyPoints, logActivity, publishEvent, resolveLocalDate } from "./helpers";
 import { checkInStudent } from "./checkins";
+import { GAME_LIBRARY } from "../constants";
 
 // NFC tags / wristbands. Tag UIDs live in students.deviceId, normalized to
 // uppercase hex with no separators. One tag ↔ one student.
@@ -330,6 +331,163 @@ export const gameScanByTag = mutation({
       splitMs,
       lap,
       checkedIn,
+    };
+  },
+});
+
+// ── Automatic game capture ───────────────────────────────────────────────────
+// One tap, zero setup: when a live game was launched in NFC mode, the game's
+// own definition decides what a tap means — timed games record splits/laps,
+// score games bank points — for every rostered kid. No game running (or the
+// kid isn't on the roster) → the tap is a plain door check-in.
+
+const NFC_TAP_POINTS = 10; // banked per tap in score-based NFC games
+
+export const autoScan = mutation({
+  args: {
+    tagUid: v.string(),
+    adminName: v.string(),
+    localDate: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<any> => {
+    const student = await findByTag(ctx, args.tagUid);
+    const ts = Date.now();
+    if (!student) {
+      return { mode: "UNKNOWN_TAG" as const, tagUid: normalizeUid(args.tagUid) };
+    }
+
+    // Presence first — every scan path guarantees Roll Call is right.
+    let checkedIn = false;
+    let checkInStatus: string | null = null;
+    if (!student.isPresent) {
+      const res = await checkInStudent(
+        ctx,
+        student._id,
+        resolveLocalDate(args.localDate),
+        "NFC",
+        args.adminName,
+        undefined,
+        args.adminName
+      );
+      checkedIn = true;
+      checkInStatus = res.status;
+    }
+
+    const base = {
+      studentId: student._id,
+      fullName: student.fullName,
+      houseId: student.houseId,
+      avatarUrl: student.avatarUrl,
+      checkedIn,
+    };
+
+    // Find the live NFC-mode session this kid is playing in.
+    const active = await ctx.db
+      .query("gameSessions")
+      .withIndex("by_active", (q) => q.eq("isActive", true))
+      .collect();
+    const session = active.find(
+      (s) => s.captureMode === "NFC" && s.roster.includes(student._id)
+    );
+
+    if (!session) {
+      // No game to feed — behave like the front door.
+      if (!checkedIn) {
+        return { mode: "CHECKIN" as const, status: "ALREADY" as const, ...base };
+      }
+      await ctx.db.insert("nfcScans", {
+        ts,
+        kind: "CHECKIN",
+        tagUid: normalizeUid(args.tagUid),
+        studentId: student._id,
+        studentName: student.fullName,
+        houseId: student.houseId,
+        actor: args.adminName,
+      });
+      return { mode: "CHECKIN" as const, status: checkInStatus ?? "OK", ...base };
+    }
+
+    // The game's definition decides the processing: timed games take splits,
+    // everything else banks points per tap.
+    const def =
+      (await ctx.db
+        .query("gameLibrary")
+        .withIndex("by_gameKey", (q) => q.eq("gameKey", session.gameKey))
+        .unique()) ?? GAME_LIBRARY.find((g) => g.gameKey === session.gameKey);
+    const fields: string[] = (def?.dataCaptureFields as string[]) ?? [];
+    const isTiming =
+      def?.leaderboardMetric === "time" ||
+      fields.includes("nfc_split_ms") ||
+      fields.includes("lap_time");
+
+    if (isTiming) {
+      const prior = await ctx.db
+        .query("nfcScans")
+        .withIndex("by_session", (q) => q.eq("sessionId", session._id))
+        .collect();
+      const mine = prior.filter((s) => s.studentId === student._id && s.kind === "GAME");
+      const splitMs = mine.length > 0 ? ts - mine[mine.length - 1].ts : null;
+      const lap = mine.length + 1;
+
+      await ctx.db.insert("nfcScans", {
+        ts,
+        kind: "GAME",
+        tagUid: normalizeUid(args.tagUid),
+        studentId: student._id,
+        studentName: student.fullName,
+        houseId: student.houseId,
+        sessionId: session._id,
+        gameTitle: session.title,
+        splitMs,
+        actor: args.adminName,
+      });
+      await publishEvent(ctx, "lap_time", {
+        studentId: student._id,
+        studentName: student.fullName,
+        houseId: student.houseId,
+        source: "NFC",
+        splitMs,
+        lap,
+        ts,
+      });
+      await logActivity(ctx, {
+        type: "LAP_TIME",
+        message: splitMs
+          ? `${student.fullName} — lap ${lap - 1} in ${(splitMs / 1000).toFixed(1)}s (${session.title})`
+          : `${student.fullName} is on the clock (${session.title})`,
+        adminName: args.adminName,
+        studentId: student._id,
+        studentName: student.fullName,
+      });
+      return { mode: "GAME_TIME" as const, gameTitle: session.title, ts, splitMs, lap, ...base };
+    }
+
+    const result = await applyPoints(
+      ctx,
+      student._id,
+      NFC_TAP_POINTS,
+      "MANUAL",
+      `${session.title} tap`,
+      args.adminName
+    );
+    await ctx.db.insert("nfcScans", {
+      ts,
+      kind: "AWARD",
+      tagUid: normalizeUid(args.tagUid),
+      studentId: student._id,
+      studentName: student.fullName,
+      houseId: student.houseId,
+      sessionId: session._id,
+      gameTitle: session.title,
+      amount: NFC_TAP_POINTS,
+      actor: args.adminName,
+    });
+    return {
+      mode: "GAME_POINTS" as const,
+      gameTitle: session.title,
+      amount: NFC_TAP_POINTS,
+      finalPoints: result.finalPoints,
+      ...base,
     };
   },
 });

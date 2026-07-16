@@ -135,10 +135,13 @@ const GameGuideSheet: React.FC<{ game: GameDefinition; onClose: () => void }> = 
         {isNfcGame(game) && (
           <GuideSection title="NFC bands" icon={<Ic.Nfc size={16} />}>
             <p>
-              This game uses wristband taps. Open <span className="text-white/80 font-bold">NFC Bands</span>, pick{' '}
-              <span className="text-white/80 font-bold">Timing</span> (laps/splits) or{' '}
-              <span className="text-white/80 font-bold">Points</span> (score per tap), and select this game under
-              “Recording for” once it's launched — every tap then counts automatically.
+              Fully automatic. Launch this game and pick <span className="text-white/80 font-bold">NFC Bands</span>{' '}
+              as the game mode — from that moment every wristband tap routes itself to this game and the rules decide
+              what it means: {game.leaderboardMetric === 'time'
+                ? 'taps clock laps and splits per player'
+                : 'each tap banks points instantly'}. Absent kids are checked in on their first tap. Nothing to open,
+              nothing to configure. (Pick <span className="text-white/80 font-bold">Manual</span> instead if you're
+              playing without bands.)
             </p>
           </GuideSection>
         )}
@@ -191,6 +194,8 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
   const [guideGame, setGuideGame] = useState<GameDefinition | null>(null);
   const [selectedRoster, setSelectedRoster] = useState<Set<string>>(new Set());
   const [customDuration, setCustomDuration] = useState<string>('10');
+  // NFC-capable games must pick a mode before launch; manual-only games skip it
+  const [captureMode, setCaptureMode] = useState<'MANUAL' | 'NFC' | null>(null);
 
   useEffect(() => {
     const refreshSessions = () => {
@@ -243,6 +248,7 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
 
   const openDrillConfig = (game: GameDefinition) => {
     setPendingGame(game);
+    setCaptureMode(isNfcGame(game) ? null : 'MANUAL');
     setCustomDuration(String(Math.ceil(game.durationDefaultSeconds / 60)));
     setCustomTitle(game.displayName);
     const presentIds = students.filter(s => s.isPresent).map(s => s.id);
@@ -274,6 +280,10 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
       alert("Please select at least one athlete to participate.");
       return;
     }
+    if (isNfcGame(pendingGame) && !captureMode) {
+      alert('Pick a game mode first: Manual or NFC Bands.');
+      return;
+    }
     const durationNum = parseInt(customDuration || '0', 10);
     if (!durationNum || durationNum <= 0) {
       alert('Please enter a valid session duration in minutes (> 0).');
@@ -288,7 +298,8 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
         adminName,
         Array.from(selectedRoster),
         durationNum * 60,
-        customTitle.trim() || undefined
+        customTitle.trim() || undefined,
+        captureMode ?? 'MANUAL'
       );
 
       console.log('🔄 Refreshing active sessions after game start...');
@@ -524,6 +535,39 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
 
           {/* Scrollable Content */}
           <div className="flex-grow overflow-y-auto p-4 space-y-4" style={{ background: 'var(--pz-bg)' }}>
+            {/* Game Mode — required for NFC-capable games */}
+            {isNfcGame(pendingGame) && (
+              <div className="pz-card-sm p-4" style={!captureMode ? { borderColor: 'rgba(203,254,28,0.45)' } : undefined}>
+                <label className="text-[10px] font-black uppercase tracking-widest mb-2 block" style={{ color: 'var(--pz-text)' }}>
+                  Game Mode {!captureMode && <span className="text-[#CBFE1C]">— pick one to start</span>}
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setCaptureMode('MANUAL')}
+                    className={`touch-btn min-h-[64px] p-3 border-2 text-left transition-all active:scale-[0.98] ${
+                      captureMode === 'MANUAL' ? 'border-[#CBFE1C] bg-[#CBFE1C]/10' : 'border-white/10 bg-white/5'
+                    }`}
+                  >
+                    <div className={`text-xs font-black uppercase tracking-wide ${captureMode === 'MANUAL' ? 'text-[#CBFE1C]' : 'text-white'}`}>Manual</div>
+                    <div className="text-[9px] mt-1 leading-tight" style={{ color: 'var(--pz-text)' }}>Coach scores by hand — no bands needed</div>
+                  </button>
+                  <button
+                    onClick={() => setCaptureMode('NFC')}
+                    className={`touch-btn min-h-[64px] p-3 border-2 text-left transition-all active:scale-[0.98] ${
+                      captureMode === 'NFC' ? 'border-[#CBFE1C] bg-[#CBFE1C]/10' : 'border-white/10 bg-white/5'
+                    }`}
+                  >
+                    <div className={`text-xs font-black uppercase tracking-wide inline-flex items-center gap-1.5 ${captureMode === 'NFC' ? 'text-[#CBFE1C]' : 'text-white'}`}>
+                      <Ic.Nfc size={14} /> NFC Bands
+                    </div>
+                    <div className="text-[9px] mt-1 leading-tight" style={{ color: 'var(--pz-text)' }}>
+                      Fully automatic — taps {pendingGame.leaderboardMetric === 'time' ? 'clock laps & splits' : 'bank points'} for every player
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Game Title */}
             <div className="pz-card-sm p-4">
               <label className="text-[10px] font-black uppercase tracking-widest mb-2 block" style={{ color: 'var(--pz-text)' }}>Game Title</label>
@@ -593,10 +637,16 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
             <button onClick={() => setPendingGame(null)} className="pz-btn-ghost flex-1 py-4 text-xs active:scale-95">Cancel</button>
             <button
               onClick={handleFinalLaunch}
-              disabled={isLaunching || selectedRoster.size === 0}
+              disabled={isLaunching || selectedRoster.size === 0 || (isNfcGame(pendingGame) && !captureMode)}
               className="pz-btn flex-[2] py-4 text-xs active:scale-95 disabled:opacity-50"
             >
-              {isLaunching ? 'Launching...' : 'Start Game'}
+              {isLaunching
+                ? 'Launching...'
+                : isNfcGame(pendingGame) && !captureMode
+                  ? 'Pick a game mode'
+                  : captureMode === 'NFC'
+                    ? 'Start Game · NFC Auto'
+                    : 'Start Game'}
             </button>
           </div>
         </div>,
