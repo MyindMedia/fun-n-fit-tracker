@@ -12,7 +12,10 @@ import EarnAroundTown from './Parent/EarnAroundTown';
 import PerksHistory from './Parent/PerksHistory';
 import StudentDetailExtras from './Parent/StudentDetailExtras';
 import KidPassSheet from './Parent/KidPassSheet';
+import TrophyCase from './TrophyCase';
+import LevelPath from './LevelPath';
 import { PZ, PzPortalCss, pStyles } from './Parent/shared';
+import { getStudentDisplayName } from '../utils/studentDisplay';
 import { Ic, DataIcon, IconProps } from './icons';
 import { haptic } from '../utils/haptics';
 
@@ -550,12 +553,19 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: 0 }}>
                                     <div>
-                                        <h2 className="pz-display" style={{ margin: '0 0 0.25rem', color: PZ.white, fontSize: 'clamp(1.25rem, 4vw, 1.625rem)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {student.gamerTag || student.fullName}
-                                        </h2>
-                                        {student.gamerTag && (
-                                            <p style={{ margin: '0 0 0.5rem', color: PZ.muted, fontSize: '0.9375rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{student.fullName}</p>
-                                        )}
+                                        {(() => {
+                                            const dn = getStudentDisplayName(student);
+                                            return (
+                                                <>
+                                                    <h2 className="pz-display" style={{ margin: '0 0 0.25rem', color: PZ.white, fontSize: 'clamp(1.25rem, 4vw, 1.625rem)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                        {dn.primary}
+                                                    </h2>
+                                                    {dn.secondary && (
+                                                        <p style={{ margin: '0 0 0.5rem', color: PZ.muted, fontSize: '0.9375rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dn.secondary}</p>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
                                     </div>
                                     <div>
                                         <div style={{
@@ -718,7 +728,15 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                 )}
             </div>
 
+            {/* The whole level ladder — what's next, all the way to Apex */}
+            <div style={{ marginBottom: '1.25rem' }}>
+                <LevelPath points={student.points} rankId={student.rankId} />
+            </div>
 
+            {/* Coach medals — superlatives, all in one place */}
+            <div style={{ marginBottom: '1.25rem' }}>
+                <TrophyCase student={student} full={false} />
+            </div>
 
             {/* Badges */}
             {(student.badges?.length ?? 0) > 0 && (
@@ -814,7 +832,7 @@ const StudentCard: React.FC<{
                 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="pz-display" style={{ color: PZ.white, fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {student.gamerTag || student.fullName}
+                        {getStudentDisplayName(student).primary}
                     </div>
                     <div style={{ color: PZ.muted, fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden' }}>
                         {house.customIcon && (

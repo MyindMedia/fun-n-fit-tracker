@@ -11,6 +11,8 @@ import CelebrationOverlay, { Celebration } from './CelebrationOverlay';
 import StudentAvatar from './StudentAvatar';
 import { useRef } from 'react';
 import { getStudentDisplayName } from '../utils/studentDisplay';
+import { gameCenter } from '../services/gameCenter';
+import { medalColor } from './TrophyCase';
 import { Ic } from './icons';
 import { pzDelay } from './useReveal';
 
@@ -173,6 +175,10 @@ const Leaderboard: React.FC = () => {
   const [houseGlow, setHouseGlow] = useState<Record<string, 'up' | 'down' | null>>({});
   const [drillLeaderboard, setDrillLeaderboard] = useState<{students: Student[], houses: Record<HouseId, number>} | null>(null);
   const [activeGameTitle, setActiveGameTitle] = useState<string | null>(null);
+  // Global point boost + recent coach medals (Legends wall)
+  const [boostMult, setBoostMult] = useState(1);
+  const [medalWall, setMedalWall] = useState<Array<{ _id: string; key: string; title: string; fullName: string; houseId: HouseId | null; avatarUrl: string | null; awardedBy: string; createdAt: number }>>([]);
+  useEffect(() => gameCenter.subscribePointMultiplier(setBoostMult), []);
   const lastRankById = useRef<Record<string, string>>({});
   const lastHousePointsRef = useRef<Record<string, number>>({});
   const lastLevelUpSoundTs = useRef<number>(0);
@@ -229,6 +235,13 @@ const Leaderboard: React.FC = () => {
       setRecentEvents(events);
       setRanks(ranksData);
       ts.forEach(s => { lastRankById.current[s.id] = s.rankId; });
+
+      // Legends wall — latest coach medals
+      try {
+        setMedalWall(await gameCenter.recentMedals(6) as any);
+      } catch (err) {
+        console.warn('Failed to load medal wall:', err);
+      }
 
       // Fetch game leaderboard if there's an active game
       if (activeSessions && activeSessions.length > 0) {
@@ -629,14 +642,39 @@ const Leaderboard: React.FC = () => {
       <div className="flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-10">
         <div className="flex-grow flex flex-col gap-5 md:gap-6 min-w-0">
           {/* Match board header */}
-          <div className="flex flex-row justify-between items-end gap-4 shrink-0">
+          <div className="flex flex-row justify-between items-end gap-4 shrink-0 flex-wrap">
             <div className="min-w-0">
-              <div className="pz-eyebrow mb-2">Live from the gym floor</div>
+              <div className="pz-eyebrow mb-2">
+                {timeRange === 'DAY' ? "Today's board — fresh start every day" : timeRange === 'WEEK' ? 'This week on the gym floor' : 'Live from the gym floor'}
+              </div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white leading-none tracking-tight">House Standings</h1>
             </div>
-            <div className="pz-card-sm flex items-center gap-2.5 px-4 py-2.5 shrink-0">
-              <span className="w-2.5 h-2.5 rounded-full pz-live" style={{ background: 'var(--pz-volt)' }} />
-              <span className="text-xs font-bold uppercase tracking-[0.25em]" style={{ color: 'var(--pz-volt)' }}>Live</span>
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+              {boostMult > 1 && (
+                <div className="pz-card-sm flex items-center gap-2 px-4 py-2.5 shrink-0" style={{ borderColor: 'var(--pz-volt)', background: 'rgba(203,254,28,0.10)' }}>
+                  <span style={{ color: 'var(--pz-volt)' }}><Ic.Bolt size={16} /></span>
+                  <span className="text-xs font-black uppercase tracking-[0.2em]" style={{ color: 'var(--pz-volt)' }}>{boostMult}x Points</span>
+                </div>
+              )}
+              {/* Board range: today resets nightly, season is all-time */}
+              <div className="pz-card-sm flex items-center p-1 shrink-0">
+                {([['DAY', 'Today'], ['WEEK', 'Week'], ['ALL', 'Season']] as Array<[TimeRange, string]>).map(([range, label]) => (
+                  <button
+                    key={range}
+                    onClick={() => setTimeRange(range)}
+                    className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all"
+                    style={timeRange === range
+                      ? { background: 'var(--pz-volt)', color: '#0B0E13', clipPath: NOTCH_SM }
+                      : { color: 'var(--pz-text)' }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div className="pz-card-sm flex items-center gap-2.5 px-4 py-2.5 shrink-0">
+                <span className="w-2.5 h-2.5 rounded-full pz-live" style={{ background: 'var(--pz-volt)' }} />
+                <span className="text-xs font-bold uppercase tracking-[0.25em]" style={{ color: 'var(--pz-volt)' }}>Live</span>
+              </div>
             </div>
           </div>
 
@@ -801,6 +839,36 @@ const Leaderboard: React.FC = () => {
               {topStudents.length === 0 && <div className="text-center py-10 text-xs italic" style={{ color: 'var(--pz-text)' }}>Awaiting champions...</div>}
             </div>
           </div>
+
+          {/* LEGENDS WALL — latest coach medals */}
+          {medalWall.length > 0 && (
+            <div className={`pz-card p-4 md:p-6 relative ${revealCls}`} style={pzDelay(400)}>
+              <div className="pz-eyebrow mb-1">Superlatives</div>
+              <h2 className="text-white text-lg md:text-xl mb-4">Legends Wall</h2>
+              <div className="space-y-2">
+                {medalWall.map(m => {
+                  const color = medalColor(m.key);
+                  return (
+                    <div key={m._id} className="pz-card-sm flex items-center gap-3 p-3" style={{ background: 'var(--pz-panel-2)' }}>
+                      <div
+                        className="w-9 h-9 flex items-center justify-center shrink-0"
+                        style={{ background: `${color}1f`, color, clipPath: NOTCH_SM, border: `1px solid ${color}55` }}
+                      >
+                        <Ic.Medal size={18} />
+                      </div>
+                      <div className="flex-grow min-w-0">
+                        <div className="text-white font-bold text-sm truncate">{m.fullName}</div>
+                        <div className="text-[10px] font-black uppercase tracking-wide truncate" style={{ color }}>{m.title}</div>
+                      </div>
+                      <div className="text-[9px] font-bold uppercase text-right shrink-0" style={{ color: 'var(--pz-text)' }}>
+                        {new Date(m.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* GAME LEADERBOARD - Shows current game standings */}
           {drillLeaderboard && activeGameTitle && (

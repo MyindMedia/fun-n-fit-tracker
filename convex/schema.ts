@@ -99,10 +99,26 @@ export default defineSchema({
     amount: v.number(),
     sourceType: v.string(), // MANUAL | FIT | REDEMPTION | SYSTEM | STORE_PURCHASE
     description: v.optional(v.string()),
+    adminName: v.optional(v.union(v.string(), v.null())), // who gave/took the points
     createdAt: v.number(),
   })
     .index("by_student", ["studentId", "createdAt"])
     .index("by_createdAt", ["createdAt"]),
+
+  // Coach-awarded accolades (Session Legend, MVP, custom) — the superlatives
+  // record, separate from the static badges/trophies catalogs.
+  medals: defineTable({
+    studentId: v.id("students"),
+    key: v.string(), // 'legend' | 'mvp' | 'hustle' | custom slug
+    title: v.string(),
+    note: v.optional(v.union(v.string(), v.null())),
+    awardedBy: v.string(),
+    date: v.string(), // YYYY-MM-DD
+    createdAt: v.number(),
+  })
+    .index("by_student", ["studentId", "createdAt"])
+    .index("by_createdAt", ["createdAt"])
+    .index("by_date", ["date"]),
 
   notifications: defineTable({
     type: v.string(), // POINTS | RANK_UP | RANK_DOWN | GAME_END | ENROLL | BADGE_EARNED | REWARD_CLAIMED | LAP_TIME | ACCOUNT_DELETE

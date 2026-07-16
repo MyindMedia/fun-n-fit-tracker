@@ -27,13 +27,15 @@ import RedemptionQueue from './Admin/RedemptionQueue';
 import StaffManager from './Admin/StaffManager';
 import NfcManager from './Admin/NfcManager';
 import ScanLog from './Admin/ScanLog';
+import MedalsPanel from './Admin/MedalsPanel';
+import BoostControl from './Admin/BoostControl';
 import { Ic } from './icons';
 import { gameCenter } from '../services/gameCenter';
 import { useNfcWedge, WedgeScan } from './useNfcWedge';
 import { haptic } from '../utils/haptics';
 
 // Sub-pages that swap the tab switcher for a back button + page title
-const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF', 'NFC', 'SCANLOG'];
+const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF', 'NFC', 'SCANLOG', 'MEDALS'];
 
 // Pubzi theme: small notched cut-corner shape for inline elements
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
@@ -86,7 +88,7 @@ const MobileModal: React.FC<{
   );
 };
 
-// Activity Log Component
+// Activity Log Component — every entry shows which coach did it
 const ActivityLog: React.FC<{ events: NotificationEvent[] }> = ({ events }) => (
   <div className="pz-card overflow-hidden">
     <div className="space-y-2 max-h-[60vh] overflow-y-auto p-4 custom-scrollbar">
@@ -96,7 +98,10 @@ const ActivityLog: React.FC<{ events: NotificationEvent[] }> = ({ events }) => (
         events.map((e, idx) => (
           <div key={idx} className="flex items-center gap-3 p-3 bg-white/5 border border-white/10" style={{ clipPath: NOTCH_SM }}>
             <div className="flex-grow min-w-0">
-              <div className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>{new Date(e.timestamp).toLocaleTimeString()}</div>
+              <div className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>
+                {new Date(e.timestamp).toLocaleTimeString()}
+                {e.adminName && <span style={{ color: 'var(--pz-volt)' }}> · by {e.adminName}</span>}
+              </div>
               <div className="text-sm font-bold text-white leading-tight mt-0.5">{e.message}</div>
             </div>
           </div>
@@ -132,7 +137,7 @@ const QuickActionButton: React.FC<{
 const AdminDashboard: React.FC = () => {
   const [adminName, setAdminName] = useState<string>('');
   const [showLoginModal, setShowLoginModal] = useState(true);
-  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS' | 'STAFF' | 'NFC' | 'SCANLOG'>('GAMES');
+  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS' | 'STAFF' | 'NFC' | 'SCANLOG' | 'MEDALS'>('GAMES');
   const [students, setStudents] = useState<Student[]>([]);
   const [gameHistory, setGameHistory] = useState<GameSession[]>([]);
   const [globalActivity, setGlobalActivity] = useState<NotificationEvent[]>([]);
@@ -150,6 +155,10 @@ const AdminDashboard: React.FC = () => {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const [toasts, setToasts] = useState<Array<{ id: string; message: string; amount?: number }>>([]);
+
+  // Global point boost (2x Fridays etc.) — live-updates from settings
+  const [boostMult, setBoostMult] = useState(1);
+  useEffect(() => gameCenter.subscribePointMultiplier(setBoostMult), []);
 
   // ── Global band scans: a tap checks the kid in from ANY admin screen ──────
   // The NFC Bands page owns scans while it's open (modes); everywhere else —
@@ -415,6 +424,20 @@ const AdminDashboard: React.FC = () => {
       {/* More Menu Modal */}
       <MobileModal isOpen={showMoreMenu} onClose={() => setShowMoreMenu(false)} title="Quick Actions" icon={<Ic.Bolt size={22} />}>
         <div className="space-y-3">
+          <BoostControl />
+
+          <button
+            onClick={() => { setShowMoreMenu(false); setActiveTab('MEDALS'); }}
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            style={{ borderColor: 'rgba(203,254,28,0.35)' }}
+          >
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Medal size={24} /></span>
+            <div className="text-left">
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Session Legends</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Crown today's legends with medals & bonus points</div>
+            </div>
+          </button>
+
           <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('CHECKIN'); }}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 text-[#0B0E13] active:scale-[0.98] transition-transform"
@@ -656,6 +679,15 @@ const AdminDashboard: React.FC = () => {
                 <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider" style={{ color: 'var(--pz-text)' }}>Coach</div>
                 <div className="text-xs sm:text-sm font-black text-white truncate max-w-[80px] sm:max-w-[120px]">{adminName}</div>
               </div>
+              {boostMult > 1 && (
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-black text-[#0B0E13] shrink-0"
+                  style={{ background: 'var(--pz-volt)', clipPath: NOTCH_SM }}
+                  title={`${boostMult}x point boost active`}
+                >
+                  <Ic.Bolt size={12} /> {boostMult}x
+                </span>
+              )}
             </div>
           )}
 
@@ -677,6 +709,7 @@ const AdminDashboard: React.FC = () => {
                 {activeTab === 'STAFF' && <><Ic.Users size={20} /><span className="text-white">Staff & Coaches</span></>}
                 {activeTab === 'NFC' && <><Ic.Nfc size={20} /><span className="text-white">NFC Bands</span></>}
                 {activeTab === 'SCANLOG' && <><Ic.History size={20} /><span className="text-white">Check-In & Scan Log</span></>}
+                {activeTab === 'MEDALS' && <><Ic.Medal size={20} /><span className="text-white">Session Legends</span></>}
               </h1>
             </div>
           ) : (
@@ -816,6 +849,10 @@ const AdminDashboard: React.FC = () => {
 
           {activeTab === 'SCANLOG' && (
             <ScanLog />
+          )}
+
+          {activeTab === 'MEDALS' && (
+            <MedalsPanel students={students} adminName={adminName} onRefresh={refreshData} />
           )}
 
           {activeTab === 'STAFF' && (

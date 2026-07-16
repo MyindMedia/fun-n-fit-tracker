@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
 import { houseId } from "./schema";
 import { applyPoints, logActivity } from "./helpers";
 import { HOUSES } from "../constants";
@@ -208,5 +209,52 @@ export const latest = query({
       .withIndex("by_createdAt")
       .order("desc")
       .take(limit ?? 20);
+  },
+});
+
+// Range leaderboard: aggregates the transactions ledger, so a "today" board
+// resets naturally at midnight while lifetime totals stay untouched — every
+// past day remains queryable by its ms range.
+export const earnedBetween = query({
+  args: { startMs: v.number(), endMs: v.optional(v.number()) },
+  handler: async (ctx, { startMs, endMs }) => {
+    const txs = await ctx.db
+      .query("transactions")
+      .withIndex("by_createdAt", (q) =>
+        endMs !== undefined
+          ? q.gte("createdAt", startMs).lte("createdAt", endMs)
+          : q.gte("createdAt", startMs)
+      )
+      .collect();
+
+    const byStudent = new Map<Id<"students">, { earned: number; net: number }>();
+    for (const t of txs) {
+      const row = byStudent.get(t.studentId) ?? { earned: 0, net: 0 };
+      if (t.amount > 0) row.earned += t.amount;
+      row.net += t.amount;
+      byStudent.set(t.studentId, row);
+    }
+
+    const students = [];
+    const houseTotals: Record<string, number> = {};
+    for (const [studentId, agg] of byStudent) {
+      const s = await ctx.db.get(studentId);
+      if (!s) continue;
+      houseTotals[s.houseId] = (houseTotals[s.houseId] ?? 0) + agg.earned;
+      students.push({
+        studentId,
+        fullName: s.fullName,
+        gamerTag: s.gamerTag,
+        displayPreference: s.displayPreference,
+        avatarUrl: s.avatarUrl,
+        houseId: s.houseId,
+        rankId: s.rankId,
+        earned: agg.earned,
+        net: agg.net,
+        totalPoints: s.points,
+      });
+    }
+    students.sort((a, b) => b.earned - a.earned);
+    return { students, houseTotals };
   },
 });

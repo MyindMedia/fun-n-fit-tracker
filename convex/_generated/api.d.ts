@@ -18,6 +18,7 @@ import type * as events from "../events.js";
 import type * as files from "../files.js";
 import type * as games from "../games.js";
 import type * as helpers from "../helpers.js";
+import type * as medals from "../medals.js";
 import type * as messaging from "../messaging.js";
 import type * as migration from "../migration.js";
 import type * as nfc from "../nfc.js";
@@ -53,6 +54,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   games: typeof games;
   helpers: typeof helpers;
+  medals: typeof medals;
   messaging: typeof messaging;
   migration: typeof migration;
   nfc: typeof nfc;

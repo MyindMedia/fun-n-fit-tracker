@@ -490,6 +490,68 @@ class GameCenterService {
     return await this.client.action(api.staff.listStaff, {});
   }
 
+  // ── Medals / superlatives ──────────────────────────────────────────────────
+
+  public async awardMedals(args: {
+    studentIds: string[];
+    key: string;
+    title: string;
+    note?: string;
+    bonusPoints?: number;
+    awardedBy: string;
+  }): Promise<{ awarded: number; results: Array<{ studentId: string; fullName: string }> }> {
+    return await this.client.mutation(api.medals.award, {
+      studentIds: args.studentIds as Id<'students'>[],
+      key: args.key,
+      title: args.title,
+      note: args.note,
+      bonusPoints: args.bonusPoints,
+      awardedBy: args.awardedBy,
+      localDate: localDate(),
+    });
+  }
+
+  public async medalsForStudent(studentId: string): Promise<any[]> {
+    return (await this.client.query(api.medals.forStudent, {
+      studentId: studentId as Id<'students'>,
+    })) as any[];
+  }
+
+  public async recentMedals(limit?: number): Promise<any[]> {
+    return (await this.client.query(api.medals.recent, { limit })) as any[];
+  }
+
+  public async removeMedal(medalId: string): Promise<void> {
+    await this.client.mutation(api.medals.remove, { medalId: medalId as Id<'medals'> });
+  }
+
+  // ── Point multiplier ───────────────────────────────────────────────────────
+
+  public async getPointMultiplier(): Promise<number> {
+    const rows = (await this.client.query(api.settings.all, {})) as Array<{ key: string; value: string }>;
+    const row = rows.find((r) => r.key === 'point_multiplier');
+    const mult = row ? parseFloat(row.value) : 1;
+    return Number.isFinite(mult) && mult >= 1 ? mult : 1;
+  }
+
+  public async setPointMultiplier(mult: number): Promise<void> {
+    await this.client.mutation(api.settings.upsert, {
+      key: 'point_multiplier',
+      value: String(mult),
+    });
+  }
+
+  // Live multiplier updates — fires immediately and on every settings change.
+  public subscribePointMultiplier(cb: (mult: number) => void): () => void {
+    return this.client.onUpdate(api.settings.all, {}, (rows) => {
+      const row = (rows as Array<{ key: string; value: string }>).find(
+        (r) => r.key === 'point_multiplier'
+      );
+      const mult = row ? parseFloat(row.value) : 1;
+      cb(Number.isFinite(mult) && mult >= 1 ? mult : 1);
+    });
+  }
+
   // ── NFC tags / wristbands ──────────────────────────────────────────────────
 
   public async nfcTagRoster(): Promise<

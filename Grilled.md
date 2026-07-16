@@ -132,6 +132,41 @@ check-in ledger / event bus as QR (`convex/nfc.ts`); admin "NFC Tags" sub-page c
 assign flows (scan-first and student-first), tag roster, fullscreen Check-In Mode, and
 a Game/Timing mode built on `lap_time` scan events.
 
+# Coach & rewards layer (2026-07-16)
+
+Fourth /goal directive (Lawrence's feature list; session ran autonomously, defaults noted):
+
+1. **Games** — Confirmed all requested games exist: Simon Says, Relay Races, Head Shoulder
+   Cone, Marshmallow Toss (+3 variants), Dodgeball (+7 season variants). Added Zone Master
+   (`ZONE_01`) and Tug of War (`TUG_01`). Library upserted on prod via `seed:refreshGames`.
+2. **Coach attribution** — `transactions.adminName` persists who gave/took every point
+   (daily coach login gate already existed). Activity Log shows "by <coach>" on entries.
+3. **Medals / Session Legends** — `medals` table + `convex/medals.ts`
+   (award/forStudent/recent/remove). Admin sub-page "Session Legends" (More menu): pick
+   medal (Legend/MVP/Hustle/Teamwork/Sportsmanship/custom), pick kids, optional bonus
+   points (default +25), optional shout-out note. Awards stamp the coach, log activity,
+   and fire a big-board celebration ("Earned — Session Legend"). Medal removal does NOT
+   claw back bonus points (default; revisit if abused).
+4. **Superlatives in one place** — shared `TrophyCase` component: coach medals + badges +
+   rewards. Student portal gets an "Awards" tab; parent detail view shows medals card;
+   live board gets a "Legends Wall" (latest 6 medals).
+5. **Level path** — shared `LevelPath` ladder (Noob → Apex) with achieved/current/next
+   states and pts-to-go, shown in student Stats tab and parent detail view.
+6. **Daily leaderboard** — `points.earnedBetween` aggregates the transactions ledger;
+   live board gets Today / Week / Season toggle. "Reset each day" is natural midnight
+   reset of the Today view; lifetime totals and full history stay in the ledger (any past
+   range is queryable). No destructive reset by design.
+7. **Point boost** — global `point_multiplier` app setting applied inside `applyPoints`
+   to positive earnings only (spends/refunds stay 1:1); description gets "(2x)" suffix.
+   Admin control in More menu (Off/1.5x/2x/3x), volt chip in admin header, "2x Points"
+   banner on the live board.
+8. **Display name preference** — `getStudentDisplayName` now honors
+   `displayPreference` (FULL_NAME / GAMER_TAG / INITIALS); previously the gamer tag always
+   won. Unset preference keeps legacy tag-first behavior. Applied on live board, portals,
+   and parent cards.
+9. **Avatar + loot boxes** — NOT built (research first, per directive): see
+   `AVATAR_RESEARCH.md` for the options and recommendation.
+
 ## Open questions from E2E verification (2026-07-15)
 - **Spending can demote.** Ranks are computed from *current* points (pre-existing
   mechanic), so a big perk purchase that drops a kid below a rank threshold triggers the

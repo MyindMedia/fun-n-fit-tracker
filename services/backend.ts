@@ -791,9 +791,54 @@ class ConvexBackendService {
   // ── Leaderboard ────────────────────────────────────────────────────────────
 
   public async getLeaderboardData(
-    _range: TimeRange = "ALL"
+    range: TimeRange = "ALL"
   ): Promise<{ houses: House[]; topStudents: Student[] }> {
     try {
+      if (range !== "ALL") {
+        // Daily/weekly boards read the transactions ledger: they reset
+        // naturally at midnight while lifetime totals stay untouched.
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        if (range === "WEEK") start.setDate(start.getDate() - 6);
+        const { students, houseTotals } = (await this.client.query(api.points.earnedBetween, {
+          startMs: start.getTime(),
+        })) as {
+          students: Array<{
+            studentId: string;
+            fullName: string;
+            gamerTag?: string;
+            displayPreference?: "FULL_NAME" | "GAMER_TAG" | "INITIALS";
+            avatarUrl: string;
+            houseId: string;
+            rankId: string;
+            earned: number;
+            totalPoints: number;
+          }>;
+          houseTotals: Record<string, number>;
+        };
+        const houseList = Object.values(HOUSES).map((house) => ({
+          ...house,
+          totalPoints: houseTotals[house.id] ?? 0,
+        }));
+        const topStudents: Student[] = students
+          .filter((r) => r.earned > 0)
+          .slice(0, 3)
+          .map((r) => ({
+            id: r.studentId,
+            houseId: r.houseId as Student["houseId"],
+            fullName: r.fullName,
+            gender: "Male" as const,
+            points: r.earned, // board shows points earned in the range
+            hasWearable: false,
+            isPresent: true,
+            avatarUrl: r.avatarUrl,
+            rankId: r.rankId,
+            gamerTag: r.gamerTag,
+            displayPreference: r.displayPreference,
+          }));
+        return { houses: houseList, topStudents };
+      }
+
       const students = await this.getStudents();
       const houseList = Object.values(HOUSES).map((house) => ({
         ...house,

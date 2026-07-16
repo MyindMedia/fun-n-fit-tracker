@@ -5,7 +5,9 @@ import { supabaseService } from '../services/supabaseService';
 import AvatarCreator from './v2/AvatarCreator';
 import PerkShop from './Student/PerkShop';
 import GameCenterStats from './Student/GameCenterStats';
-import { getStudentDisplayName } from '../utils/studentDisplay';
+import TrophyCase from './TrophyCase';
+import LevelPath from './LevelPath';
+import { getStudentDisplayName, getInitials } from '../utils/studentDisplay';
 import { Ic, IconProps } from './icons';
 
 interface StudentPortalProps {
@@ -18,7 +20,7 @@ interface StudentPortalProps {
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
 
 const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefresh }) => {
-  const [activeTab, setActiveTab] = useState<'PROFILE' | 'PROGRESS' | 'SHOP' | 'FRIENDS' | 'TEAM' | 'STORE' | 'NEWS'>('PROFILE');
+  const [activeTab, setActiveTab] = useState<'PROFILE' | 'PROGRESS' | 'AWARDS' | 'SHOP' | 'FRIENDS' | 'TEAM' | 'STORE' | 'NEWS'>('PROFILE');
   const [ranks, setRanks] = useState<Rank[]>([]);
   const [trophies, setTrophies] = useState<Trophy[]>([]);
   const [friends, setFriends] = useState<Student[]>([]);
@@ -74,13 +76,14 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
     ? Math.min(100, Math.max(0, ((student.points - currentRank.threshold) / (nextRank.threshold - currentRank.threshold)) * 100))
     : 100;
 
-  // Get display name - gamerTag is always primary if it exists
-  const getProfileDisplayName = () => {
-    // Use local state for gamerTag (reflects unsaved edits)
-    if (gamerTag && gamerTag.trim()) {
-      return { primary: gamerTag, secondary: student.fullName };
-    }
-    return { primary: student.fullName, secondary: undefined };
+  // Live preview of how the name will read on the leaderboard —
+  // honors the (possibly unsaved) display preference and gamer tag.
+  const getProfileDisplayName = (): { primary: string; secondary?: string } => {
+    const tag = gamerTag.trim();
+    if (displayPreference === 'FULL_NAME') return { primary: student.fullName, secondary: tag || undefined };
+    if (displayPreference === 'INITIALS') return { primary: getInitials(student.fullName) };
+    if (tag) return { primary: tag, secondary: student.fullName };
+    return { primary: student.fullName };
   };
 
   const handleSaveProfile = async () => {
@@ -325,6 +328,9 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           </div>
         )}
       </div>
+
+      {/* The whole level ladder — see every rank ahead */}
+      <LevelPath points={student.points} rankId={student.rankId} ranks={ranks} />
 
       {/* Game Center stats */}
       <GameCenterStats studentId={student.id} />
@@ -707,6 +713,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
             {([
               { id: 'PROFILE', label: 'Profile', icon: Ic.User },
               { id: 'PROGRESS', label: 'Stats', icon: Ic.Chart },
+              { id: 'AWARDS', label: 'Awards', icon: Ic.Medal },
               { id: 'SHOP', label: 'Perk Shop', icon: Ic.Cart },
               { id: 'STORE', label: 'Store', icon: Ic.Store },
               { id: 'NEWS', label: 'News', icon: Ic.Note },
@@ -734,6 +741,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
         <div className="flex-grow overflow-y-auto p-4 custom-scrollbar">
           {activeTab === 'PROFILE' && renderProfileTab()}
           {activeTab === 'PROGRESS' && renderProgressTab()}
+          {activeTab === 'AWARDS' && <TrophyCase student={student} />}
           {activeTab === 'SHOP' && <PerkShop student={student} onRefresh={onRefresh} />}
           {activeTab === 'STORE' && renderStoreTab()}
           {activeTab === 'NEWS' && renderNewsTab()}

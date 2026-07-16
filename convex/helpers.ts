@@ -103,6 +103,20 @@ export async function applyPoints(
   const student = await ctx.db.get(studentId);
   if (!student) throw new Error("Student not found");
 
+  // Global point multiplier (2x Fridays etc.) — set from the admin dashboard.
+  // Only boosts positive earnings; spends/refunds stay 1:1.
+  if (amount > 0 && sourceType !== "REDEMPTION" && sourceType !== "STORE_PURCHASE") {
+    const multRow = await ctx.db
+      .query("appSettings")
+      .withIndex("by_key", (q) => q.eq("key", "point_multiplier"))
+      .unique();
+    const mult = multRow ? parseFloat(multRow.value) : 1;
+    if (Number.isFinite(mult) && mult > 1) {
+      amount = Math.round(amount * mult);
+      description = `${description} (${mult}x)`;
+    }
+  }
+
   const ranks = await getRankList(ctx);
   const basePoints = student.points + amount;
 
@@ -148,6 +162,7 @@ export async function applyPoints(
     amount,
     sourceType,
     description,
+    adminName,
     createdAt: Date.now(),
   });
 
@@ -157,6 +172,7 @@ export async function applyPoints(
       amount: -DEMOTION_PENALTY_POINTS,
       sourceType: "SYSTEM",
       description: "Demotion penalty",
+      adminName,
       createdAt: Date.now(),
     });
     await logActivity(ctx, {
