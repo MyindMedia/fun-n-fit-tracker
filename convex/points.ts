@@ -262,6 +262,7 @@ export const earnedBetween = query({
         avatarMode: s.avatarMode,
         avatarLook: s.avatarLook,
         isPresent: s.isPresent,
+        gearEquipped: s.gearEquipped ?? null,
       });
     }
     students.sort((a, b) => b.earned - a.earned);

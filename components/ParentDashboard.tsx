@@ -21,6 +21,7 @@ import KidPassSheet from './Parent/KidPassSheet';
 import TrophyCase from './TrophyCase';
 import LevelPath from './LevelPath';
 import AvatarRig from './avatar/AvatarRig';
+import { VoltTag } from './StudentAvatar';
 import { PZ, PzPortalCss, pStyles } from './Parent/shared';
 import { getStudentDisplayName } from '../utils/studentDisplay';
 import { Ic, DataIcon, IconProps } from './icons';
@@ -535,6 +536,7 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                         <Ic.Camera size={14} />
                                     </span>
                                 )}
+                                <VoltTag totalXp={student.totalXp} size={24} className="" style={{ position: 'absolute', bottom: -4, left: -4, pointerEvents: 'none' }} />
                             </div>
                             <input
                                 type="file"
@@ -1251,10 +1253,13 @@ const StudentCard: React.FC<{
             }}
         >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.875rem' }}>
-                <img src={student.avatarUrl} alt="" onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${student.id}`; }} style={{
-                    width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover',
-                    border: `3px solid ${house.colorHex}`,
-                }} />
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                    <img src={student.avatarUrl} alt="" onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${student.id}`; }} style={{
+                        width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover',
+                        border: `3px solid ${house.colorHex}`,
+                    }} />
+                    <VoltTag totalXp={student.totalXp} size={17} />
+                </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="pz-display" style={{ color: PZ.white, fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {getStudentDisplayName(student).primary}

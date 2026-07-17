@@ -153,6 +153,43 @@ export const buy = mutation({
 });
 
 // Claim an achievement unlock once the criterion is genuinely met.
+// Admin grant: hand a kid a gear item without charging points (demos,
+// prizes, make-goods). Passive items go straight into the equipped slot,
+// same as buy/claim; consumables wait in the loadout.
+export const grant = mutation({
+  args: {
+    studentId: v.id("students"),
+    gearKey: v.string(),
+    byAdmin: v.optional(v.string()),
+  },
+  handler: async (ctx, { studentId, gearKey, byAdmin }) => {
+    const item = gearItem(gearKey);
+    if (!item) throw new Error("Unknown gear item");
+    const student = await ctx.db.get(studentId);
+    if (!student) throw new Error("Student not found");
+    const owned = await ownedKeys(ctx, studentId);
+    if (!owned.has(gearKey)) {
+      await ctx.db.insert("studentGear", {
+        studentId,
+        gearKey,
+        acquiredVia: "ACHIEVEMENT",
+        acquiredAt: Date.now(),
+      });
+    }
+    if (!isConsumable(item)) {
+      await ctx.db.patch(studentId, { gearEquipped: gearKey });
+    }
+    await logActivity(ctx, {
+      type: "GEAR",
+      message: `received ${item.name}${byAdmin ? ` from ${byAdmin}` : ""}`,
+      adminName: byAdmin,
+      studentId,
+      studentName: student.fullName,
+    });
+    return { ok: true, gearKey, equipped: !isConsumable(item) };
+  },
+});
+
 export const claim = mutation({
   args: { studentId: v.id("students"), gearKey: v.string() },
   handler: async (ctx, { studentId, gearKey }) => {

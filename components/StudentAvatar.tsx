@@ -6,6 +6,37 @@ import { voltLevelForXp } from '../voltCatalog';
 // Pointy-top hexagon for the Volt level tag pinned to the avatar circle
 const HEX = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
 
+// Volt level tag for ANY avatar picture in the app: drop inside a
+// position:relative wrapper. size = hex width in px.
+export const VoltTag: React.FC<{ totalXp?: number; size?: number; className?: string; style?: React.CSSProperties }> = ({
+  totalXp,
+  size = 20,
+  className = 'absolute -bottom-1 -left-1',
+  style,
+}) => (
+  <div
+    className={className}
+    style={{ width: size, height: size * 1.15, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.65))', ...style }}
+    title={`Volt Level ${voltLevelForXp(totalXp ?? 0)}`}
+  >
+    <div className="w-full h-full flex items-center justify-center" style={{ clipPath: HEX, background: '#CBFE1C' }}>
+      <div
+        className="flex items-center justify-center font-black leading-none"
+        style={{
+          clipPath: HEX,
+          background: '#14171E',
+          color: '#CBFE1C',
+          width: 'calc(100% - 3px)',
+          height: 'calc(100% - 3px)',
+          fontSize: Math.max(8, Math.round(size * 0.48)),
+        }}
+      >
+        {voltLevelForXp(totalXp ?? 0)}
+      </div>
+    </div>
+  </div>
+);
+
 interface StudentAvatarProps {
   student: Student;
   rank?: Rank;
@@ -20,7 +51,8 @@ const StudentAvatar: React.FC<StudentAvatarProps> = ({
   rank,
   size = 'md',
   showPresence = false,
-  showVoltLevel = false,
+  // Volt level rides every avatar picture by default, app-wide
+  showVoltLevel = true,
   className = ''
 }) => {
   const sizeClasses = {
@@ -44,12 +76,12 @@ const StudentAvatar: React.FC<StudentAvatarProps> = ({
     xl: 'w-8 h-8 -bottom-1 -right-1'
   };
 
-  // Volt level tag: bottom-left corner (rank icon owns bottom-right)
+  // Volt level tag position: bottom-left corner (rank icon owns bottom-right)
   const voltTagSizes = {
-    sm: 'w-4 h-5 -bottom-0.5 -left-0.5 text-[8px]',
-    md: 'w-5 h-6 -bottom-1 -left-1 text-[10px]',
-    lg: 'w-7 h-8 -bottom-1 -left-1 text-xs',
-    xl: 'w-8 h-9 -bottom-1 -left-1 text-sm'
+    sm: '-bottom-0.5 -left-0.5',
+    md: '-bottom-1 -left-1',
+    lg: '-bottom-1 -left-1',
+    xl: '-bottom-1 -left-1'
   };
 
   const useRig = student.avatarMode === 'AVATAR';
@@ -92,26 +124,11 @@ const StudentAvatar: React.FC<StudentAvatarProps> = ({
       )}
 
       {showVoltLevel && (
-        <div
+        <VoltTag
+          totalXp={student.totalXp}
           className={`absolute ${voltTagSizes[size]}`}
-          style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.65))' }}
-          title={`Volt Level ${voltLevelForXp(student.totalXp ?? 0)}`}
-        >
-          <div className="w-full h-full flex items-center justify-center" style={{ clipPath: HEX, background: '#CBFE1C' }}>
-            <div
-              className="flex items-center justify-center font-black leading-none"
-              style={{
-                clipPath: HEX,
-                background: '#14171E',
-                color: '#CBFE1C',
-                width: 'calc(100% - 3px)',
-                height: 'calc(100% - 3px)',
-              }}
-            >
-              {voltLevelForXp(student.totalXp ?? 0)}
-            </div>
-          </div>
-        </div>
+          size={{ sm: 16, md: 20, lg: 28, xl: 32 }[size]}
+        />
       )}
     </div>
   );

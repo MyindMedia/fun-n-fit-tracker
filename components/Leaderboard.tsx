@@ -14,6 +14,7 @@ import { getStudentDisplayName } from '../utils/studentDisplay';
 import { gameCenter } from '../services/gameCenter';
 import { medalColor } from './TrophyCase';
 import { Ic } from './icons';
+import { gearItem, GEAR_RANK_COLORS } from '../gearCatalog';
 import { pzDelay } from './useReveal';
 
 // Pubzi theme: small notched cut-corner shape for inline elements
@@ -847,6 +848,18 @@ const Leaderboard: React.FC = () => {
                         );
                       })()}
                       <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: HOUSES[s.houseId]?.colorHex }}>{HOUSES[s.houseId]?.name}</div>
+                      {(() => {
+                        const gear = gearItem(s.gearEquipped);
+                        if (!gear) return null;
+                        return (
+                          <div className="flex items-center gap-1 mt-0.5" title={gear.flavor}>
+                            <img src={gear.icon} alt="" className="w-4 h-4 object-contain shrink-0" />
+                            <span className="text-[9px] font-bold uppercase tracking-wide truncate" style={{ color: GEAR_RANK_COLORS[gear.rank] }}>
+                              {gear.name}
+                            </span>
+                          </div>
+                        );
+                      })()}
                    </div>
                    <div className="text-right">
                       <div className="pz-display text-white text-lg">{s.points.toLocaleString()}</div>

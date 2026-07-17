@@ -11,6 +11,7 @@ import PlayerCard, { thingName } from './Student/PlayerCard';
 import VoltStatsCard from './volt/VoltStatsCard';
 import VoltLoadout from './volt/VoltLoadout';
 import { VoltLevelHex } from './volt/VoltMedallion';
+import { VoltTag } from './StudentAvatar';
 import { voltLevelForXp } from '../voltCatalog';
 import { gearItem, GEAR_RANK_COLORS } from '../gearCatalog';
 import GameCenterStats from './Student/GameCenterStats';
@@ -754,7 +755,10 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
                       style={idx === 0 ? { background: 'var(--pz-volt)', color: '#0B0E13', clipPath: NOTCH_SM } : { background: 'var(--pz-panel)', color: '#fff', border: '1px solid var(--pz-border)', clipPath: NOTCH_SM }}>
                       {idx + 1}
                     </span>
-                    <img src={s.avatarUrl} className="w-9 h-9 rounded-full border-2 object-cover shrink-0" style={{ borderColor: HOUSES[s.houseId].colorHex }} alt="" />
+                    <div className="relative shrink-0">
+                      <img src={s.avatarUrl} className="w-9 h-9 rounded-full border-2 object-cover" style={{ borderColor: HOUSES[s.houseId].colorHex }} alt="" />
+                      <VoltTag totalXp={s.totalXp} size={15} />
+                    </div>
                     <div className="flex-grow min-w-0">
                       <div className="font-black text-xs text-white truncate">{dn.primary}{isMe ? ' (you)' : ''}</div>
                       <div className="text-[9px] font-bold uppercase" style={{ color: HOUSES[s.houseId].colorHex }}>{HOUSES[s.houseId].name}</div>

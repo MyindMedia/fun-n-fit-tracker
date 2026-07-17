@@ -9,6 +9,7 @@ import { AudioService } from '../utils/audio';
 import QRCode from 'qrcode';
 import { getStudentDisplayName } from '../utils/studentDisplay';
 import { Ic, DataIcon } from './icons';
+import { VoltTag } from './StudentAvatar';
 
 interface StudentProfileModalProps {
   student: Student;
@@ -409,6 +410,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
 
         <div className="w-full md:w-1/3 p-6 md:p-12 flex flex-col items-center shrink-0" style={{ background: 'var(--pz-panel-2)', borderRight: '1px solid var(--pz-border)', borderBottom: '1px solid var(--pz-border)' }}>
           <div className="relative mb-6 md:mb-10 group">
+            <VoltTag totalXp={student.totalXp} size={34} className="absolute bottom-1 left-1 z-10" />
             <div className={`w-32 h-32 md:w-48 md:h-48 rounded-full border-4 md:border-8 shadow-xl overflow-hidden relative ${student.inventory?.includes('r_aura') ? 'ring-4 md:ring-8 ring-yellow-400 animate-pulse' : ''}`} style={{ borderColor: HOUSES[student.houseId].colorHex, background: 'var(--pz-panel)' }}>
               {capturedImage ? (
                 <img src={capturedImage} className="w-full h-full object-cover" style={{ opacity: isSavingPhoto ? 0.5 : 1 }} />

@@ -7,6 +7,7 @@ import { HOUSES } from '../constants';
 import { getStudentDisplayName } from '../utils/studentDisplay';
 import { Ic } from './icons';
 import { haptic } from '../utils/haptics';
+import { VoltTag } from './StudentAvatar';
 
 const StudentLogin: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -151,12 +152,15 @@ const StudentLogin: React.FC = () => {
                       style={{ background: 'var(--pz-panel-2)' }}
                     >
                       <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: house.colorHex }} />
-                      <img
-                        src={student.avatarUrl}
-                        className="w-10 h-10 rounded-full border-2 object-cover shrink-0"
-                        style={{ borderColor: house.colorHex }}
-                        alt=""
-                      />
+                      <div className="relative shrink-0">
+                        <img
+                          src={student.avatarUrl}
+                          className="w-10 h-10 rounded-full border-2 object-cover"
+                          style={{ borderColor: house.colorHex }}
+                          alt=""
+                        />
+                        <VoltTag totalXp={student.totalXp} size={16} />
+                      </div>
                       <div className="flex-grow min-w-0">
                         <div className="font-bold text-white truncate">
                           {displayName.primary}
@@ -187,12 +191,15 @@ const StudentLogin: React.FC = () => {
       {pendingStudent && gate && (
         <div className="fixed inset-0 z-[250] flex items-center justify-center p-5" style={{ background: 'rgba(4,6,10,0.9)' }} onClick={closeGate}>
           <div className="pz-card w-full max-w-xs p-6 text-center" onClick={e => e.stopPropagation()}>
-            <img
-              src={pendingStudent.avatarUrl}
-              className="w-16 h-16 rounded-full border-2 object-cover mx-auto mb-3"
-              style={{ borderColor: HOUSES[pendingStudent.houseId].colorHex }}
-              alt=""
-            />
+            <div className="relative w-16 h-16 mx-auto mb-3">
+              <img
+                src={pendingStudent.avatarUrl}
+                className="w-16 h-16 rounded-full border-2 object-cover"
+                style={{ borderColor: HOUSES[pendingStudent.houseId].colorHex }}
+                alt=""
+              />
+              <VoltTag totalXp={pendingStudent.totalXp} size={20} />
+            </div>
             <div className="pz-display text-lg text-white mb-1">{getStudentDisplayName(pendingStudent).primary}</div>
 
             {gate === 'CHECKING' && (

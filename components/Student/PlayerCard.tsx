@@ -11,6 +11,7 @@ import {
   voltWildcard,
 } from '../../voltCatalog';
 import VoltMedallion from '../volt/VoltMedallion';
+import { VoltTag } from '../StudentAvatar';
 import { gameCenter } from '../../services/gameCenter';
 import { getStudentDisplayName } from '../../utils/studentDisplay';
 import { medalColor, MedalRow } from '../TrophyCase';
@@ -163,14 +164,17 @@ const PlayerCard: React.FC<{
       <div className="pz-card w-full sm:max-w-md max-h-[92vh] overflow-y-auto custom-scrollbar p-5" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center gap-4 mb-4">
-          {player.avatarMode === 'AVATAR' ? (
-            <div className="w-16 h-16 rounded-full border-3 overflow-hidden flex items-end justify-center shrink-0"
-              style={{ borderColor: house.colorHex, borderWidth: 3, borderStyle: 'solid', background: 'radial-gradient(circle at 50% 30%, #232B3B 0%, #14171E 80%)' }}>
-              <AvatarRig look={player.avatarLook} size="100%" />
-            </div>
-          ) : (
-            <img src={player.avatarUrl} className="w-16 h-16 rounded-full object-cover shrink-0" style={{ border: `3px solid ${house.colorHex}` }} alt="" />
-          )}
+          <div className="relative shrink-0">
+            {player.avatarMode === 'AVATAR' ? (
+              <div className="w-16 h-16 rounded-full border-3 overflow-hidden flex items-end justify-center"
+                style={{ borderColor: house.colorHex, borderWidth: 3, borderStyle: 'solid', background: 'radial-gradient(circle at 50% 30%, #232B3B 0%, #14171E 80%)' }}>
+                <AvatarRig look={player.avatarLook} size="100%" />
+              </div>
+            ) : (
+              <img src={player.avatarUrl} className="w-16 h-16 rounded-full object-cover" style={{ border: `3px solid ${house.colorHex}` }} alt="" />
+            )}
+            <VoltTag totalXp={player.totalXp} size={20} />
+          </div>
           <div className="min-w-0 flex-grow">
             <div className="pz-display text-lg text-white leading-tight truncate">{dn.primary}</div>
             {dn.secondary && <div className="text-[11px] truncate" style={{ color: 'var(--pz-text)' }}>{dn.secondary}</div>}

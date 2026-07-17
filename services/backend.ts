@@ -806,14 +806,17 @@ class ConvexBackendService {
     range: TimeRange = "ALL"
   ): Promise<{ houses: House[]; topStudents: Student[] }> {
     try {
-      if (range !== "ALL") {
-        // Daily/weekly boards read the transactions ledger: they reset
-        // naturally at midnight while lifetime totals stay untouched.
+      {
+        // Every range reads the transactions ledger with the SAME metric —
+        // points genuinely EARNED (awards, check-ins, around-town, jackpot) —
+        // so Today <= Week <= Season always holds. Spending on crates or gear
+        // never drags a kid or a house down the board; balances live in the
+        // portals, standings are about earning.
         const start = new Date();
         start.setHours(0, 0, 0, 0);
         if (range === "WEEK") start.setDate(start.getDate() - 6);
         const { students, houseTotals } = (await this.client.query(api.points.earnedBetween, {
-          startMs: start.getTime(),
+          startMs: range === "ALL" ? 0 : start.getTime(),
         })) as {
           students: Array<{
             studentId: string;
@@ -829,6 +832,7 @@ class ConvexBackendService {
             avatarMode?: "PHOTO" | "AVATAR";
             avatarLook?: Student["avatarLook"];
             isPresent?: boolean;
+            gearEquipped?: string | null;
           }>;
           houseTotals: Record<string, number>;
         };
@@ -854,19 +858,10 @@ class ConvexBackendService {
             totalXp: r.totalXp ?? 0,
             avatarMode: r.avatarMode,
             avatarLook: r.avatarLook,
+            gearEquipped: r.gearEquipped ?? null,
           }));
         return { houses: houseList, topStudents };
       }
-
-      const students = await this.getStudents();
-      const houseList = Object.values(HOUSES).map((house) => ({
-        ...house,
-        totalPoints: students
-          .filter((s) => s.houseId === house.id)
-          .reduce((sum, s) => sum + s.points, 0),
-      }));
-      const topStudents = [...students].sort((a, b) => b.points - a.points).slice(0, 3);
-      return { houses: houseList, topStudents };
     } catch {
       return {
         houses: Object.values(HOUSES).map((h) => ({ ...h, totalPoints: 0 })),
