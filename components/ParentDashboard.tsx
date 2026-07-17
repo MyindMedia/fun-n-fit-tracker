@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useClerk } from '@clerk/clerk-react';
 import { supabaseService } from '../services/supabaseService';
@@ -1109,15 +1110,19 @@ const FitTokensCard: React.FC<{ student: Student }> = ({ student }) => {
                 </div>
             )}
 
-            {/* Get FitTokens sheet */}
-            {sheetOpen && (
+            {/* Get FitTokens sheet — portaled to <body>: the card ancestors
+                create stacking contexts (position relative + zIndex 1), which
+                trapped this fixed overlay BEHIND later cards and the z-220
+                tab bar. The portal escapes them; z 300 clears everything. */}
+            {sheetOpen && createPortal(
                 <div
                     role="dialog"
                     aria-modal="true"
                     aria-label="Get FitTokens"
                     onClick={() => setSheetOpen(false)}
+                    className="pz-scope"
                     style={{
-                        position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(6,8,12,0.8)',
+                        position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(6,8,12,0.8)',
                         display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
                         padding: '1rem', boxSizing: 'border-box',
                     }}
@@ -1230,7 +1235,8 @@ const FitTokensCard: React.FC<{ student: Student }> = ({ student }) => {
                             </>
                         )}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
