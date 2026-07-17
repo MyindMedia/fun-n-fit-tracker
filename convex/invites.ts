@@ -146,7 +146,7 @@ export const revokeByEmail = mutation({
     let revoked = 0;
     for (const inv of rows) {
       if (inv.status === "PENDING") {
-        await ctx.db.patch(inv._id, { status: "CANCELLED", resolvedAt: Date.now() });
+        await ctx.db.patch(inv._id, { status: "CANCELLED" });
         revoked++;
       }
     }
