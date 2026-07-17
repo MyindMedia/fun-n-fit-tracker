@@ -319,18 +319,7 @@ const ParentDashboard: React.FC = () => {
                             />
                         </div>
                         <div style={{ display: 'flex', gap: '1rem' }}>
-                            <div style={{ flex: 1 }}>
-                                <label style={styles.label}>House</label>
-                                <select
-                                    value={enrollForm.houseId}
-                                    onChange={e => setEnrollForm({ ...enrollForm, houseId: e.target.value as any })}
-                                    style={styles.input}
-                                >
-                                    {Object.values(HOUSES).map(h => (
-                                        <option key={h.id} value={h.id}>{h.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+                            {/* Houses are assigned by the academy (balanced), revealed by the coach */}
                             <div style={{ flex: 1 }}>
                                 <label style={styles.label}>Gender</label>
                                 <select

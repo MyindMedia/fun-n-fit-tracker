@@ -691,6 +691,17 @@ export default defineSchema({
     .index("by_student", ["studentId", "createdAt"])
     .index("by_createdAt", ["createdAt"]),
 
+  // ── House draft: staged assignments held until reveal ─────────────────────
+  // Singleton row. Assignments stay invisible to kids/parents until revealed
+  // manually or at the coach-scheduled time; reveal patches students.houseId.
+  houseDraft: defineTable({
+    assignments: v.record(v.string(), houseId), // studentId -> staged house
+    revealAt: v.optional(v.union(v.number(), v.null())),
+    scheduledJobId: v.optional(v.union(v.string(), v.null())),
+    updatedBy: v.string(),
+    updatedAt: v.number(),
+  }),
+
   // ── Web push subscriptions (game + team alert notifications) ──────────────
   pushSubscriptions: defineTable({
     endpoint: v.string(),

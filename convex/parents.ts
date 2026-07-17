@@ -287,17 +287,27 @@ export const enrollStudent = mutation({
     parentId: v.id("parents"),
     fullName: v.string(),
     gamerTag: v.optional(v.string()),
-    houseId: houseId,
+    // Optional and ignored by the parent flow: houses are assigned by the
+    // academy (balanced auto-placement now, coach's House Draft later).
+    houseId: v.optional(houseId),
     gender: v.union(v.literal("Male"), v.literal("Female")),
     avatarUrl: v.optional(v.string()),
     isPresent: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    // Balanced auto-assign: the new athlete joins the smallest house.
+    const all = await ctx.db.query("students").collect();
+    const counts: Record<string, number> = { UNITY: 0, SAGE: 0, SPARK: 0, VALOR: 0 };
+    for (const s of all) counts[s.houseId] = (counts[s.houseId] ?? 0) + 1;
+    const smallest = (Object.keys(counts) as Array<keyof typeof counts>).sort(
+      (a, b) => counts[a] - counts[b]
+    )[0] as "UNITY" | "SAGE" | "SPARK" | "VALOR";
+
     const defaults = studentDefaults(args.fullName);
     const studentId = await ctx.db.insert("students", {
       ...defaults,
       fullName: args.fullName,
-      houseId: args.houseId,
+      houseId: smallest,
       gender: args.gender,
       gamerTag: args.gamerTag || "",
       displayPreference: "FULL_NAME",

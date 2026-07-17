@@ -33,13 +33,14 @@ import TokenCenter from './Admin/TokenCenter';
 import JackpotPanel from './Admin/JackpotPanel';
 import MarketplaceManager from './Admin/MarketplaceManager';
 import SeasonReset from './Admin/SeasonReset';
+import HouseDraft from './Admin/HouseDraft';
 import { Ic } from './icons';
 import { gameCenter } from '../services/gameCenter';
 import { useNfcWedge, WedgeScan } from './useNfcWedge';
 import { haptic } from '../utils/haptics';
 
 // Sub-pages that swap the tab switcher for a back button + page title
-const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF', 'NFC', 'SCANLOG', 'MEDALS', 'TOKENS', 'JACKPOT', 'MARKET', 'RESET'];
+const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF', 'NFC', 'SCANLOG', 'MEDALS', 'TOKENS', 'JACKPOT', 'MARKET', 'RESET', 'HOUSEDRAFT'];
 
 // Pubzi theme: small notched cut-corner shape for inline elements
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
@@ -141,7 +142,7 @@ const QuickActionButton: React.FC<{
 const AdminDashboard: React.FC = () => {
   const [adminName, setAdminName] = useState<string>('');
   const [showLoginModal, setShowLoginModal] = useState(true);
-  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS' | 'STAFF' | 'NFC' | 'SCANLOG' | 'MEDALS' | 'TOKENS' | 'JACKPOT' | 'MARKET' | 'RESET'>('GAMES');
+  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS' | 'STAFF' | 'NFC' | 'SCANLOG' | 'MEDALS' | 'TOKENS' | 'JACKPOT' | 'MARKET' | 'RESET' | 'HOUSEDRAFT'>('GAMES');
   const [students, setStudents] = useState<Student[]>([]);
   const [gameHistory, setGameHistory] = useState<GameSession[]>([]);
   const [globalActivity, setGlobalActivity] = useState<NotificationEvent[]>([]);
@@ -548,6 +549,17 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
+            onClick={() => { setShowMoreMenu(false); setActiveTab('HOUSEDRAFT'); }}
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+          >
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Home size={24} /></span>
+            <div className="text-left">
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">House Draft</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Balanced randomizer, drag-and-drop, held reveal</div>
+            </div>
+          </button>
+
+          <button
             onClick={() => { setShowMoreMenu(false); setActiveTab('MARKET'); }}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
@@ -790,6 +802,7 @@ const AdminDashboard: React.FC = () => {
                 {activeTab === 'JACKPOT' && <><Ic.Confetti size={20} /><span className="text-white">Jackpot</span></>}
                 {activeTab === 'MARKET' && <><Ic.Cart size={20} /><span className="text-white">Marketplace</span></>}
                 {activeTab === 'RESET' && <><Ic.Warning size={20} /><span className="text-white">Season Reset</span></>}
+                {activeTab === 'HOUSEDRAFT' && <><Ic.Home size={20} /><span className="text-white">House Draft</span></>}
               </h1>
             </div>
           ) : (
@@ -953,6 +966,10 @@ const AdminDashboard: React.FC = () => {
 
           {activeTab === 'RESET' && (
             <SeasonReset adminName={adminName} onRefresh={refreshData} />
+          )}
+
+          {activeTab === 'HOUSEDRAFT' && (
+            <HouseDraft students={students} adminName={adminName} onRefresh={refreshData} />
           )}
         </div>
       </main>

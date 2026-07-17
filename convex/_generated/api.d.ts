@@ -21,6 +21,7 @@ import type * as fitTokens from "../fitTokens.js";
 import type * as games from "../games.js";
 import type * as gear from "../gear.js";
 import type * as helpers from "../helpers.js";
+import type * as houses from "../houses.js";
 import type * as http from "../http.js";
 import type * as invites from "../invites.js";
 import type * as jackpot from "../jackpot.js";
@@ -71,6 +72,7 @@ declare const fullApi: ApiFromModules<{
   games: typeof games;
   gear: typeof gear;
   helpers: typeof helpers;
+  houses: typeof houses;
   http: typeof http;
   invites: typeof invites;
   jackpot: typeof jackpot;
