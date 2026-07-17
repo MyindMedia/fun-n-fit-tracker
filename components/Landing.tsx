@@ -241,6 +241,9 @@ const LandingNav: React.FC<{ solid: boolean }> = ({ solid }) => {
             <Link to="/parents" className={`hidden md:inline-flex ${FOCUS_RING}`}>
               <span className="pz-btn-ghost inline-flex items-center px-4 py-2.5 text-xs">For Parents</span>
             </Link>
+            <Link to="/login" className={`hidden md:inline-flex ${FOCUS_RING}`}>
+              <span className="pz-btn-ghost inline-flex items-center px-4 py-2.5 text-xs">Players</span>
+            </Link>
             <Link to="/live" className={`hidden sm:inline-flex ${FOCUS_RING}`}>
               <span className="pz-btn-ghost inline-flex items-center px-4 py-2.5 text-xs">Live Board</span>
             </Link>
@@ -283,6 +286,22 @@ const LandingNav: React.FC<{ solid: boolean }> = ({ solid }) => {
               {a.label}
             </button>
           ))}
+          <Link
+            to="/parents"
+            onClick={() => setMenuOpen(false)}
+            className={`md:hidden px-2 py-3 text-sm font-bold uppercase tracking-widest hover:text-white ${FOCUS_RING}`}
+            style={{ color: 'var(--pz-volt)', borderBottom: '1px solid var(--pz-border)' }}
+          >
+            For Parents
+          </Link>
+          <Link
+            to="/login"
+            onClick={() => setMenuOpen(false)}
+            className={`md:hidden px-2 py-3 text-sm font-bold uppercase tracking-widest text-white/80 hover:text-white ${FOCUS_RING}`}
+            style={{ borderBottom: '1px solid var(--pz-border)' }}
+          >
+            Player Login
+          </Link>
           <Link
             to="/live"
             onClick={() => setMenuOpen(false)}
