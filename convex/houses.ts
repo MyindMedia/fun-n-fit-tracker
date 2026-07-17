@@ -3,6 +3,8 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { houseId } from "./schema";
 import { logActivity, publishEvent } from "./helpers";
+import { queueCelebration } from "./celebrations";
+import { HOUSES } from "../constants";
 
 // House draft (admin only): stage house assignments for every enrolled
 // student, balanced or hand-placed, and HOLD them until the coach reveals —
@@ -155,6 +157,15 @@ export const doReveal = internalMutation({
       if (!student) continue;
       if ((student as { houseId?: string }).houseId !== house) moved++;
       await ctx.db.patch(studentId as never, { houseId: house } as never);
+      // Personalized congrats pop-up on the kid's/family's next app open.
+      const info = HOUSES[house as keyof typeof HOUSES];
+      await queueCelebration(ctx, {
+        studentId: studentId as never,
+        kind: "HOUSE_REVEAL",
+        title: `HOUSE ${info.name.toUpperCase()}`,
+        message: `${(student as { fullName?: string }).fullName ?? "Your athlete"} has been drafted into House ${info.name}!`,
+        icon: info.customIcon,
+      });
     }
     await ctx.db.delete(row._id);
     await logActivity(ctx, {

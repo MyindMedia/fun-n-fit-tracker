@@ -74,7 +74,11 @@ export const allSubscriptions = query({
   args: {},
   handler: async (ctx) => {
     const rows = await ctx.db.query("pushSubscriptions").collect();
-    return rows.map((r) => ({ endpoint: r.endpoint, subscription: r.subscription }));
+    return rows.map((r) => ({
+      endpoint: r.endpoint,
+      subscription: r.subscription,
+      parentId: r.parentId ?? null,
+    }));
   },
 });
 

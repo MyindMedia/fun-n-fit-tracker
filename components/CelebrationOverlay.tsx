@@ -9,6 +9,7 @@ export interface Celebration {
   studentAvatar?: string;
   rankIcon?: string;
   badgeIcon?: string;
+  label?: string; // verb line above the achievement; defaults per type
   // Game end specific fields
   winningHouseName?: string;
   winningHouseIcon?: string;
@@ -141,8 +142,8 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ celebration, on
 
               <div className="text-2xl md:text-3xl font-bold mb-4 uppercase tracking-wider flex items-center justify-center gap-2.5" style={{ color: 'var(--pz-text)' }}>
                 {celebration.type === 'RANK_UP'
-                  ? <><Ic.ArrowRight size={26} className="shrink-0" style={{ transform: 'rotate(-90deg)', color: 'var(--pz-volt)' }} /> Promoted to</>
-                  : <><Ic.Star size={26} className="shrink-0" style={{ color: 'var(--pz-volt)' }} /> Earned</>}
+                  ? <><Ic.ArrowRight size={26} className="shrink-0" style={{ transform: 'rotate(-90deg)', color: 'var(--pz-volt)' }} /> {celebration.label ?? 'Promoted to'}</>
+                  : <><Ic.Star size={26} className="shrink-0" style={{ color: 'var(--pz-volt)' }} /> {celebration.label ?? 'Earned'}</>}
               </div>
 
               <div className="pz-display text-6xl md:text-7xl mt-4 drop-shadow-2xl animate-scale-in" style={{ color: accent }}>

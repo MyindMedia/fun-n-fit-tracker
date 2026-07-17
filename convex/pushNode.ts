@@ -13,8 +13,11 @@ export const deliver = internalAction({
     body: v.string(),
     url: v.optional(v.string()),
     tag: v.optional(v.string()),
+    // When set, deliver ONLY to these families' devices (targeted alerts
+    // like coach messages and per-kid level ups / house placements).
+    parentIds: v.optional(v.array(v.string())),
   },
-  handler: async (ctx, { title, body, url, tag }) => {
+  handler: async (ctx, { title, body, url, tag, parentIds }) => {
     const publicKey = process.env.VAPID_PUBLIC_KEY;
     const privateKey = process.env.VAPID_PRIVATE_KEY;
     const subject = process.env.VAPID_SUBJECT || "mailto:funnfit@myindsound.com";
@@ -24,7 +27,11 @@ export const deliver = internalAction({
     }
     webpush.setVapidDetails(subject, publicKey, privateKey);
 
-    const subs = await ctx.runQuery(api.push.allSubscriptions, {});
+    let subs = await ctx.runQuery(api.push.allSubscriptions, {});
+    if (parentIds && parentIds.length > 0) {
+      const wanted = new Set(parentIds);
+      subs = subs.filter((s) => s.parentId && wanted.has(s.parentId));
+    }
     const payload = JSON.stringify({ title, body, url: url ?? "/", tag });
     const dead: string[] = [];
     let sent = 0;

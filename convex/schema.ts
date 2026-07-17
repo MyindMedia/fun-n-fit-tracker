@@ -702,6 +702,17 @@ export default defineSchema({
     updatedAt: v.number(),
   }),
 
+  // ── Pending celebrations: queued congrats shown on next app open ──────────
+  pendingCelebrations: defineTable({
+    studentId: v.id("students"),
+    kind: v.union(v.literal("LEVEL_UP"), v.literal("HOUSE_REVEAL")),
+    title: v.string(),
+    message: v.string(),
+    icon: v.optional(v.union(v.string(), v.null())), // asset URL (house logo etc.)
+    createdAt: v.number(),
+    seenAt: v.optional(v.union(v.number(), v.null())),
+  }).index("by_student", ["studentId", "seenAt"]),
+
   // ── Web push subscriptions (game + team alert notifications) ──────────────
   pushSubscriptions: defineTable({
     endpoint: v.string(),

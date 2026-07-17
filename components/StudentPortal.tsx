@@ -16,6 +16,7 @@ import { voltLevelForXp } from '../voltCatalog';
 import { gearItem, GEAR_RANK_COLORS } from '../gearCatalog';
 import GameCenterStats from './Student/GameCenterStats';
 import MarketplaceTab from './Student/MarketplaceTab';
+import PendingCelebrations from './PendingCelebrations';
 import TrophyCase, { EarnedBadges } from './TrophyCase';
 import LevelPath from './LevelPath';
 import { getStudentDisplayName, getInitials } from '../utils/studentDisplay';
@@ -963,6 +964,11 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
             onClose={() => { setInspecting(null); loadTrades(); }}
           />
         )}
+
+        {/* Queued congrats (level ups, house reveals) waiting since last visit */}
+        <PendingCelebrations
+          students={[{ id: student.id, name: student.fullName, avatarUrl: student.avatarUrl }]}
+        />
       </div>
     </div>
   );

@@ -12,6 +12,7 @@ import type * as activity from "../activity.js";
 import type * as avatar from "../avatar.js";
 import type * as blog from "../blog.js";
 import type * as catalog from "../catalog.js";
+import type * as celebrations from "../celebrations.js";
 import type * as checkins from "../checkins.js";
 import type * as clerkBridge from "../clerkBridge.js";
 import type * as email from "../email.js";
@@ -63,6 +64,7 @@ declare const fullApi: ApiFromModules<{
   avatar: typeof avatar;
   blog: typeof blog;
   catalog: typeof catalog;
+  celebrations: typeof celebrations;
   checkins: typeof checkins;
   clerkBridge: typeof clerkBridge;
   email: typeof email;

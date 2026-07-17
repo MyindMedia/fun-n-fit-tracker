@@ -1,5 +1,7 @@
 import { MutationCtx, QueryCtx } from "./_generated/server";
 import { Id, Doc } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
+import { queueCelebration } from "./celebrations";
 import { RANKS, DEMOTION_PENALTY_POINTS } from "../constants";
 import { voltEffects, voltLevelForXp, XP_SOURCES, XP_FACTOR_MAX } from "../voltCatalog";
 import { gearItem } from "../gearCatalog";
@@ -380,6 +382,27 @@ export async function applyPoints(
         },
         clientId
       );
+      // Queue the congrats pop-up for the kid/family portals and ping ONLY
+      // this kid's linked families (not every subscribed device).
+      await queueCelebration(ctx, {
+        studentId,
+        kind: "LEVEL_UP",
+        title: `VOLT LEVEL ${newLevel}`,
+        message: `${student.fullName} hit Volt Level ${newLevel}!`,
+      });
+      const links = await ctx.db
+        .query("parentStudentLinks")
+        .withIndex("by_student", (q) => q.eq("studentId", studentId))
+        .collect();
+      if (links.length > 0) {
+        await ctx.scheduler.runAfter(0, internal.pushNode.deliver, {
+          title: "Volt Level Up!",
+          body: `${student.fullName} hit Volt Level ${newLevel}! Open the app for the celebration.`,
+          url: "/#/parent-dashboard",
+          tag: "fnf-levelup",
+          parentIds: links.map((l) => l.parentId as string),
+        });
+      }
     }
   }
 

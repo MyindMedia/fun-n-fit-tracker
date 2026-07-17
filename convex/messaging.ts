@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { requireParent } from "./helpers";
 import { Id } from "./_generated/dataModel";
 import { MutationCtx } from "./_generated/server";
+import { internal } from "./_generated/api";
 
 const PREVIEW_LEN = 80;
 
@@ -75,6 +76,14 @@ export const sendFromStaff = mutation({
       lastMessageAt: now,
       lastMessagePreview: text.slice(0, PREVIEW_LEN),
       unreadForParent: convo.unreadForParent + 1,
+    });
+    // Ping only this family's devices.
+    await ctx.scheduler.runAfter(0, internal.pushNode.deliver, {
+      title: `Message from Coach ${adminName}`,
+      body: text.slice(0, 140),
+      url: "/#/parent-dashboard",
+      tag: "fnf-message",
+      parentIds: [parentId as string],
     });
     return { conversationId };
   },

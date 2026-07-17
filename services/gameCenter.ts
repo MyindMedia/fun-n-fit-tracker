@@ -898,6 +898,36 @@ class GameCenterService {
       localDate: localDate(),
     });
   }
+
+  // ── Pending celebrations (queued congrats pop-ups) ─────────────────────────
+
+  /** Live unseen celebrations for a set of kids. Returns unsubscribe. */
+  public subscribeCelebrations(
+    studentIds: string[],
+    cb: (rows: PendingCelebration[]) => void
+  ): () => void {
+    return this.client.onUpdate(
+      api.celebrations.unseenForMany,
+      { studentIds: studentIds as Id<"students">[] },
+      (rows) => cb(rows as PendingCelebration[])
+    );
+  }
+
+  public async markCelebrationsSeen(ids: string[]): Promise<void> {
+    await this.client.mutation(api.celebrations.markSeen, {
+      ids: ids as Id<"pendingCelebrations">[],
+    });
+  }
 }
+
+export type PendingCelebration = {
+  id: string;
+  studentId: string;
+  kind: "LEVEL_UP" | "HOUSE_REVEAL";
+  title: string;
+  message: string;
+  icon: string | null;
+  createdAt: number;
+};
 
 export const gameCenter = new GameCenterService();

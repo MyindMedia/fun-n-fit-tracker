@@ -20,6 +20,7 @@ import EarnAroundTown from './Parent/EarnAroundTown';
 import PerksHistory from './Parent/PerksHistory';
 import StudentDetailExtras from './Parent/StudentDetailExtras';
 import KidPassSheet from './Parent/KidPassSheet';
+import PendingCelebrations from './PendingCelebrations';
 import TrophyCase from './TrophyCase';
 import LevelPath from './LevelPath';
 import AvatarRig from './avatar/AvatarRig';
@@ -223,6 +224,11 @@ const ParentDashboard: React.FC = () => {
             {/* Notification opt-in: visible on every tab until enabled, so a
                 freshly installed home-screen app gets a clear, easy switch */}
             <NotificationsCard parentId={parentId} />
+
+            {/* Queued congrats (level ups, house reveals) waiting since last visit */}
+            <PendingCelebrations
+                students={myStudents.map(s => ({ id: s.id, name: s.fullName, avatarUrl: s.avatarUrl }))}
+            />
 
             {/* Content */}
             {activeTab === 'my-students' && (

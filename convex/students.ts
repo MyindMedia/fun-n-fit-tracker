@@ -119,6 +119,18 @@ export const remove = mutation({
       .collect();
     for (const p of participations) await ctx.db.delete(p._id);
 
+    const congrats = await ctx.db
+      .query("pendingCelebrations")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const c of congrats) await ctx.db.delete(c._id);
+
+    const access = await ctx.db
+      .query("portalAccess")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const a of access) await ctx.db.delete(a._id);
+
     await ctx.db.delete(id);
     await logActivity(ctx, {
       type: "ACCOUNT_DELETE",
