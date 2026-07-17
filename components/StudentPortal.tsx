@@ -16,7 +16,7 @@ import { voltLevelForXp } from '../voltCatalog';
 import { gearItem, GEAR_RANK_COLORS } from '../gearCatalog';
 import GameCenterStats from './Student/GameCenterStats';
 import MarketplaceTab from './Student/MarketplaceTab';
-import TrophyCase from './TrophyCase';
+import TrophyCase, { EarnedBadges } from './TrophyCase';
 import LevelPath from './LevelPath';
 import { getStudentDisplayName, getInitials } from '../utils/studentDisplay';
 import { Ic, IconProps } from './icons';
@@ -467,21 +467,10 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       {/* Game Center stats */}
       <GameCenterStats studentId={student.id} />
 
-      {/* Badges */}
+      {/* Badges — milestone badges computed from real activity */}
       <div>
         <h3 className="text-sm text-white uppercase tracking-wide mb-3">Badges Earned</h3>
-        {student.badges?.length ? (
-          <div className="grid grid-cols-4 gap-2">
-            {student.badges.map(badgeId => (
-              <div key={badgeId} className="pz-card-sm p-3 text-center">
-                <div className="mb-1 flex justify-center text-amber-300"><Ic.Medal size={24} /></div>
-                <div className="text-[9px] font-black uppercase truncate" style={{ color: 'var(--pz-text)' }}>{badgeId}</div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-sm" style={{ color: 'var(--pz-text)' }}>No badges yet. Keep training!</div>
-        )}
+        <EarnedBadges student={student} />
       </div>
 
       {/* Available Trophies */}

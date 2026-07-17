@@ -14,7 +14,7 @@ import VoltMedallion from '../volt/VoltMedallion';
 import { VoltTag } from '../StudentAvatar';
 import { gameCenter } from '../../services/gameCenter';
 import { getStudentDisplayName } from '../../utils/studentDisplay';
-import { medalColor, MedalRow } from '../TrophyCase';
+import { medalColor, MedalRow, EarnedBadges } from '../TrophyCase';
 import AvatarRig from '../avatar/AvatarRig';
 import { Ic } from '../icons';
 
@@ -246,21 +246,10 @@ const PlayerCard: React.FC<{
           <div className="text-[10px] font-bold uppercase mb-3" style={{ color: 'var(--pz-text)' }}>No gear equipped</div>
         )}
 
-        {/* Badges */}
+        {/* Badges — same milestone set as the trophy case */}
         <div className="mb-3">
           <div className="pz-eyebrow mb-2">Badges</div>
-          {(player.badges?.length ?? 0) === 0 ? (
-            <div className="text-xs" style={{ color: 'var(--pz-text)' }}>No badges yet</div>
-          ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {player.badges!.map(b => (
-                <span key={b} className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-bold"
-                  style={{ background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.35)', color: '#fcd34d', clipPath: NOTCH_SM }}>
-                  <Ic.Medal size={12} /> {badgeName(b)}
-                </span>
-              ))}
-            </div>
-          )}
+          <EarnedBadges student={player} compact showUpNext={false} />
         </div>
 
         {/* Medals */}

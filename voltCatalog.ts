@@ -269,3 +269,75 @@ export const voltRule = (loadout: VoltLoadout | null | undefined, rule: VoltWild
 // XP sources that mirror point earnings (spends/refunds/system never grant XP).
 export const XP_SOURCES = ['MANUAL', 'CHECKIN', 'PARTNER_VISIT', 'SPECIAL_TASK', 'FIT', 'JACKPOT'];
 export const XP_FACTOR_MAX = 4.0;
+
+// ── Milestone badges ─────────────────────────────────────────────────────────
+// Computed from the REAL ledgers (the volt profile stats), never written to
+// the database — so the trophy case always reflects what a kid actually did.
+// metric keys match volt.profile's stats payload; 'level' is the Volt Level.
+
+export type VoltMilestoneMetric =
+  | 'checkIns'
+  | 'medals'
+  | 'cratesOpened'
+  | 'tradesDone'
+  | 'partnerVisits'
+  | 'bandTaps'
+  | 'lifetimePoints'
+  | 'level';
+
+export interface VoltMilestoneDef {
+  key: string;
+  name: string;
+  icon: string; // Ic icon name
+  blurb: string;
+  metric: VoltMilestoneMetric;
+  threshold: number;
+  color: string;
+}
+
+export const VOLT_MILESTONES: VoltMilestoneDef[] = [
+  { key: 'ms_first_checkin', name: 'First Day', icon: 'ClipboardCheck', blurb: 'Checked in for the first time.', metric: 'checkIns', threshold: 1, color: '#4ade80' },
+  { key: 'ms_checkins_10', name: 'Regular', icon: 'Calendar', blurb: 'Checked in 10 times.', metric: 'checkIns', threshold: 10, color: '#4ade80' },
+  { key: 'ms_checkins_25', name: 'Gym Rat', icon: 'Muscle', blurb: 'Checked in 25 times.', metric: 'checkIns', threshold: 25, color: '#4ade80' },
+  { key: 'ms_first_medal', name: "Coach's Pick", icon: 'Medal', blurb: 'Earned a coach medal.', metric: 'medals', threshold: 1, color: '#fbbf24' },
+  { key: 'ms_medals_5', name: 'Decorated', icon: 'Trophy', blurb: 'Earned 5 coach medals.', metric: 'medals', threshold: 5, color: '#fbbf24' },
+  { key: 'ms_crates_1', name: 'Crate Cracker', icon: 'Gift', blurb: 'Opened your first loot crate.', metric: 'cratesOpened', threshold: 1, color: '#a78bfa' },
+  { key: 'ms_crates_10', name: 'Lucky Streak', icon: 'Dice', blurb: 'Opened 10 loot crates.', metric: 'cratesOpened', threshold: 10, color: '#a78bfa' },
+  { key: 'ms_trade_1', name: 'First Trade', icon: 'Users', blurb: 'Completed a trade with a friend.', metric: 'tradesDone', threshold: 1, color: '#38bdf8' },
+  { key: 'ms_visits_1', name: 'Town Runner', icon: 'MapPin', blurb: 'Visited a partner business.', metric: 'partnerVisits', threshold: 1, color: '#2FA8FF' },
+  { key: 'ms_visits_5', name: 'Explorer', icon: 'Store', blurb: 'Visited partners 5 times.', metric: 'partnerVisits', threshold: 5, color: '#2FA8FF' },
+  { key: 'ms_taps_10', name: 'On the Clock', icon: 'Timer', blurb: 'Clocked 10 band taps in games.', metric: 'bandTaps', threshold: 10, color: '#f472b6' },
+  { key: 'ms_taps_25', name: 'Band Boss', icon: 'Nfc', blurb: 'Clocked 25 band taps in games.', metric: 'bandTaps', threshold: 25, color: '#f472b6' },
+  { key: 'ms_level_5', name: 'Volt 5', icon: 'Bolt', blurb: 'Reached Volt Level 5.', metric: 'level', threshold: 5, color: '#CBFE1C' },
+  { key: 'ms_level_10', name: 'Volt 10', icon: 'Bolt', blurb: 'Reached Volt Level 10.', metric: 'level', threshold: 10, color: '#CBFE1C' },
+  { key: 'ms_points_1000', name: 'Point Machine', icon: 'Chart', blurb: 'Earned 1,000 lifetime points.', metric: 'lifetimePoints', threshold: 1000, color: '#34d399' },
+  { key: 'ms_points_5000', name: 'Grinder', icon: 'StarFilled', blurb: 'Earned 5,000 lifetime points.', metric: 'lifetimePoints', threshold: 5000, color: '#34d399' },
+];
+
+export interface VoltMilestoneStats {
+  checkIns: number;
+  medals: number;
+  cratesOpened: number;
+  tradesDone: number;
+  partnerVisits: number;
+  bandTaps: number;
+  lifetimePoints: number;
+}
+
+// Every milestone with its progress; earned first (by threshold), then the
+// closest locked ones — so a trophy case is never an empty shelf.
+export const milestoneProgress = (
+  stats: VoltMilestoneStats,
+  level: number
+): Array<VoltMilestoneDef & { earned: boolean; current: number }> => {
+  return VOLT_MILESTONES.map((m) => {
+    const current = m.metric === 'level' ? level : stats[m.metric] ?? 0;
+    return { ...m, current, earned: current >= m.threshold };
+  }).sort((a, b) =>
+    a.earned !== b.earned
+      ? (a.earned ? -1 : 1)
+      : a.earned
+        ? b.threshold - a.threshold
+        : (a.threshold - a.current) / a.threshold - (b.threshold - b.current) / b.threshold
+  );
+};

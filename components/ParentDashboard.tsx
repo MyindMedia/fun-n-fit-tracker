@@ -868,7 +868,7 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
 
             {/* Coach medals — superlatives, all in one place */}
             <div style={{ marginBottom: '1.25rem' }}>
-                <TrophyCase student={student} full={false} />
+                <TrophyCase student={student} />
             </div>
 
             {/* Badges */}
