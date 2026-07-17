@@ -829,7 +829,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           <div className="text-sm font-medium">No news yet</div>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {news.map(post => (
             <div key={post.id} className="pz-card p-5">
               <div className="flex items-center gap-2 mb-2">
@@ -866,7 +866,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
         {/* Tab Navigation */}
         <div className="px-2 py-2 flex-shrink-0 overflow-x-auto" style={{ background: 'var(--pz-panel)', borderBottom: '1px solid var(--pz-border)' }}>
-          <div className="flex gap-1 min-w-max">
+          <div className="flex gap-1 min-w-max mx-auto w-fit">
             {([
               { id: 'PROFILE', label: 'Profile', icon: Ic.User },
               { id: 'PROGRESS', label: 'Stats', icon: Ic.Chart },
@@ -894,16 +894,19 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           </div>
         </div>
 
-        {/* Tab Content */}
+        {/* Tab Content — full screen on desktop with a centered content column
+            so cards never stretch edge to edge on wide monitors */}
         <div className="flex-grow overflow-y-auto p-4 custom-scrollbar">
-          {activeTab === 'PROFILE' && renderProfileTab()}
-          {activeTab === 'PROGRESS' && renderProgressTab()}
-          {activeTab === 'AWARDS' && <TrophyCase student={student} />}
-          {activeTab === 'STORE' && renderStoreTab()}
-          {activeTab === 'MARKET' && <MarketplaceTab student={student} onRefresh={() => onRefresh?.()} />}
-          {activeTab === 'NEWS' && renderNewsTab()}
-          {activeTab === 'FRIENDS' && renderFriendsTab()}
-          {activeTab === 'TEAM' && renderTeamTab()}
+          <div className="w-full max-w-6xl mx-auto">
+            {activeTab === 'PROFILE' && renderProfileTab()}
+            {activeTab === 'PROGRESS' && renderProgressTab()}
+            {activeTab === 'AWARDS' && <TrophyCase student={student} />}
+            {activeTab === 'STORE' && renderStoreTab()}
+            {activeTab === 'MARKET' && <MarketplaceTab student={student} onRefresh={() => onRefresh?.()} />}
+            {activeTab === 'NEWS' && renderNewsTab()}
+            {activeTab === 'FRIENDS' && renderFriendsTab()}
+            {activeTab === 'TEAM' && renderTeamTab()}
+          </div>
         </div>
 
         {/* Player inspection card */}

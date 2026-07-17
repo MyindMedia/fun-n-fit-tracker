@@ -483,7 +483,7 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
     };
 
     return (
-        <div className="pz-scope" style={styles.page}>
+        <div className="pz-scope" style={{ ...styles.page, maxWidth: '1024px' }}>
             <PzPortalCss />
 
             <button onClick={onBack} className="pz-btn-ghost" style={{ ...styles.backBtn, display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
@@ -1349,7 +1349,9 @@ const styles: Record<string, any> = {
         fontFamily: PZ.bodyFont,
         position: 'relative',
         color: PZ.white,
-        maxWidth: '900px',
+        // Desktop uses the full screen (edge to edge on laptops, sane cap on
+        // ultrawides); mobile keeps the same clamp padding.
+        maxWidth: '1280px',
         margin: '0 auto',
         boxSizing: 'border-box',
         overflowX: 'hidden',

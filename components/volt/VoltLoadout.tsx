@@ -7,8 +7,10 @@ import {
   VOLT_WILDCARDS,
   VoltEffects,
   VoltLoadout as VoltLoadoutShape,
+  VoltPerkDef,
   VoltSlot,
   VoltSpecialty,
+  VoltWildcardDef,
   voltActiveSpecialty,
   voltEffects,
   voltPerk,
@@ -16,6 +18,7 @@ import {
 } from '../../voltCatalog';
 import { voltClient, VoltProfile, VoltSlotKey } from '../../services/voltClient';
 import VoltMedallion, { VoltLevelHex } from './VoltMedallion';
+import PerkDetailModal from './PerkDetailModal';
 import { Ic } from '../icons';
 
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
@@ -60,6 +63,12 @@ const VoltLoadout: React.FC<VoltLoadoutProps> = ({ student, onClose, onChanged }
   const [profile, setProfile] = useState<VoltProfile | null>(null);
   const [busySlot, setBusySlot] = useState<VoltSlotKey | null>(null);
   const [rowMsg, setRowMsg] = useState<{ slot: string; msg: string } | null>(null);
+  // Deep-dive pop-up: which perk/wildcard is being inspected, and for which slot.
+  const [detail, setDetail] = useState<{
+    perk?: VoltPerkDef;
+    wildcard?: VoltWildcardDef;
+    slotKey: VoltSlotKey;
+  } | null>(null);
 
   // Live profile subscription; also reconciles every optimistic equip.
   useEffect(() => voltClient.subscribeProfile(student.id, setProfile), [student.id]);
@@ -90,8 +99,13 @@ const VoltLoadout: React.FC<VoltLoadoutProps> = ({ student, onClose, onChanged }
     }
   };
 
-  const lockedTap = (slot: string, name: string, level: number) =>
-    setRowMsg({ slot, msg: `Reach Volt Level ${level} to unlock ${name}` });
+  // Equip/unequip fired from inside the detail pop-up; optimistic close.
+  const equipFromDetail = (key: string | null) => {
+    if (!detail) return;
+    const slotKey = detail.slotKey;
+    setDetail(null);
+    void handleEquip(slotKey, key);
+  };
 
   if (!profile) {
     return (
@@ -151,11 +165,7 @@ const VoltLoadout: React.FC<VoltLoadoutProps> = ({ student, onClose, onChanged }
             return (
               <button
                 key={p.key}
-                onClick={() =>
-                  !isUnlocked
-                    ? lockedTap(slotKey, p.name, p.unlockLevel)
-                    : handleEquip(slotKey, isEquipped ? null : p.key)
-                }
+                onClick={() => setDetail({ perk: p, slotKey })}
                 disabled={busySlot !== null}
                 className="touch-btn shrink-0 disabled:opacity-70"
                 title={p.blurb}
@@ -279,11 +289,7 @@ const VoltLoadout: React.FC<VoltLoadoutProps> = ({ student, onClose, onChanged }
                 return (
                   <button
                     key={w.key}
-                    onClick={() =>
-                      !isUnlocked
-                        ? lockedTap('wildcard', w.name, w.unlockLevel)
-                        : handleEquip('wildcard', isEquipped ? null : w.key)
-                    }
+                    onClick={() => setDetail({ wildcard: w, slotKey: 'wildcard' })}
                     disabled={busySlot !== null}
                     className="touch-btn shrink-0 disabled:opacity-70"
                     title={w.blurb}
@@ -323,7 +329,7 @@ const VoltLoadout: React.FC<VoltLoadoutProps> = ({ student, onClose, onChanged }
                     return (
                       <button
                         key={p.key}
-                        onClick={() => handleEquip('flex', isEquipped ? null : p.key)}
+                        onClick={() => setDetail({ perk: p, slotKey: 'flex' })}
                         disabled={busySlot !== null}
                         className="touch-btn shrink-0 disabled:opacity-70"
                         title={p.blurb}
@@ -365,6 +371,32 @@ const VoltLoadout: React.FC<VoltLoadoutProps> = ({ student, onClose, onChanged }
           </p>
         </div>
       </div>
+
+      {/* Perk / wildcard deep-dive pop-up */}
+      {detail && (() => {
+        const key = detail.perk?.key ?? detail.wildcard?.key ?? '';
+        const equippedInSlot =
+          detail.slotKey === 'wildcard'
+            ? loadout.wildcard === key
+            : detail.slotKey === 'flex'
+              ? loadout.flex === key
+              : loadout[detail.slotKey as 'perk1' | 'perk2' | 'perk3'] === key;
+        const isUnlocked = detail.perk
+          ? unlockedPerks.includes(key)
+          : unlockedWildcards.includes(key);
+        return (
+          <PerkDetailModal
+            perk={detail.perk}
+            wildcard={detail.wildcard}
+            state={equippedInSlot ? 'equipped' : isUnlocked ? 'unlocked' : 'locked'}
+            loadout={loadout}
+            busy={busySlot !== null}
+            onEquip={() => equipFromDetail(key)}
+            onUnequip={() => equipFromDetail(null)}
+            onClose={() => setDetail(null)}
+          />
+        );
+      })()}
     </div>
   );
 };
