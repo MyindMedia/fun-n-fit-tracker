@@ -350,6 +350,13 @@ Lawrence's feature list; session ran autonomously, defaults noted here, full spe
    handover in the new admin Marketplace queue (or cancels → auto refund + qty restore).
 8. Built by four parallel agents with a binding file-ownership matrix (spec §8);
    foundation (schema/types/stubs) laid single-author first to avoid collisions.
+9. SHIPPED: commit 2f56b50 (07-16), Convex prod deployed, seeds run (3 packs /
+   7 jackpot prizes / Angels tickets), smoke-tested live on prod: token
+   grant→spend, consumable +40% boost math + re-activation guard, jackpot spin
+   (Gold Chain granted), market redeem→claim code→cancel refund→qty restore,
+   webhook 401 + miss-reason paths. FITTOKEN_WEBHOOK_SECRET set on Convex prod
+   (value shared in the 07-16 chat; pack paymentUrls still empty — paste the
+   GHL/Stripe hosted checkout links in Token Center when ready).
 
 ## Open questions from E2E verification (2026-07-15)
 - **Spending can demote.** Ranks are computed from *current* points (pre-existing
