@@ -1,12 +1,17 @@
 import React from 'react';
 import { Student, Rank } from '../types';
 import AvatarRig from './avatar/AvatarRig';
+import { voltLevelForXp } from '../voltCatalog';
+
+// Pointy-top hexagon for the Volt level tag pinned to the avatar circle
+const HEX = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
 
 interface StudentAvatarProps {
   student: Student;
   rank?: Rank;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showPresence?: boolean;
+  showVoltLevel?: boolean;
   className?: string;
 }
 
@@ -15,6 +20,7 @@ const StudentAvatar: React.FC<StudentAvatarProps> = ({
   rank,
   size = 'md',
   showPresence = false,
+  showVoltLevel = false,
   className = ''
 }) => {
   const sizeClasses = {
@@ -36,6 +42,14 @@ const StudentAvatar: React.FC<StudentAvatarProps> = ({
     md: 'w-4 h-4 -bottom-0.5 -right-0.5',
     lg: 'w-6 h-6 -bottom-1 -right-1',
     xl: 'w-8 h-8 -bottom-1 -right-1'
+  };
+
+  // Volt level tag: bottom-left corner (rank icon owns bottom-right)
+  const voltTagSizes = {
+    sm: 'w-4 h-5 -bottom-0.5 -left-0.5 text-[8px]',
+    md: 'w-5 h-6 -bottom-1 -left-1 text-[10px]',
+    lg: 'w-7 h-8 -bottom-1 -left-1 text-xs',
+    xl: 'w-8 h-9 -bottom-1 -left-1 text-sm'
   };
 
   const useRig = student.avatarMode === 'AVATAR';
@@ -75,6 +89,29 @@ const StudentAvatar: React.FC<StudentAvatarProps> = ({
           }`}
           style={rank && rank.icon ? { bottom: 'auto', top: '-2px', right: '-2px' } : {}}
         />
+      )}
+
+      {showVoltLevel && (
+        <div
+          className={`absolute ${voltTagSizes[size]}`}
+          style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.65))' }}
+          title={`Volt Level ${voltLevelForXp(student.totalXp ?? 0)}`}
+        >
+          <div className="w-full h-full flex items-center justify-center" style={{ clipPath: HEX, background: '#CBFE1C' }}>
+            <div
+              className="flex items-center justify-center font-black leading-none"
+              style={{
+                clipPath: HEX,
+                background: '#14171E',
+                color: '#CBFE1C',
+                width: 'calc(100% - 3px)',
+                height: 'calc(100% - 3px)',
+              }}
+            >
+              {voltLevelForXp(student.totalXp ?? 0)}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

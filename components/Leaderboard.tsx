@@ -166,7 +166,8 @@ const Leaderboard: React.FC = () => {
   const [pointFlash, setPointFlash] = useState<{ id: string; amount: number; name: string; message: string; avatar?: string; xPos: number } | null>(null);
   const [statusFlash, setStatusFlash] = useState<{ id: string; isOut: boolean; name: string; avatar?: string; xPos: number } | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<Student | null>(null);
-  const [timeRange, setTimeRange] = useState<TimeRange>('ALL');
+  // Today is the main board: fresh start at zero every day before sessions.
+  const [timeRange, setTimeRange] = useState<TimeRange>('DAY');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentCelebration, setCurrentCelebration] = useState<Celebration | null>(null);
@@ -822,6 +823,7 @@ const Leaderboard: React.FC = () => {
                         student={s}
                         rank={studentRank}
                         size="md"
+                        showVoltLevel
                       />
                       <div
                         className="absolute -top-2 -left-2 w-6 h-6 flex items-center justify-center text-[10px] font-black shadow-lg"
@@ -944,7 +946,7 @@ const Leaderboard: React.FC = () => {
                        return (
                          <div key={s.id} className="pz-card-sm p-2 md:p-3 flex items-center gap-2 md:gap-3" style={{ background: 'var(--pz-panel-2)' }}>
                            <div className="relative shrink-0">
-                             <StudentAvatar student={s} rank={studentRank} size="sm" />
+                             <StudentAvatar student={s} rank={studentRank} size="sm" showVoltLevel />
                              <div
                                className="absolute -top-1 -left-1 w-4 h-4 md:w-5 md:h-5 flex items-center justify-center text-[8px] md:text-[9px] font-black shadow-lg"
                                style={idx === 0

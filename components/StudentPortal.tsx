@@ -10,6 +10,9 @@ import GearShop from './avatar/GearShop';
 import PlayerCard, { thingName } from './Student/PlayerCard';
 import VoltStatsCard from './volt/VoltStatsCard';
 import VoltLoadout from './volt/VoltLoadout';
+import { VoltLevelHex } from './volt/VoltMedallion';
+import { voltLevelForXp } from '../voltCatalog';
+import { gearItem, GEAR_RANK_COLORS } from '../gearCatalog';
 import GameCenterStats from './Student/GameCenterStats';
 import MarketplaceTab from './Student/MarketplaceTab';
 import TrophyCase from './TrophyCase';
@@ -231,22 +234,28 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
         <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: HOUSES[student.houseId].colorHex }} />
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
           <div className="flex flex-col items-center gap-2 flex-shrink-0">
-            {student.avatarMode === 'AVATAR' ? (
-              <div
-                className="w-32 h-32 rounded-full border-4 overflow-hidden flex items-end justify-center"
-                style={{ borderColor: HOUSES[student.houseId].colorHex, background: 'radial-gradient(circle at 50% 30%, #232B3B 0%, #14171E 80%)' }}
-              >
-                <AvatarRig look={student.avatarLook} size="100%" />
+            {/* Avatar circle with the Volt level badge pinned to it */}
+            <div className="relative">
+              {student.avatarMode === 'AVATAR' ? (
+                <div
+                  className="w-32 h-32 rounded-full border-4 overflow-hidden flex items-end justify-center"
+                  style={{ borderColor: HOUSES[student.houseId].colorHex, background: 'radial-gradient(circle at 50% 30%, #232B3B 0%, #14171E 80%)' }}
+                >
+                  <AvatarRig look={student.avatarLook} size="100%" />
+                </div>
+              ) : (
+                <img
+                  src={student.avatarUrl}
+                  onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${student.id}`; }}
+                  className="w-32 h-32 rounded-full border-4 object-cover"
+                  style={{ borderColor: HOUSES[student.houseId].colorHex }}
+                  alt=""
+                />
+              )}
+              <div className="absolute -bottom-1 -right-1" style={{ filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.6))' }} title={`Volt Level ${voltLevelForXp(student.totalXp ?? 0)}`}>
+                <VoltLevelHex level={voltLevelForXp(student.totalXp ?? 0)} size={40} />
               </div>
-            ) : (
-              <img
-                src={student.avatarUrl}
-                onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${student.id}`; }}
-                className="w-32 h-32 rounded-full border-4 object-cover"
-                style={{ borderColor: HOUSES[student.houseId].colorHex }}
-                alt=""
-              />
-            )}
+            </div>
             <button
               onClick={() => setShowAvatarCreator(true)}
               className="touch-btn pz-btn px-3 py-1.5 text-[10px] inline-flex items-center gap-1.5"
@@ -290,6 +299,29 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
                 {HOUSES[student.houseId].name}
               </div>
             </div>
+            {/* Equipped gear from the Item Shop */}
+            {(() => {
+              const gear = gearItem(student.gearEquipped);
+              if (!gear) return null;
+              return (
+                <div className="mt-2 flex justify-center sm:justify-start">
+                  <div
+                    className="inline-flex items-center gap-2 px-2.5 py-1.5"
+                    style={{ clipPath: NOTCH_SM, background: 'var(--pz-panel-2)', border: `1px solid ${GEAR_RANK_COLORS[gear.rank]}66` }}
+                    title={gear.flavor}
+                  >
+                    <img src={gear.icon} alt="" className="w-6 h-6 object-contain" />
+                    <span className="text-[11px] font-black uppercase tracking-wide text-white">{gear.name}</span>
+                    <span
+                      className="text-[9px] font-black px-1.5 py-0.5"
+                      style={{ background: GEAR_RANK_COLORS[gear.rank], color: '#0B0E13', clipPath: NOTCH_SM }}
+                    >
+                      {gear.rank}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
 
