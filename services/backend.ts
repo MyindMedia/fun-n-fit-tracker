@@ -825,6 +825,10 @@ class ConvexBackendService {
             rankId: string;
             earned: number;
             totalPoints: number;
+            totalXp?: number;
+            avatarMode?: "PHOTO" | "AVATAR";
+            avatarLook?: Student["avatarLook"];
+            isPresent?: boolean;
           }>;
           houseTotals: Record<string, number>;
         };
@@ -842,11 +846,14 @@ class ConvexBackendService {
             gender: "Male" as const,
             points: r.earned, // board shows points earned in the range
             hasWearable: false,
-            isPresent: true,
+            isPresent: r.isPresent ?? true,
             avatarUrl: r.avatarUrl,
             rankId: r.rankId,
             gamerTag: r.gamerTag,
             displayPreference: r.displayPreference,
+            totalXp: r.totalXp ?? 0,
+            avatarMode: r.avatarMode,
+            avatarLook: r.avatarLook,
           }));
         return { houses: houseList, topStudents };
       }

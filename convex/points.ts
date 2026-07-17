@@ -4,6 +4,7 @@ import { Id } from "./_generated/dataModel";
 import { houseId } from "./schema";
 import { applyPoints, logActivity } from "./helpers";
 import { HOUSES } from "../constants";
+import { XP_SOURCES } from "../voltCatalog";
 
 export const award = mutation({
   args: {
@@ -227,10 +228,14 @@ export const earnedBetween = query({
       )
       .collect();
 
+    // Only real earnings count on the daily/weekly boards: coach and game
+    // awards, check-ins, around-town earning, and jackpot gifts. System
+    // corrections, refunds, and shop churn would otherwise inflate the range
+    // totals past the season view.
     const byStudent = new Map<Id<"students">, { earned: number; net: number }>();
     for (const t of txs) {
       const row = byStudent.get(t.studentId) ?? { earned: 0, net: 0 };
-      if (t.amount > 0) row.earned += t.amount;
+      if (t.amount > 0 && XP_SOURCES.includes(t.sourceType)) row.earned += t.amount;
       row.net += t.amount;
       byStudent.set(t.studentId, row);
     }
@@ -252,6 +257,11 @@ export const earnedBetween = query({
         earned: agg.earned,
         net: agg.net,
         totalPoints: s.points,
+        // Identity extras so range boards render the same avatar + Volt level
+        totalXp: s.totalXp ?? 0,
+        avatarMode: s.avatarMode,
+        avatarLook: s.avatarLook,
+        isPresent: s.isPresent,
       });
     }
     students.sort((a, b) => b.earned - a.earned);
