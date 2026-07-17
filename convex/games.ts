@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import { logActivity, publishEvent } from "./helpers";
 import { GAME_LIBRARY } from "../constants";
 
@@ -102,6 +103,14 @@ export const start = mutation({
       },
       args.clientId
     );
+
+    // Game alert to every subscribed device (parents opted in via the portal)
+    await ctx.scheduler.runAfter(0, internal.pushNode.deliver, {
+      title: `Game on: ${title}`,
+      body: "A game just started at the academy. Watch it live!",
+      url: "/#/live",
+      tag: "fnf-game",
+    });
 
     return await ctx.db.get(id);
   },

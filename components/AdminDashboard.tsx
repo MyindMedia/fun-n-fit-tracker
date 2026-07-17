@@ -32,13 +32,14 @@ import BoostControl from './Admin/BoostControl';
 import TokenCenter from './Admin/TokenCenter';
 import JackpotPanel from './Admin/JackpotPanel';
 import MarketplaceManager from './Admin/MarketplaceManager';
+import SeasonReset from './Admin/SeasonReset';
 import { Ic } from './icons';
 import { gameCenter } from '../services/gameCenter';
 import { useNfcWedge, WedgeScan } from './useNfcWedge';
 import { haptic } from '../utils/haptics';
 
 // Sub-pages that swap the tab switcher for a back button + page title
-const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF', 'NFC', 'SCANLOG', 'MEDALS', 'TOKENS', 'JACKPOT', 'MARKET'];
+const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF', 'NFC', 'SCANLOG', 'MEDALS', 'TOKENS', 'JACKPOT', 'MARKET', 'RESET'];
 
 // Pubzi theme: small notched cut-corner shape for inline elements
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
@@ -140,7 +141,7 @@ const QuickActionButton: React.FC<{
 const AdminDashboard: React.FC = () => {
   const [adminName, setAdminName] = useState<string>('');
   const [showLoginModal, setShowLoginModal] = useState(true);
-  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS' | 'STAFF' | 'NFC' | 'SCANLOG' | 'MEDALS' | 'TOKENS' | 'JACKPOT' | 'MARKET'>('GAMES');
+  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS' | 'STAFF' | 'NFC' | 'SCANLOG' | 'MEDALS' | 'TOKENS' | 'JACKPOT' | 'MARKET' | 'RESET'>('GAMES');
   const [students, setStudents] = useState<Student[]>([]);
   const [gameHistory, setGameHistory] = useState<GameSession[]>([]);
   const [globalActivity, setGlobalActivity] = useState<NotificationEvent[]>([]);
@@ -680,6 +681,29 @@ const AdminDashboard: React.FC = () => {
 
           <div className="pt-2 border-t border-white/10 mt-4">
             <button
+              onClick={() => { setShowMoreMenu(false); window.location.hash = '#/parent-login'; }}
+              className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+            >
+              <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Family size={24} /></span>
+              <div className="text-left">
+                <div className="font-black text-white uppercase tracking-wide text-[15px]">Parent Portal</div>
+                <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Switch to your parent side (kids, check-in, tokens)</div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => { setShowMoreMenu(false); setActiveTab('RESET'); }}
+              className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+              style={{ borderColor: 'rgba(248,113,113,0.4)' }}
+            >
+              <span className="flex-shrink-0 text-red-400"><Ic.Warning size={24} /></span>
+              <div className="text-left">
+                <div className="font-black text-white uppercase tracking-wide text-[15px]">Season Reset</div>
+                <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Zero out points, XP, or everything — two-step confirmed</div>
+              </div>
+            </button>
+
+            <button
               onClick={handleChangeCoach}
               className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
               style={{ background: 'var(--pz-panel-2)' }}
@@ -765,6 +789,7 @@ const AdminDashboard: React.FC = () => {
                 {activeTab === 'TOKENS' && <><Ic.Coin size={20} /><span className="text-white">Token Center</span></>}
                 {activeTab === 'JACKPOT' && <><Ic.Confetti size={20} /><span className="text-white">Jackpot</span></>}
                 {activeTab === 'MARKET' && <><Ic.Cart size={20} /><span className="text-white">Marketplace</span></>}
+                {activeTab === 'RESET' && <><Ic.Warning size={20} /><span className="text-white">Season Reset</span></>}
               </h1>
             </div>
           ) : (
@@ -924,6 +949,10 @@ const AdminDashboard: React.FC = () => {
 
           {activeTab === 'MARKET' && (
             <MarketplaceManager adminName={adminName} />
+          )}
+
+          {activeTab === 'RESET' && (
+            <SeasonReset adminName={adminName} onRefresh={refreshData} />
           )}
         </div>
       </main>

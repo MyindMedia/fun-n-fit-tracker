@@ -73,6 +73,30 @@ const PortalGate: React.FC = () => {
   // flow showed a plain sign-in and never consumed the ticket, so invites sat
   // pending forever and coaches never got the admin role.
   const [ticket] = useState<string | null>(() => ticketFromUrl());
+
+  // Clerk can wedge on a stale session and never finish loading. Give it 8
+  // seconds, then offer a way out instead of an endless "Loading" screen.
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
+  useEffect(() => {
+    if (isLoaded) return;
+    const timer = window.setTimeout(() => setLoadTimedOut(true), 8000);
+    return () => window.clearTimeout(timer);
+  }, [isLoaded]);
+
+  const startFresh = () => {
+    try {
+      for (const key of Object.keys(window.localStorage)) {
+        if (key.startsWith('__clerk') || key.startsWith('clerk')) window.localStorage.removeItem(key);
+      }
+      document.cookie.split(';').forEach(c => {
+        const name = c.split('=')[0].trim();
+        if (name.startsWith('__clerk') || name.startsWith('__session') || name.startsWith('__client')) {
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+        }
+      });
+    } catch { /* best effort */ }
+    window.location.reload();
+  };
   const [ticketPhase, setTicketPhase] = useState<'idle' | 'redeeming' | 'needs_details' | 'verify_phone' | 'done' | 'failed'>('idle');
   const [ticketError, setTicketError] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
@@ -378,8 +402,30 @@ const PortalGate: React.FC = () => {
         </div>
       )}
 
-      {!isLoaded && (
+      {!isLoaded && !loadTimedOut && (
         <div style={{ color: 'var(--pz-text)', fontSize: '0.9rem' }}>Loading…</div>
+      )}
+
+      {!isLoaded && loadTimedOut && (
+        <div className="pz-card" style={{ padding: '1.5rem', maxWidth: 380, width: '100%', textAlign: 'center' }}>
+          <p style={{ color: 'var(--pz-text)', fontSize: '0.85rem', marginBottom: '1rem' }}>
+            Sign-in is taking longer than it should. A stale session can cause this.
+          </p>
+          <button
+            className="pz-btn"
+            style={{ display: 'block', width: '100%', minHeight: 48, marginBottom: '0.6rem', fontSize: '0.85rem' }}
+            onClick={() => window.location.reload()}
+          >
+            Try again
+          </button>
+          <button
+            className="pz-btn-ghost"
+            style={{ display: 'block', width: '100%', minHeight: 48, fontSize: '0.85rem' }}
+            onClick={startFresh}
+          >
+            Start fresh (clear session)
+          </button>
+        </div>
       )}
 
       {/* Clerk bot-protection needs this element for ticket sign-ups */}

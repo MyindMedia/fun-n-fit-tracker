@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { useClerk } from '@clerk/clerk-react';
+import { useClerk, useUser } from '@clerk/clerk-react';
+import { isAdminUser } from '../services/adminAccess';
 import { supabaseService } from '../services/supabaseService';
 import { parentAuth } from '../services/parentAuth';
 import { gameCenter } from '../services/gameCenter';
@@ -23,6 +24,7 @@ import TrophyCase from './TrophyCase';
 import LevelPath from './LevelPath';
 import AvatarRig from './avatar/AvatarRig';
 import { VoltTag } from './StudentAvatar';
+import { pushClient, PushStatus } from '../services/pushClient';
 import { PZ, PzPortalCss, pStyles } from './Parent/shared';
 import { getStudentDisplayName } from '../utils/studentDisplay';
 import { Ic, DataIcon, IconProps } from './icons';
@@ -41,6 +43,8 @@ const TABS: Array<{ id: Exclude<TabId, 'add'>; label: string; icon: React.FC<Ico
 const ParentDashboard: React.FC = () => {
     const navigate = useNavigate();
     const clerk = useClerk();
+    const { user: clerkUser } = useUser();
+    const isCoach = isAdminUser(clerkUser);
     const [parentId, setParentId] = useState('');
     const [parentEmail, setParentEmail] = useState('');
     const [parentName, setParentName] = useState('');
@@ -176,6 +180,23 @@ const ParentDashboard: React.FC = () => {
                         <div className="pz-eyebrow" style={{ fontSize: '0.6875rem' }}>Fun 'N Fit Academy</div>
                         <h1 className="pz-display" style={styles.heading}>Parent Portal</h1>
                     </div>
+                    {/* Dual-profile toggle: coaches who are also parents can
+                        hop straight to the Admin Portal from here */}
+                    {isCoach && (
+                        <button
+                            onClick={() => navigate('/admin')}
+                            className="pz-btn"
+                            title="Switch to the Admin Portal"
+                            style={{
+                                minHeight: '44px', padding: '0 0.9rem', flexShrink: 0,
+                                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                                fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase',
+                                letterSpacing: '0.08em',
+                            }}
+                        >
+                            <Ic.Coach size={16} /> Admin
+                        </button>
+                    )}
                     <button
                         onClick={handleSignOut}
                         className="pz-btn-ghost"
@@ -198,6 +219,10 @@ const ParentDashboard: React.FC = () => {
                 <StatCard label="Total Points" value={myStudents.reduce((a, s) => a + s.points, 0)} color={PZ.volt} />
                 <StatCard label="Badges" value={myStudents.reduce((a, s) => a + (s.badges?.length || 0), 0)} color="#34d399" />
             </div>
+
+            {/* Notification opt-in: visible on every tab until enabled, so a
+                freshly installed home-screen app gets a clear, easy switch */}
+            <NotificationsCard parentId={parentId} />
 
             {/* Content */}
             {activeTab === 'my-students' && (
@@ -940,6 +965,59 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
 
             {/* Game-center activity: check-ins, business visits, redemptions */}
             <StudentDetailExtras studentId={student.id} />
+        </div>
+    );
+};
+
+/* -------------------------------------------------------------------------- */
+/* Game + team alert notifications (web push opt-in)                          */
+/* -------------------------------------------------------------------------- */
+
+const NotificationsCard: React.FC<{ parentId: string }> = ({ parentId }) => {
+    const [status, setStatus] = useState<PushStatus | 'loading'>('loading');
+    const [busy, setBusy] = useState(false);
+
+    useEffect(() => {
+        let alive = true;
+        pushClient.currentStatus().then(s => { if (alive) setStatus(s); });
+        return () => { alive = false; };
+    }, []);
+
+    if (status === 'loading' || status === 'unsupported') return null;
+    if (status === 'enabled') return null; // enrolled — stay out of the way
+
+    const enable = async () => {
+        setBusy(true);
+        try {
+            setStatus(await pushClient.enable('PARENT', parentId || undefined));
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <div style={{ ...styles.card, marginBottom: '1rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ color: PZ.volt, flexShrink: 0 }}><Ic.Bell size={22} /></span>
+            <div style={{ flex: '1 1 240px', minWidth: 0 }}>
+                <div style={{ color: PZ.white, fontWeight: 700, fontSize: '0.9rem' }}>Game + team alerts</div>
+                <div style={{ color: PZ.muted, fontSize: '0.78rem', fontWeight: 500, lineHeight: 1.4 }}>
+                    {status === 'ios_needs_install'
+                        ? 'On iPhone: tap Share, then "Add to Home Screen", then open the app from your home screen to turn on alerts.'
+                        : status === 'denied'
+                            ? 'Notifications are blocked for this site in your browser settings.'
+                            : 'Get a ping when games start and when the academy posts a team alert.'}
+                </div>
+            </div>
+            {status === 'ready' && (
+                <button
+                    onClick={() => void enable()}
+                    disabled={busy}
+                    className="pz-btn"
+                    style={{ ...pStyles.btnPrimary, minHeight: '44px', padding: '0 1rem', whiteSpace: 'nowrap', opacity: busy ? 0.6 : 1 }}
+                >
+                    {busy ? 'Turning on…' : 'Allow notifications'}
+                </button>
+            )}
         </div>
     );
 };

@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 
 const audience = v.union(
   v.literal("ALL"),
@@ -80,6 +81,15 @@ export const create = mutation({
       publishedAt: args.isPublished ? Date.now() : undefined,
       createdAt: Date.now(),
     });
+    // Team alert notification when a post goes out published
+    if (args.isPublished) {
+      await ctx.scheduler.runAfter(0, internal.pushNode.deliver, {
+        title: `Team alert: ${args.title}`,
+        body: args.excerpt || args.content.slice(0, 120),
+        url: "/#/",
+        tag: "fnf-alert",
+      });
+    }
   },
 });
 

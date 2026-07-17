@@ -307,6 +307,54 @@ const ParentGuide: React.FC = () => {
         </div>
       </section>
 
+      {/* Install the app + notifications */}
+      <section className="relative py-16 md:py-24" style={{ borderTop: '1px solid var(--pz-border)' }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center max-w-2xl mx-auto mb-12 pz-reveal">
+            <div className="pz-eyebrow mb-2">Put it on your phone</div>
+            <h2 className="text-3xl sm:text-4xl text-white tracking-tight">Install the app and turn on alerts</h2>
+            <p className="text-sm leading-relaxed mt-4 m-0" style={{ color: 'var(--pz-text)' }}>
+              Add Fun 'N Fit to your home screen and it works like a real app — then flip on
+              notifications to get a ping when games start and when the academy posts a team alert.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+            <div className="pz-card p-6 pz-reveal">
+              <div className="flex items-center gap-3 mb-4">
+                <span style={{ color: 'var(--pz-volt)' }}><Ic.Phone size={26} /></span>
+                <h3 className="text-lg text-white m-0">iPhone and iPad</h3>
+              </div>
+              <ol className="m-0 pl-5 space-y-2 text-sm leading-relaxed" style={{ color: 'var(--pz-text)' }}>
+                <li>Open <span className="text-white font-bold">fnffinal.netlify.app</span> in Safari.</li>
+                <li>Tap the <span className="text-white font-bold">Share</span> button (the square with the arrow).</li>
+                <li>Scroll down and tap <span className="text-white font-bold">Add to Home Screen</span>, then Add.</li>
+                <li>Open the new <span className="text-white font-bold">Fun N Fit</span> icon from your home screen.</li>
+                <li>Sign in to the Parent Portal and tap <span className="text-white font-bold">Allow notifications</span> when the card appears.</li>
+              </ol>
+              <p className="text-xs mt-4 m-0" style={{ color: 'var(--pz-text)' }}>
+                Apple only allows notifications for installed web apps, so steps 3 and 4 matter.
+              </p>
+            </div>
+            <div className="pz-card p-6 pz-reveal" style={pzDelay(120)}>
+              <div className="flex items-center gap-3 mb-4">
+                <span style={{ color: 'var(--pz-volt)' }}><Ic.Bell size={26} /></span>
+                <h3 className="text-lg text-white m-0">Android</h3>
+              </div>
+              <ol className="m-0 pl-5 space-y-2 text-sm leading-relaxed" style={{ color: 'var(--pz-text)' }}>
+                <li>Open <span className="text-white font-bold">fnffinal.netlify.app</span> in Chrome.</li>
+                <li>Tap the <span className="text-white font-bold">menu</span> (three dots, top right).</li>
+                <li>Tap <span className="text-white font-bold">Add to Home screen</span> (or Install app), then confirm.</li>
+                <li>Open the app from your home screen and sign in to the Parent Portal.</li>
+                <li>Tap <span className="text-white font-bold">Allow notifications</span> and accept the prompt.</li>
+              </ol>
+              <p className="text-xs mt-4 m-0" style={{ color: 'var(--pz-text)' }}>
+                Alerts also work in the regular Chrome tab if you skip installing.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer strip */}
       <footer className="py-8" style={{ borderTop: '1px solid var(--pz-border)' }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">

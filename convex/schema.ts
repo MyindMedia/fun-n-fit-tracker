@@ -691,6 +691,16 @@ export default defineSchema({
     .index("by_student", ["studentId", "createdAt"])
     .index("by_createdAt", ["createdAt"]),
 
+  // ── Web push subscriptions (game + team alert notifications) ──────────────
+  pushSubscriptions: defineTable({
+    endpoint: v.string(),
+    subscription: v.string(), // full PushSubscription JSON
+    audience: v.union(v.literal("PARENT"), v.literal("ADMIN"), v.literal("STUDENT")),
+    parentId: v.optional(v.union(v.id("parents"), v.null())),
+    label: v.optional(v.union(v.string(), v.null())), // user agent hint
+    createdAt: v.number(),
+  }).index("by_endpoint", ["endpoint"]),
+
   // ── Game center: perk redemptions ──────────────────────────────────────────
   redemptions: defineTable({
     studentId: v.id("students"),
