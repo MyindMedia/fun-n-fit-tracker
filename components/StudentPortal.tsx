@@ -215,14 +215,15 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
   // Tab Components
   const renderProfileTab = () => (
-    // Mobile order: player card, then Volt stats, then edit fields.
-    // Desktop (xl): Volt banner spans the top, card and fields side by side.
+    // Player card leads everywhere; the Volt stats card sits below it.
+    // Mobile: card, Volt stats, edit fields. Desktop (xl): card and fields
+    // side by side, Volt banner spanning underneath.
     <div className="flex flex-col gap-5 xl:grid xl:grid-cols-2 xl:gap-6 xl:items-start">
-      <div className="order-2 xl:order-1 xl:col-span-2">
+      <div className="order-2 xl:order-3 xl:col-span-2">
         <VoltStatsCard student={student} onOpenLoadout={() => setShowVoltLoadout(true)} />
       </div>
 
-      <div className="order-1 xl:order-2 min-w-0">
+      <div className="order-1 min-w-0">
 
       {/* Avatar & Name Display — player-profile card. Extra left padding keeps
           the name clear of the house accent line; single column on phones. */}
@@ -303,7 +304,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       </div>
       </div>
 
-      <div className="order-3 space-y-5 min-w-0">
+      <div className="order-3 xl:order-2 space-y-5 min-w-0">
       {/* Gamer Tag */}
       <div>
         <label className="pz-eyebrow mb-2 block">
