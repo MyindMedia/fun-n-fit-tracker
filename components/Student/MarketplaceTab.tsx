@@ -106,7 +106,7 @@ const MarketplaceTab: React.FC<{ student: Student; onRefresh: () => void }> = ({
           <div className="text-xs text-[#ABABAB]">New donated prizes drop here, keep earning!</div>
         </section>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
           {items.map((item) => {
             const soldOut = item.qtyAvailable <= 0;
             const affordable = student.points >= item.pointCost;

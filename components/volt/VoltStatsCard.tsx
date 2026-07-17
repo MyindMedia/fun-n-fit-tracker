@@ -122,7 +122,7 @@ const VoltStatsCard: React.FC<VoltStatsCardProps> = ({ student, onOpenLoadout })
       </div>
 
       {/* Combat record grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-2 mt-4">
         {statCells.map(cell => (
           <div key={cell.label} className="p-3 text-center" style={{ clipPath: NOTCH_SM, background: 'var(--pz-panel-2)' }}>
             <div className="flex justify-center mb-1" style={{ color: 'var(--pz-volt)' }}>

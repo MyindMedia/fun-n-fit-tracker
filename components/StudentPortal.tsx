@@ -219,6 +219,9 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       {/* Volt System: COD-style level, loadout, and combat record */}
       <VoltStatsCard student={student} onOpenLoadout={() => setShowVoltLoadout(true)} />
 
+      {/* Desktop: player card and edit fields sit side by side */}
+      <div className="space-y-5 xl:grid xl:grid-cols-2 xl:gap-6 xl:space-y-0 xl:items-start">
+
       {/* Avatar & Name Display — player-profile card */}
       <div className="pz-card relative grid grid-cols-2 gap-4 p-4">
         <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: HOUSES[student.houseId].colorHex }} />
@@ -296,6 +299,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
         </div>
       </div>
 
+      <div className="space-y-5">
       {/* Gamer Tag */}
       <div>
         <label className="pz-eyebrow mb-2 block">
@@ -368,11 +372,14 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       >
         {isSaving ? 'Saving...' : 'Save Profile'}
       </button>
+      </div>
+      </div>
     </div>
   );
 
   const renderProgressTab = () => (
-    <div className="space-y-5">
+    <div className="space-y-5 xl:grid xl:grid-cols-2 xl:gap-6 xl:space-y-0 xl:items-start">
+      <div className="space-y-5 min-w-0">
       {/* Points & Rank Card */}
       <div className="pz-card p-6 text-white">
         <div className="flex items-center gap-4 mb-4">
@@ -417,7 +424,9 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
       {/* The whole level ladder — see every rank ahead */}
       <LevelPath points={student.points} rankId={student.rankId} ranks={ranks} />
+      </div>
 
+      <div className="space-y-5 min-w-0">
       {/* Game Center stats */}
       <GameCenterStats studentId={student.id} />
 
@@ -469,6 +478,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
             })}
           </div>
         )}
+      </div>
       </div>
     </div>
   );
@@ -536,7 +546,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
             <div className="text-xs">Add friends to see their progress!</div>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-2">
             {friends.map(friend => {
               const friendDisplayName = getStudentDisplayName(friend);
               return (
@@ -798,9 +808,13 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
         <div style={{ color: 'var(--pz-volt)' }}><Ic.Store size={28} /></div>
       </div>
 
-      {/* Power gear — perks, downsides, live multipliers */}
-      <GearShop student={student} onRefresh={onRefresh} />
+      {/* Desktop: gear shop beside crates + studio */}
+      <div className="space-y-6 xl:grid xl:grid-cols-2 xl:gap-6 xl:space-y-0 xl:items-start">
 
+      {/* Power gear — perks, downsides, live multipliers */}
+      <div className="min-w-0"><GearShop student={student} onRefresh={onRefresh} /></div>
+
+      <div className="space-y-6 min-w-0">
       {/* Loot crates — random drops for the avatar */}
       <LootCrates student={student} onRefresh={onRefresh} />
 
@@ -817,6 +831,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
         </div>
         <Ic.ChevronRight size={18} className="shrink-0" style={{ color: 'var(--pz-text)' }} />
       </button>
+      </div>
+      </div>
     </div>
   );
 
@@ -829,7 +845,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           <div className="text-sm font-medium">No news yet</div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
           {news.map(post => (
             <div key={post.id} className="pz-card p-5">
               <div className="flex items-center gap-2 mb-2">
@@ -896,8 +912,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
         {/* Tab Content — full screen on desktop with a centered content column
             so cards never stretch edge to edge on wide monitors */}
-        <div className="flex-grow overflow-y-auto p-4 custom-scrollbar">
-          <div className="w-full max-w-6xl mx-auto">
+        <div className="flex-grow overflow-y-auto p-4 xl:p-6 custom-scrollbar">
+          <div className="w-full">
             {activeTab === 'PROFILE' && renderProfileTab()}
             {activeTab === 'PROGRESS' && renderProgressTab()}
             {activeTab === 'AWARDS' && <TrophyCase student={student} />}

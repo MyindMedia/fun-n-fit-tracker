@@ -202,7 +202,7 @@ const VoltLoadout: React.FC<VoltLoadoutProps> = ({ student, onClose, onChanged }
       </div>
 
       <div className="flex-grow overflow-y-auto custom-scrollbar">
-        <div className="p-4 space-y-4 max-w-5xl mx-auto">
+        <div className="p-4 xl:p-6 space-y-4 max-w-[1700px] mx-auto">
           {/* Level hexagon + XP bar */}
           <div className="pz-card p-4 flex items-center gap-4">
             <div className="shrink-0"><VoltLevelHex level={level} size={64} /></div>
