@@ -135,6 +135,25 @@ export const createFromWebhook = internalMutation({
   },
 });
 
+// Revoke every open invite for an email (the emailed link stops personalizing).
+export const revokeByEmail = mutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const rows = await ctx.db
+      .query("parentInvites")
+      .withIndex("by_email", (q) => q.eq("email", email.toLowerCase().trim()))
+      .collect();
+    let revoked = 0;
+    for (const inv of rows) {
+      if (inv.status === "PENDING") {
+        await ctx.db.patch(inv._id, { status: "CANCELLED", resolvedAt: Date.now() });
+        revoked++;
+      }
+    }
+    return { revoked };
+  },
+});
+
 // Personalizes the sign-in page when a parent lands from an invite link.
 export const byToken = query({
   args: { token: v.string() },
@@ -143,7 +162,7 @@ export const byToken = query({
       .query("parentInvites")
       .withIndex("by_token", (q) => q.eq("token", token))
       .unique();
-    if (!invite) return null;
+    if (!invite || invite.status === "CANCELLED") return null;
     const kidNames: string[] = [];
     for (const sid of invite.studentIds) {
       const s = await ctx.db.get(sid as Id<"students">);

@@ -8,7 +8,7 @@ import {
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { houseId } from "./schema";
-import { studentDefaults } from "./helpers";
+import { studentDefaults, logActivity } from "./helpers";
 
 // ── Password hashing (PBKDF2-SHA256 via Web Crypto, runs in actions) ─────────
 
@@ -316,6 +316,56 @@ export const enrollStudent = mutation({
 });
 
 // Admin view: all parents with their linked athletes (ParentManager)
+// Delete a parent account outright (admin): links, sessions, invites, and the
+// message thread go with it. Signing in again with the same email would
+// self-serve a fresh empty account — that's by design.
+export const removeAccount = mutation({
+  args: { parentId: v.id("parents"), adminName: v.string() },
+  handler: async (ctx, { parentId, adminName }) => {
+    const parent = await ctx.db.get(parentId);
+    if (!parent) return { ok: true };
+
+    const links = await ctx.db
+      .query("parentStudentLinks")
+      .withIndex("by_parent", (q) => q.eq("parentId", parentId))
+      .collect();
+    for (const l of links) await ctx.db.delete(l._id);
+
+    const sessions = await ctx.db
+      .query("parentSessions")
+      .withIndex("by_parent", (q) => q.eq("parentId", parentId))
+      .collect();
+    for (const s of sessions) await ctx.db.delete(s._id);
+
+    const invites = await ctx.db
+      .query("parentInvites")
+      .withIndex("by_email", (q) => q.eq("email", parent.email))
+      .collect();
+    for (const i of invites) await ctx.db.delete(i._id);
+
+    const convos = await ctx.db
+      .query("conversations")
+      .withIndex("by_parent", (q) => q.eq("parentId", parentId))
+      .collect();
+    for (const c of convos) {
+      const msgs = await ctx.db
+        .query("messages")
+        .withIndex("by_conversation", (q) => q.eq("conversationId", c._id))
+        .collect();
+      for (const m of msgs) await ctx.db.delete(m._id);
+      await ctx.db.delete(c._id);
+    }
+
+    await ctx.db.delete(parentId);
+    await logActivity(ctx, {
+      type: "ACCOUNT_DELETE",
+      message: `Parent account removed: ${parent.fullName} (${parent.email})`,
+      adminName,
+    });
+    return { ok: true };
+  },
+});
+
 export const listAll = query({
   args: {},
   handler: async (ctx) => {
