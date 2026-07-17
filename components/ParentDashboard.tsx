@@ -405,6 +405,7 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
     // Student self-login (kid picks their name + PIN on /#/login)
     const [portalEnabled, setPortalEnabled] = useState(false);
     const [portalPin, setPortalPin] = useState('');
+    const [showPin, setShowPin] = useState(false);
     const [portalBusy, setPortalBusy] = useState(false);
     useEffect(() => {
         gameCenter.portalSettings(student.id)
@@ -715,10 +716,16 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                         </p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                        {/* Masked 4-digit PIN: dots by default, eye to peek.
+                            NOT type="tel" — that showed the PIN in the clear
+                            and invited phone-number autofill. */}
                         <input
-                            type="tel"
+                            type={showPin ? 'text' : 'password'}
                             inputMode="numeric"
+                            pattern="[0-9]*"
                             maxLength={4}
+                            autoComplete="new-password"
+                            name="student-pin"
                             value={portalPin}
                             onChange={e => setPortalPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
                             onBlur={() => { if (portalEnabled && /^\d{4}$/.test(portalPin)) savePortalAccess(true); }}
@@ -729,6 +736,19 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                 fontWeight: 900, letterSpacing: '0.35em', fontSize: '1rem',
                             }}
                         />
+                        <button
+                            onClick={() => setShowPin(v => !v)}
+                            aria-label={showPin ? 'Hide PIN' : 'Show PIN'}
+                            title={showPin ? 'Hide PIN' : 'Show PIN'}
+                            className="pz-btn-ghost"
+                            style={{
+                                minHeight: '44px', minWidth: '44px', padding: 0,
+                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                color: showPin ? PZ.volt : PZ.text,
+                            }}
+                        >
+                            <Ic.Eye size={18} />
+                        </button>
                         <button
                             onClick={() => savePortalAccess(!portalEnabled)}
                             disabled={portalBusy}
