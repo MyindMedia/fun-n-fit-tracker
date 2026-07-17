@@ -1,12 +1,16 @@
 import { action } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 
 // Staff / coach management through Clerk. Invitations carry
 // publicMetadata.role = "admin", so the moment an invitee accepts and signs
 // in, the app's AdminGuard and Admin nav recognize them — no manual step.
+// Clerk's own invite email is suppressed (notify: false); we send the branded
+// coach email via Resend with the Clerk invitation link inside. ?coach=1 on
+// the redirect makes the sign-in gate route straight to the Admin Portal.
 // Uses the Clerk Backend API with CLERK_SECRET_KEY from the deployment env.
 
-const PORTAL_URL = "https://fnffinal.netlify.app/#/parent-login";
+const COACH_PORTAL_URL = "https://fnffinal.netlify.app/#/parent-login?coach=1";
 
 function clerkHeaders() {
   const key = process.env.CLERK_SECRET_KEY;
@@ -19,15 +23,16 @@ function clerkHeaders() {
 
 export const invite = action({
   args: { email: v.string(), invitedBy: v.string() },
-  handler: async (_ctx, { email, invitedBy }) => {
+  handler: async (ctx, { email, invitedBy }) => {
+    const cleanEmail = email.trim().toLowerCase();
     const res = await fetch("https://api.clerk.com/v1/invitations", {
       method: "POST",
       headers: clerkHeaders(),
       body: JSON.stringify({
-        email_address: email.trim().toLowerCase(),
+        email_address: cleanEmail,
         public_metadata: { role: "admin", invitedBy },
-        redirect_url: PORTAL_URL,
-        notify: true,
+        redirect_url: COACH_PORTAL_URL,
+        notify: false, // Clerk's plain email is replaced by our branded one
         ignore_existing: true,
       }),
     });
@@ -36,10 +41,19 @@ export const invite = action({
       const msg = body?.errors?.[0]?.long_message ?? body?.errors?.[0]?.message;
       throw new Error(msg || "Could not send the invite — try again");
     }
+    // Clerk returns the invitation link when it isn't sending its own email;
+    // fall back to the coach sign-in gate if it ever doesn't.
+    const inviteUrl = (body.url as string | undefined) || COACH_PORTAL_URL;
+    await ctx.scheduler.runAfter(0, internal.email.sendCoachInvite, {
+      email: cleanEmail,
+      inviteUrl,
+      invitedBy,
+    });
     return {
       id: body.id as string,
       email: body.email_address as string,
       status: body.status as string,
+      url: inviteUrl,
     };
   },
 });

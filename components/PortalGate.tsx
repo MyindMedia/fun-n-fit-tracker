@@ -45,12 +45,16 @@ const PortalGate: React.FC = () => {
   const isAdmin = isAdminUser(user);
 
   // Invite links land as #/parent-login?invite=<token> — personalize the gate.
+  // Coach invites land as ?coach=1 — brand the gate and route to /admin.
   const [invite, setInvite] = useState<{ fullName: string; kidNames: string[] } | null>(null);
+  const [coachInvite, setCoachInvite] = useState(false);
   useEffect(() => {
     const hash = window.location.hash || '';
     const qIndex = hash.indexOf('?');
     if (qIndex === -1) return;
-    const token = new URLSearchParams(hash.slice(qIndex + 1)).get('invite');
+    const params = new URLSearchParams(hash.slice(qIndex + 1));
+    if (params.get('coach')) setCoachInvite(true);
+    const token = params.get('invite');
     if (!token) return;
     const client = new ConvexClient(CONVEX_URL);
     client
@@ -90,12 +94,17 @@ const PortalGate: React.FC = () => {
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !user || bridging.current) return;
+    // Coach invite: skip the chooser and land in the Admin Portal directly.
+    if (isAdmin && coachInvite) {
+      navigate('/admin', { replace: true });
+      return;
+    }
     // Admins get a chooser (Admin portal vs Parent portal) instead of a
     // forced redirect — otherwise they can never reach the parent side.
     if (isAdmin) return;
     void enterParentPortal();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, isSignedIn, user]);
+  }, [isLoaded, isSignedIn, user, coachInvite]);
 
   return (
     <div
@@ -145,6 +154,22 @@ const PortalGate: React.FC = () => {
           Parents and coaches sign in here — email or Google.
         </p>
       </div>
+
+      {coachInvite && !isSignedIn && (
+        <div
+          className="pz-card-sm"
+          style={{
+            padding: '0.9rem 1.25rem', marginBottom: '1.25rem', maxWidth: 380, width: '100%',
+            textAlign: 'center', borderColor: 'rgba(203,254,28,0.45)', background: 'rgba(203,254,28,0.07)',
+          }}
+        >
+          <div className="pz-eyebrow" style={{ marginBottom: 4 }}>Coach invite</div>
+          <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem', lineHeight: 1.45 }}>
+            Welcome to the staff! Create your account with the email your invite
+            was sent to — you'll land straight in the Admin Portal.
+          </div>
+        </div>
+      )}
 
       {invite && !isSignedIn && (
         <div
