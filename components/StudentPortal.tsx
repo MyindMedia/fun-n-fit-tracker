@@ -215,15 +215,18 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
 
   // Tab Components
   const renderProfileTab = () => (
-    <div className="space-y-5">
-      {/* Volt System: COD-style level, loadout, and combat record */}
-      <VoltStatsCard student={student} onOpenLoadout={() => setShowVoltLoadout(true)} />
+    // Mobile order: player card, then Volt stats, then edit fields.
+    // Desktop (xl): Volt banner spans the top, card and fields side by side.
+    <div className="flex flex-col gap-5 xl:grid xl:grid-cols-2 xl:gap-6 xl:items-start">
+      <div className="order-2 xl:order-1 xl:col-span-2">
+        <VoltStatsCard student={student} onOpenLoadout={() => setShowVoltLoadout(true)} />
+      </div>
 
-      {/* Desktop: player card and edit fields sit side by side */}
-      <div className="space-y-5 xl:grid xl:grid-cols-2 xl:gap-6 xl:space-y-0 xl:items-start">
+      <div className="order-1 xl:order-2 min-w-0">
 
-      {/* Avatar & Name Display — player-profile card */}
-      <div className="pz-card relative grid grid-cols-2 gap-4 p-4">
+      {/* Avatar & Name Display — player-profile card. Extra left padding keeps
+          the name clear of the house accent line; single column on phones. */}
+      <div className="pz-card relative grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 pl-6">
         <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: HOUSES[student.houseId].colorHex }} />
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
           <div className="flex flex-col items-center gap-2 flex-shrink-0">
@@ -289,17 +292,18 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           </div>
         </div>
 
-        {/* Large Team Logo on the right */}
-        <div className="flex items-center justify-end">
+        {/* Large Team Logo — centered under the name on phones, right on bigger screens */}
+        <div className="flex items-center justify-center sm:justify-end">
           {HOUSES[student.houseId].customIcon ? (
-            <img src={HOUSES[student.houseId].customIcon} className="w-64 h-64 object-contain" alt={HOUSES[student.houseId].name} />
+            <img src={HOUSES[student.houseId].customIcon} className="w-36 h-36 sm:w-64 sm:h-64 object-contain" alt={HOUSES[student.houseId].name} />
           ) : (
-            <span className="text-9xl leading-none">{HOUSES[student.houseId].mascot}</span>
+            <span className="text-7xl sm:text-9xl leading-none">{HOUSES[student.houseId].mascot}</span>
           )}
         </div>
       </div>
+      </div>
 
-      <div className="space-y-5">
+      <div className="order-3 space-y-5 min-w-0">
       {/* Gamer Tag */}
       <div>
         <label className="pz-eyebrow mb-2 block">
@@ -372,7 +376,6 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       >
         {isSaving ? 'Saving...' : 'Save Profile'}
       </button>
-      </div>
       </div>
     </div>
   );
