@@ -616,9 +616,9 @@ class GameCenterService {
   public async proposeTrade(args: {
     fromStudentId: string;
     toStudentId: string;
-    giveKind: 'BADGE' | 'ITEM';
+    giveKind: 'BADGE' | 'ITEM' | 'GEAR';
     giveKey: string;
-    wantKind: 'BADGE' | 'ITEM';
+    wantKind: 'BADGE' | 'ITEM' | 'GEAR';
     wantKey: string;
   }): Promise<void> {
     await this.client.mutation(api.trades.propose, {

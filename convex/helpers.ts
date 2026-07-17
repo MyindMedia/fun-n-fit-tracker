@@ -1,7 +1,7 @@
 import { MutationCtx, QueryCtx } from "./_generated/server";
 import { Id, Doc } from "./_generated/dataModel";
 import { RANKS, DEMOTION_PENALTY_POINTS } from "../constants";
-import { gearFactor, GearSource } from "../gearCatalog";
+import { gearDelta, GEAR_FACTOR_MAX, GEAR_FACTOR_MIN, GearSource } from "../gearCatalog";
 
 export interface RankInfo {
   id: string;
@@ -105,12 +105,14 @@ export async function applyPoints(
   if (!student) throw new Error("Student not found");
 
   // Global point multiplier (2x Fridays etc.) — set from the admin dashboard.
-  // Only boosts positive earnings; spends, refunds, and system credits stay 1:1.
+  // Only boosts positive earnings; spends, refunds, system credits, and
+  // jackpot gifts stay 1:1.
   if (
     amount > 0 &&
     sourceType !== "REDEMPTION" &&
     sourceType !== "STORE_PURCHASE" &&
-    sourceType !== "SYSTEM"
+    sourceType !== "SYSTEM" &&
+    sourceType !== "JACKPOT"
   ) {
     const multRow = await ctx.db
       .query("appSettings")
@@ -122,20 +124,49 @@ export async function applyPoints(
       description = `${description} (${mult}x)`;
     }
 
-    // Equipped gear (gearCatalog.ts): source-specific perk/downside multiplier,
-    // clamped inside gearFactor to [0.5, 2.0]. Wearing gear has consequences —
-    // good and bad — visible right on the ledger line.
+    // Gear multipliers (gearCatalog.ts): the equipped passive piece plus, if
+    // one is running, a live consumable boost (gearActivations). The two
+    // factors are COMBINED first, clamped once to [0.5, 2.0], then applied in
+    // a single rounding pass, so stacking can never push past 2x overall.
+    // Ledger line carries both parts: "(gear +15%) (boost +40%)".
     const gearSource: GearSource | null =
       sourceType === "MANUAL" ? "game"
       : sourceType === "CHECKIN" ? "checkin"
       : sourceType === "PARTNER_VISIT" || sourceType === "SPECIAL_TASK" ? "earn"
       : null;
-    if (gearSource && student.gearEquipped) {
-      const factor = gearFactor(student.gearEquipped, gearSource);
-      if (factor !== 1) {
-        amount = Math.max(1, Math.round(amount * factor));
-        const pct = Math.round((factor - 1) * 100);
-        description = `${description} (gear ${pct > 0 ? "+" : ""}${pct}%)`;
+    if (gearSource) {
+      let combined = 1;
+      let suffix = "";
+      if (student.gearEquipped) {
+        const passive = 1 + gearDelta(student.gearEquipped, gearSource);
+        if (passive !== 1) {
+          combined *= passive;
+          const pct = Math.round((passive - 1) * 100);
+          suffix += ` (gear ${pct > 0 ? "+" : ""}${pct}%)`;
+        }
+      }
+      const nowTs = Date.now();
+      const activation = await ctx.db
+        .query("gearActivations")
+        .withIndex("by_student", (q) =>
+          q.eq("studentId", studentId).gt("expiresAt", nowTs)
+        )
+        .order("desc")
+        .first();
+      if (activation) {
+        const boost = 1 + gearDelta(activation.gearKey, gearSource);
+        if (boost !== 1) {
+          combined *= boost;
+          const pct = Math.round((boost - 1) * 100);
+          suffix += ` (boost ${pct > 0 ? "+" : ""}${pct}%)`;
+        }
+      }
+      combined = Math.min(GEAR_FACTOR_MAX, Math.max(GEAR_FACTOR_MIN, combined));
+      if (combined !== 1) {
+        amount = Math.max(1, Math.round(amount * combined));
+      }
+      if (suffix) {
+        description = `${description}${suffix}`;
       }
     }
   }

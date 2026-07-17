@@ -14,10 +14,16 @@ const SOURCES: GearSource[] = ['game', 'checkin', 'earn'];
 
 export const badgeName = (id: string) => BADGES.find(b => b.id === id)?.name ?? id;
 export const thingName = (kind: string, key: string) =>
-  kind === 'BADGE' ? `${badgeName(key)} badge` : avatarItem(key)?.name ?? key;
+  kind === 'BADGE' ? `${badgeName(key)} badge`
+  : kind === 'GEAR' ? `${gearItem(key)?.name ?? key} gear`
+  : avatarItem(key)?.name ?? key;
 
-type Tradable = { badges: string[]; items: Array<{ key: string; upgradeLevel: number }> };
-type Pick = { kind: 'BADGE' | 'ITEM'; key: string } | null;
+type Tradable = {
+  badges: string[];
+  items: Array<{ key: string; upgradeLevel: number }>;
+  gear?: Array<{ key: string }>;
+};
+type Pick = { kind: 'BADGE' | 'ITEM' | 'GEAR'; key: string } | null;
 
 /* Inspect another player: avatar, rank, equipped gear stats, badges, medals —
    and, for friends, a two-sided badge/item trade builder. */
@@ -63,11 +69,15 @@ const PlayerCard: React.FC<{
     if (!give || !want) return;
     setSending(true);
     try {
+      // INTEGRATION: services/gameCenter.ts (frozen) types proposeTrade kinds
+      // as 'BADGE' | 'ITEM' but passes the strings straight through to
+      // convex/trades.ts, so GEAR rides the same pipe. The casts below are
+      // safe; widen the union to include 'GEAR' whenever that file unfreezes.
       await gameCenter.proposeTrade({
         fromStudentId: viewer.id,
         toStudentId: player.id,
-        giveKind: give.kind, giveKey: give.key,
-        wantKind: want.kind, wantKey: want.key,
+        giveKind: give.kind as 'BADGE' | 'ITEM', giveKey: give.key,
+        wantKind: want.kind as 'BADGE' | 'ITEM', wantKey: want.key,
       });
       alert(`Offer sent! ${player.fullName.split(' ')[0]} can accept it from their Friends tab.`);
       setShowTrade(false); setGive(null); setWant(null);
@@ -85,7 +95,7 @@ const PlayerCard: React.FC<{
       <div className="pz-eyebrow mb-2">{label}</div>
       {!inv ? (
         <div className="text-xs py-3" style={{ color: 'var(--pz-text)' }}>Loading…</div>
-      ) : inv.badges.length === 0 && inv.items.length === 0 ? (
+      ) : inv.badges.length === 0 && inv.items.length === 0 && (inv.gear ?? []).length === 0 ? (
         <div className="text-xs py-3" style={{ color: 'var(--pz-text)' }}>Nothing tradable yet</div>
       ) : (
         <div className="flex flex-wrap gap-1.5">
@@ -108,6 +118,19 @@ const PlayerCard: React.FC<{
                 className="touch-btn px-2.5 py-1.5 text-[10px] font-bold border-2 inline-flex items-center gap-1"
                 style={{ clipPath: NOTCH_SM, borderColor: sel ? 'var(--pz-volt)' : `${RARITY_COLORS[item.rarity]}55`, background: sel ? 'rgba(203,254,28,0.12)' : `${RARITY_COLORS[item.rarity]}12`, color: RARITY_COLORS[item.rarity] }}>
                 <Ic.Shirt size={12} /> {item.name}{it.upgradeLevel > 0 ? ` ★${it.upgradeLevel}` : ''}
+              </button>
+            );
+          })}
+          {(inv.gear ?? []).map(g => {
+            const item = gearItem(g.key);
+            if (!item) return null;
+            const sel = picked?.kind === 'GEAR' && picked.key === g.key;
+            const rc = GEAR_RANK_COLORS[item.rank];
+            return (
+              <button key={`gear-${g.key}`} onClick={() => onPick({ kind: 'GEAR', key: g.key })}
+                className="touch-btn px-2.5 py-1.5 text-[10px] font-bold border-2 inline-flex items-center gap-1"
+                style={{ clipPath: NOTCH_SM, borderColor: sel ? 'var(--pz-volt)' : `${rc}55`, background: sel ? 'rgba(203,254,28,0.12)' : `${rc}12`, color: rc }}>
+                <img src={item.icon} alt="" className="w-3.5 h-3.5 object-contain" /> {item.rank} · {item.name}
               </button>
             );
           })}
@@ -219,6 +242,10 @@ const PlayerCard: React.FC<{
                 Your {thingName(give.kind, give.key)} ⇄ their {thingName(want.kind, want.key)}
               </div>
             )}
+            <div className="text-[9px] leading-snug" style={{ color: 'var(--pz-text)' }}>
+              Some gear never shows up here. Earned gear stays earned, and rank A, rank S, and
+              boost items stay with their owner.
+            </div>
             <div className="flex gap-2">
               <button onClick={() => { setShowTrade(false); setGive(null); setWant(null); }} className="pz-btn-ghost flex-1 py-2.5 text-[10px] touch-btn min-h-[44px]">Never mind</button>
               <button onClick={sendOffer} disabled={!give || !want || sending}

@@ -14,6 +14,10 @@ interface BulkAwardFormProps {
 type AwardType = 'INDIVIDUAL' | 'HOUSE';
 type ActionType = 'AWARD' | 'DEDUCT';
 
+// Quick-pick reasons for manual coach awards; the pick (or free text) becomes
+// the transaction description shown in the Activity Log.
+const REASON_CHIPS = ['Hustle', 'Teamwork', 'Effort', 'Listening', 'Leadership', 'Helping out', 'Game winner'];
+
 const BulkAwardForm: React.FC<BulkAwardFormProps> = ({ students, adminName, onComplete }) => {
   const [awardType, setAwardType] = useState<AwardType>('INDIVIDUAL');
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
@@ -21,6 +25,7 @@ const BulkAwardForm: React.FC<BulkAwardFormProps> = ({ students, adminName, onCo
   const [houseFilter, setHouseFilter] = useState<HouseId | 'ALL'>('ALL');
   const [amount, setAmount] = useState(10);
   const [description, setDescription] = useState('');
+  const [reasonChip, setReasonChip] = useState<string | null>(null);
   const [isAwarding, setIsAwarding] = useState(false);
   const [actionType, setActionType] = useState<ActionType>('AWARD');
 
@@ -65,23 +70,23 @@ const BulkAwardForm: React.FC<BulkAwardFormProps> = ({ students, adminName, onCo
       return;
     }
 
-    if (!description.trim()) {
-      alert('Please enter a description');
-      return;
-    }
+    // Reason never blocks a fast coach: untouched falls back to the default.
+    const reason = description.trim() || reasonChip || '';
+    const prefix = actionType === 'DEDUCT' ? 'Coach deduction' : 'Coach award';
+    const finalDescription = reason ? `${prefix}: ${reason}` : prefix;
 
     setIsAwarding(true);
     try {
       if (awardType === 'HOUSE') {
         if (actionType === 'DEDUCT') {
-          const count = await supabaseService.deductHousePoints(selectedHouse!, amount, description || 'Manual House Deduction', adminName);
+          const count = await supabaseService.deductHousePoints(selectedHouse!, amount, finalDescription, adminName);
           alert(`Deducted ${amount} points from ${count} students in ${HOUSES[selectedHouse!].name} house!`);
         } else {
-          const count = await supabaseService.awardHouseBonus(selectedHouse!, amount, description, adminName);
+          const count = await supabaseService.awardHouseBonus(selectedHouse!, amount, finalDescription, adminName);
           alert(`Awarded ${amount} points to ${count} students in ${HOUSES[selectedHouse!].name} house!`);
         }
       } else {
-        await supabaseService.addBatchPoints(Array.from(selectedStudents), actionType === 'DEDUCT' ? -amount : amount, description, adminName);
+        await supabaseService.addBatchPoints(Array.from(selectedStudents), actionType === 'DEDUCT' ? -amount : amount, finalDescription, adminName);
         const verb = actionType === 'DEDUCT' ? 'Deducted' : 'Awarded';
         alert(`${verb} ${amount} points ${actionType === 'DEDUCT' ? 'from' : 'to'} ${selectedStudents.size} students!`);
       }
@@ -90,6 +95,7 @@ const BulkAwardForm: React.FC<BulkAwardFormProps> = ({ students, adminName, onCo
       setSelectedStudents(new Set());
       setSelectedHouse(null);
       setDescription('');
+      setReasonChip(null);
       setAmount(10);
       setActionType('AWARD');
       onComplete();
@@ -277,15 +283,30 @@ const BulkAwardForm: React.FC<BulkAwardFormProps> = ({ students, adminName, onCo
         />
       </div>
 
-      {/* Description */}
+      {/* Reason: quick chips + free text; optional, never blocks the coach */}
       <div className="mb-6">
-        <label className="text-xs font-black uppercase tracking-widest mb-2 block" style={{ color: 'var(--pz-text)' }}>Description</label>
+        <label className="text-xs font-black uppercase tracking-widest mb-2 block" style={{ color: 'var(--pz-text)' }}>What is this for?</label>
+        <div className="flex gap-2 flex-wrap mb-3">
+          {REASON_CHIPS.map(chip => (
+            <button
+              key={chip}
+              onClick={() => setReasonChip(prev => (prev === chip ? null : chip))}
+              className={`touch-btn px-3 py-2 text-[10px] font-black uppercase tracking-wide transition-all ${
+                reasonChip === chip
+                  ? 'bg-[#CBFE1C] text-[#0B0E13]'
+                  : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+              }`}
+            >
+              {chip}
+            </button>
+          ))}
+        </div>
         <input
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="w-full px-4 py-3 border border-white/10 bg-[#171C27] text-white placeholder-white/40 font-bold focus:outline-none focus:border-[#CBFE1C]"
-          placeholder="e.g., Great teamwork during practice"
+          placeholder={`Or type your own reason (optional, defaults to "${actionType === 'DEDUCT' ? 'Coach deduction' : 'Coach award'}")`}
         />
       </div>
 

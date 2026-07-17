@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { supabaseService } from '../services/supabaseService';
-import { House, NotificationEvent, Student, TimeRange, HouseId, Rank } from '../types';
+import { House, NotificationEvent, Student, TimeRange, HouseId, Rank, GameSession } from '../types';
 import { HOUSES, APP_LOGO_URL } from '../constants';
 import GameOverlay from './GameOverlay';
 import CurrentMatchups from './Leaderboard/CurrentMatchups';
@@ -175,6 +175,10 @@ const Leaderboard: React.FC = () => {
   const [houseGlow, setHouseGlow] = useState<Record<string, 'up' | 'down' | null>>({});
   const [drillLeaderboard, setDrillLeaderboard] = useState<{students: Student[], houses: Record<HouseId, number>} | null>(null);
   const [activeGameTitle, setActiveGameTitle] = useState<string | null>(null);
+  // Coach pause: mirrors pausedAt on the first active session (mapSession
+  // carries pausedAt/pausedMs through both getActiveGames and the live
+  // active_games_update subscription, which re-emits on every patch).
+  const [activeGamePaused, setActiveGamePaused] = useState(false);
   // Global point boost + recent coach medals (Legends wall)
   const [boostMult, setBoostMult] = useState(1);
   const [medalWall, setMedalWall] = useState<Array<{ _id: string; key: string; title: string; fullName: string; houseId: HouseId | null; avatarUrl: string | null; awardedBy: string; createdAt: number }>>([]);
@@ -247,6 +251,7 @@ const Leaderboard: React.FC = () => {
       if (activeSessions && activeSessions.length > 0) {
         const activeGame = activeSessions[0];
         setActiveGameTitle(activeGame.title);
+        setActiveGamePaused(activeGame.pausedAt != null);
         try {
           const drillData = await supabaseService.getDrillLeaderboard(activeGame.id);
           setDrillLeaderboard(drillData);
@@ -255,6 +260,7 @@ const Leaderboard: React.FC = () => {
         }
       } else {
         setActiveGameTitle(null);
+        setActiveGamePaused(false);
         setDrillLeaderboard(null);
       }
     } catch (err: any) {
@@ -442,6 +448,16 @@ const Leaderboard: React.FC = () => {
       }
     });
     const u4 = supabaseService.on('game_start', () => refreshData(false));
+    // Live pause state: games.active re-emits on every patch, so a coach
+    // pause/resume lands here immediately with pausedAt on the mapped session.
+    const u8 = supabaseService.on('active_games_update', (rows: GameSession[]) => {
+      if (rows && rows.length > 0) {
+        setActiveGameTitle(rows[0].title);
+        setActiveGamePaused(rows[0].pausedAt != null);
+      } else {
+        setActiveGamePaused(false);
+      }
+    });
     const onLocalRankUp = (e: any) => {
       const cele = e?.detail as Celebration;
       if (!cele) return;
@@ -510,6 +526,7 @@ const Leaderboard: React.FC = () => {
       u5();
       u6();
       u7();
+      u8();
       window.removeEventListener('rank-up', onLocalRankUp as any);
       window.removeEventListener('storage', onStorage);
       clearInterval(pollingInterval);
@@ -875,15 +892,23 @@ const Leaderboard: React.FC = () => {
             <div className="pz-card p-4 md:p-6 relative overflow-hidden animate-fade-in max-h-[450px] flex flex-col" style={{ borderColor: 'rgba(203, 254, 28, 0.35)' }}>
                <div className="relative z-10 overflow-y-auto custom-scrollbar pr-2">
                  <div className="flex items-center gap-2 mb-3 md:mb-4">
-                   <span className="w-2.5 h-2.5 rounded-full pz-live shrink-0" style={{ background: 'var(--pz-volt)' }} />
+                   <span
+                     className={`w-2.5 h-2.5 rounded-full shrink-0 ${activeGamePaused ? '' : 'pz-live'}`}
+                     style={{ background: 'var(--pz-volt)', opacity: activeGamePaused ? 0.4 : undefined }}
+                   />
                    <h2 className="text-white text-sm md:text-base lg:text-lg tracking-tight">
                      Live Game
                    </h2>
+                   {activeGamePaused && (
+                     <span className="ml-auto shrink-0 text-[9px] md:text-[10px] font-black uppercase tracking-widest px-2 py-1 text-[#CBFE1C] bg-[#CBFE1C]/10 border border-[#CBFE1C]/40">
+                       Paused
+                     </span>
+                   )}
                  </div>
 
                  <div className="pz-card-sm p-2.5 md:p-3 mb-3 md:mb-4" style={{ background: 'var(--pz-panel-2)' }}>
                    <div className="text-[8px] md:text-[9px] font-black uppercase tracking-widest mb-0.5" style={{ color: 'var(--pz-text)' }}>Current Game</div>
-                   <div className="pz-display text-white text-base md:text-xl">{activeGameTitle}</div>
+                   <div className={`pz-display text-white text-base md:text-xl ${activeGamePaused ? 'opacity-60' : ''}`}>{activeGameTitle}</div>
                  </div>
 
                 {/* House Standings for Current Game */}

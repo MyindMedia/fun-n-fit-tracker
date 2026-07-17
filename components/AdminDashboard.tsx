@@ -29,13 +29,16 @@ import NfcManager from './Admin/NfcManager';
 import ScanLog from './Admin/ScanLog';
 import MedalsPanel from './Admin/MedalsPanel';
 import BoostControl from './Admin/BoostControl';
+import TokenCenter from './Admin/TokenCenter';
+import JackpotPanel from './Admin/JackpotPanel';
+import MarketplaceManager from './Admin/MarketplaceManager';
 import { Ic } from './icons';
 import { gameCenter } from '../services/gameCenter';
 import { useNfcWedge, WedgeScan } from './useNfcWedge';
 import { haptic } from '../utils/haptics';
 
 // Sub-pages that swap the tab switcher for a back button + page title
-const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF', 'NFC', 'SCANLOG', 'MEDALS'];
+const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF', 'NFC', 'SCANLOG', 'MEDALS', 'TOKENS', 'JACKPOT', 'MARKET'];
 
 // Pubzi theme: small notched cut-corner shape for inline elements
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
@@ -137,7 +140,7 @@ const QuickActionButton: React.FC<{
 const AdminDashboard: React.FC = () => {
   const [adminName, setAdminName] = useState<string>('');
   const [showLoginModal, setShowLoginModal] = useState(true);
-  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS' | 'STAFF' | 'NFC' | 'SCANLOG' | 'MEDALS'>('GAMES');
+  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS' | 'STAFF' | 'NFC' | 'SCANLOG' | 'MEDALS' | 'TOKENS' | 'JACKPOT' | 'MARKET'>('GAMES');
   const [students, setStudents] = useState<Student[]>([]);
   const [gameHistory, setGameHistory] = useState<GameSession[]>([]);
   const [globalActivity, setGlobalActivity] = useState<NotificationEvent[]>([]);
@@ -197,6 +200,9 @@ const AdminDashboard: React.FC = () => {
         haptic('success');
         pushScanToast(`${res.fullName} banked +${res.amount} — ${res.gameTitle}`, res.amount);
         refreshData();
+      } else if (res.mode === 'GAME_PAUSED') {
+        haptic('warning');
+        pushScanToast(res.message || 'Game is paused — tap not counted');
       } else if (res.status === 'ALREADY') {
         haptic('tap');
         pushScanToast(`${res.fullName} is already checked in`);
@@ -541,6 +547,39 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
+            onClick={() => { setShowMoreMenu(false); setActiveTab('MARKET'); }}
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+          >
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Cart size={24} /></span>
+            <div className="text-left">
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Marketplace</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Donated prizes, point prices & claim-code handovers</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => { setShowMoreMenu(false); setActiveTab('JACKPOT'); }}
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+          >
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Confetti size={24} /></span>
+            <div className="text-left">
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Jackpot</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Spin a random gift for a lucky athlete</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => { setShowMoreMenu(false); setActiveTab('TOKENS'); }}
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+          >
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Coin size={24} /></span>
+            <div className="text-left">
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Token Center</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>FitToken packs, purchases & balances</div>
+            </div>
+          </button>
+
+          <button
             onClick={() => { setShowMoreMenu(false); setShowGameHistory(true); }}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
@@ -723,6 +762,9 @@ const AdminDashboard: React.FC = () => {
                 {activeTab === 'NFC' && <><Ic.Nfc size={20} /><span className="text-white">NFC Bands</span></>}
                 {activeTab === 'SCANLOG' && <><Ic.History size={20} /><span className="text-white">Check-In & Scan Log</span></>}
                 {activeTab === 'MEDALS' && <><Ic.Medal size={20} /><span className="text-white">Session Legends</span></>}
+                {activeTab === 'TOKENS' && <><Ic.Coin size={20} /><span className="text-white">Token Center</span></>}
+                {activeTab === 'JACKPOT' && <><Ic.Confetti size={20} /><span className="text-white">Jackpot</span></>}
+                {activeTab === 'MARKET' && <><Ic.Cart size={20} /><span className="text-white">Marketplace</span></>}
               </h1>
             </div>
           ) : (
@@ -870,6 +912,18 @@ const AdminDashboard: React.FC = () => {
 
           {activeTab === 'STAFF' && (
             <StaffManager adminName={adminName} />
+          )}
+
+          {activeTab === 'TOKENS' && (
+            <TokenCenter students={students} adminName={adminName} onRefresh={refreshData} />
+          )}
+
+          {activeTab === 'JACKPOT' && (
+            <JackpotPanel students={students} adminName={adminName} onRefresh={refreshData} />
+          )}
+
+          {activeTab === 'MARKET' && (
+            <MarketplaceManager adminName={adminName} />
           )}
         </div>
       </main>

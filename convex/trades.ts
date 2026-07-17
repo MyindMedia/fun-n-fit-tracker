@@ -3,14 +3,16 @@ import { v } from "convex/values";
 import { Id, Doc } from "./_generated/dataModel";
 import { logActivity } from "./helpers";
 import { avatarItem, DEFAULT_LOOK } from "../avatarCatalog";
+import { gearItem } from "../gearCatalog";
 import { BADGES } from "../constants";
 
-// Player-to-player trading: badges (students.badges) and avatar items
-// (studentWearables). Both sides consent — an offer sits PENDING until the
-// other kid accepts or declines. Power gear is NOT tradable by design:
-// achievements have to stay earned.
+// Player-to-player trading: badges (students.badges), avatar items
+// (studentWearables), and gear (studentGear). Both sides consent: an offer
+// sits PENDING until the other kid accepts or declines. Gear trades only when
+// the catalog marks it tradable (passive rank C/B with no unlock): earned
+// achievements and consumable boosts stay with their owner by design.
 
-const KINDS = ["BADGE", "ITEM"] as const;
+const KINDS = ["BADGE", "ITEM", "GEAR"] as const;
 type Kind = (typeof KINDS)[number];
 
 const badgeExists = (key: string) => BADGES.some((b) => b.id === key);
@@ -19,6 +21,13 @@ async function ownsThing(ctx: any, studentId: Id<"students">, kind: Kind, key: s
   if (kind === "BADGE") {
     const s = await ctx.db.get(studentId);
     return !!s?.badges?.includes(key);
+  }
+  if (kind === "GEAR") {
+    const rows = await ctx.db
+      .query("studentGear")
+      .withIndex("by_student", (q: any) => q.eq("studentId", studentId))
+      .collect();
+    return rows.some((r: any) => r.gearKey === key);
   }
   const rows = await ctx.db
     .query("studentWearables")
@@ -35,6 +44,13 @@ function assertKindKey(kind: string, key: string) {
     if (!item) throw new Error("Unknown item");
     if (item.isDefault) throw new Error("Starter items can't be traded");
   }
+  if (kind === "GEAR") {
+    const item = gearItem(key);
+    if (!item) throw new Error("Unknown gear");
+    if (item.tradable !== true) {
+      throw new Error("That gear can't be traded. Earned gear stays earned.");
+    }
+  }
 }
 
 // Move one thing from `from` to `to` (ownership + equipped-look cleanup).
@@ -49,6 +65,28 @@ async function transferThing(
     await ctx.db.patch(from._id, { badges: (from.badges ?? []).filter((b: string) => b !== key) });
     const toBadges = to.badges ?? [];
     if (!toBadges.includes(key)) await ctx.db.patch(to._id, { badges: [...toBadges, key] });
+    return;
+  }
+  if (kind === "GEAR") {
+    // Move the studentGear row (how it was acquired travels with it), and if
+    // the giver was wearing it, empty their equipped slot.
+    const fromGear = await ctx.db
+      .query("studentGear")
+      .withIndex("by_student", (q: any) => q.eq("studentId", from._id))
+      .collect();
+    const row = fromGear.find((r: any) => r.gearKey === key);
+    if (row) {
+      await ctx.db.delete(row._id);
+      await ctx.db.insert("studentGear", {
+        studentId: to._id,
+        gearKey: key,
+        acquiredVia: row.acquiredVia,
+        acquiredAt: Date.now(),
+      });
+    }
+    if (from.gearEquipped === key) {
+      await ctx.db.patch(from._id, { gearEquipped: null });
+    }
     return;
   }
   // ITEM: move the studentWearables row (upgrade tier travels with it)
@@ -86,6 +124,14 @@ export const tradable = query({
       .query("studentWearables")
       .withIndex("by_student", (q) => q.eq("studentId", studentId))
       .collect();
+    const gearRows = await ctx.db
+      .query("studentGear")
+      .withIndex("by_student", (q) => q.eq("studentId", studentId))
+      .collect();
+    const gearKeys = new Set<string>();
+    for (const r of gearRows) {
+      if (gearItem(r.gearKey)?.tradable === true) gearKeys.add(r.gearKey);
+    }
     return {
       badges: (student.badges ?? []).filter(badgeExists),
       items: rows
@@ -94,6 +140,7 @@ export const tradable = query({
           return item && !item.isDefault;
         })
         .map((r) => ({ key: r.wearableId, upgradeLevel: r.upgradeLevel ?? 0 })),
+      gear: [...gearKeys].map((key) => ({ key })),
     };
   },
 });

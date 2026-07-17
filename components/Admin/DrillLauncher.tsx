@@ -151,29 +151,39 @@ const GameGuideSheet: React.FC<{ game: GameDefinition; onClose: () => void }> = 
   );
 };
 
-// Session Timer Component
+const fmtClock = (totalSeconds: number) => {
+  const s = Math.max(0, totalSeconds);
+  return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+};
+
+// Session Timer Component. Both readouts freeze while the game is paused:
+// the clock anchors to the pause moment (pausedAt), completed pauses are
+// excluded from elapsed via pausedMs, and resume() extends endTime on the
+// server so the countdown picks up exactly where it froze.
 const SessionTimer: React.FC<{ session: GameSession }> = ({ session }) => {
-  const [timeDisplay, setTimeDisplay] = useState('');
+  const [now, setNow] = useState(Date.now());
+  const paused = session.pausedAt != null;
 
   useEffect(() => {
-    const updateTimer = () => {
-      const now = Date.now();
-      const elapsed = Math.floor((now - session.startTime) / 1000);
-      const minutes = Math.floor(elapsed / 60);
-      const seconds = elapsed % 60;
-      setTimeDisplay(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+    const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
-  }, [session.startTime]);
+  }, []);
+
+  const anchor = paused ? (session.pausedAt as number) : now;
+  const elapsed = Math.floor((anchor - session.startTime - (session.pausedMs ?? 0)) / 1000);
+  const remaining = Math.ceil((session.endTime - anchor) / 1000);
 
   return (
-    <div className="bg-white/10 px-3 py-2 rounded-xl border border-white/10 flex flex-col items-center">
-      <span className="text-[8px] font-black uppercase opacity-50">Time</span>
-      <span className="text-sm font-black tabular-nums">{timeDisplay}</span>
-    </div>
+    <>
+      <div className={`bg-white/10 px-3 py-2 rounded-xl border border-white/10 flex flex-col items-center ${paused ? 'opacity-40' : ''}`}>
+        <span className="text-[8px] font-black uppercase opacity-50">Time</span>
+        <span className="text-sm font-black tabular-nums">{fmtClock(elapsed)}</span>
+      </div>
+      <div className={`bg-white/10 px-3 py-2 rounded-xl border border-white/10 flex flex-col items-center ${paused ? 'opacity-40' : ''}`}>
+        <span className="text-[8px] font-black uppercase opacity-50">Left</span>
+        <span className="text-sm font-black tabular-nums">{fmtClock(remaining)}</span>
+      </div>
+    </>
   );
 };
 
@@ -201,7 +211,9 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
     const refreshSessions = () => {
       supabaseService.getActiveGames().then(games => {
         const now = Date.now();
-        const stillActive = games.filter(g => now < g.endTime);
+        // A paused game's endTime is frozen, so it can drift past "now" while
+        // the coach holds the pause. Never filter paused games out locally.
+        const stillActive = games.filter(g => now < g.endTime || g.pausedAt != null);
         if (stillActive.length !== games.length) {
           console.log('🧹 Admin: Filtered out', games.length - stillActive.length, 'ended games');
         }
@@ -229,7 +241,7 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
     const cleanupInterval = setInterval(() => {
       setActiveSessions(prev => {
         const now = Date.now();
-        const stillActive = prev.filter(g => now < g.endTime);
+        const stillActive = prev.filter(g => now < g.endTime || g.pausedAt != null);
         if (stillActive.length !== prev.length) {
           console.log('🧹 Admin cleanup: Removed', prev.length - stillActive.length, 'ended games');
         }
@@ -397,25 +409,64 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
             </button>
           </div>
         ) : (
-          activeSessions.map(session => (
+          activeSessions.map(session => {
+            const isPaused = session.pausedAt != null;
+            return (
             <div key={session.id} className="pz-card overflow-hidden">
               {/* Session Header */}
               <div className="p-4 text-white" style={{ background: 'var(--pz-bg)', borderBottom: '1px solid var(--pz-border)' }}>
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="min-w-0 flex-grow">
                     <div className="text-[9px] font-black uppercase tracking-widest mb-0.5 text-[#CBFE1C]">Coach {session.startedBy}</div>
-                    <div className="pz-display text-lg tracking-tight leading-tight truncate">{session.title}</div>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="pz-display text-lg tracking-tight leading-tight truncate">{session.title}</div>
+                      {isPaused && (
+                        <span className="shrink-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 text-[#CBFE1C] bg-[#CBFE1C]/10 border border-[#CBFE1C]/40">
+                          Paused
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <button
-                    onClick={async () => {
-                      await supabaseService.stopGame(session.id);
-                      const sessions = await supabaseService.getActiveGames();
-                      setActiveSessions(sessions);
-                    }}
-                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-[9px] font-black uppercase shrink-0 active:scale-95"
-                  >
-                    End
-                  </button>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={async () => {
+                        if (isPaused) await supabaseService.resumeGame(session.id);
+                        else await supabaseService.pauseGame(session.id);
+                        const sessions = await supabaseService.getActiveGames();
+                        setActiveSessions(sessions);
+                      }}
+                      className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase active:scale-95 flex items-center gap-1.5 ${
+                        isPaused
+                          ? 'bg-[#CBFE1C] text-[#0B0E13] hover:brightness-110'
+                          : 'bg-white/10 border border-white/15 text-white hover:bg-white/20'
+                      }`}
+                    >
+                      {isPaused ? (
+                        <>
+                          <span aria-hidden className="w-0 h-0 border-y-[5px] border-y-transparent border-l-[8px] border-l-current" />
+                          Resume
+                        </>
+                      ) : (
+                        <>
+                          <span aria-hidden className="flex gap-[3px]">
+                            <span className="w-[3px] h-[11px] bg-current" />
+                            <span className="w-[3px] h-[11px] bg-current" />
+                          </span>
+                          Pause
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await supabaseService.stopGame(session.id);
+                        const sessions = await supabaseService.getActiveGames();
+                        setActiveSessions(sessions);
+                      }}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-[9px] font-black uppercase shrink-0 active:scale-95"
+                    >
+                      End
+                    </button>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <SessionTimer session={session} />
@@ -426,17 +477,24 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
                 </div>
               </div>
 
-              {/* Scorer */}
+              {/* Scorer, locked while the game is paused */}
               <div className="p-3 max-h-[60vh] overflow-y-auto">
-                <OneHandScorer
-                  session={session}
-                  students={students}
-                  adminName={adminName}
-                  gameLibrary={combinedLibrary}
-                />
+                {isPaused && (
+                  <div className="mb-2 px-3 py-2 border border-[#CBFE1C]/40 bg-[#CBFE1C]/10 text-[#CBFE1C] text-[9px] font-black uppercase tracking-widest text-center">
+                    Paused. Scoring is off until you resume.
+                  </div>
+                )}
+                <div className={isPaused ? 'pointer-events-none opacity-40 select-none' : undefined}>
+                  <OneHandScorer
+                    session={session}
+                    students={students}
+                    adminName={adminName}
+                    gameLibrary={combinedLibrary}
+                  />
+                </div>
               </div>
             </div>
-          ))
+          );})
         )}
       </div>
 

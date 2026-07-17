@@ -67,6 +67,7 @@ type StudentDoc = {
   avatarMode?: "PHOTO" | "AVATAR";
   avatarLook?: Student["avatarLook"];
   gearEquipped?: string | null;
+  fitTokens?: number;
 };
 
 export const mapStudent = (s: StudentDoc): Student => ({
@@ -90,6 +91,7 @@ export const mapStudent = (s: StudentDoc): Student => ({
   avatarMode: s.avatarMode,
   avatarLook: s.avatarLook,
   gearEquipped: s.gearEquipped,
+  fitTokens: s.fitTokens ?? 0,
 });
 
 type SessionDoc = {
@@ -101,6 +103,8 @@ type SessionDoc = {
   isActive: boolean;
   startedBy?: string;
   roster: string[];
+  pausedAt?: number | null;
+  pausedMs?: number;
   results?: {
     winningHouseId?: HouseId | null;
     winningHouseScore?: number;
@@ -119,6 +123,8 @@ const mapSession = (s: SessionDoc): GameSession => ({
   isActive: s.isActive ?? false,
   startedBy: s.startedBy || "",
   roster: s.roster || [],
+  pausedAt: s.pausedAt ?? null,
+  pausedMs: s.pausedMs ?? 0,
   results: s.results
     ? {
         winningHouseId: (s.results.winningHouseId as HouseId) ?? null,
@@ -945,6 +951,32 @@ class ConvexBackendService {
       }
     } catch (e) {
       console.error("stopGame failed", e);
+    }
+  }
+
+  public async pauseGame(sessionId: string): Promise<GameSession | null> {
+    try {
+      const doc = await this.client.mutation(api.games.pause, {
+        sessionId: sessionId as Id<"gameSessions">,
+        clientId: this.clientId,
+      });
+      return doc ? mapSession(doc as unknown as SessionDoc) : null;
+    } catch (e) {
+      console.error("pauseGame failed", e);
+      return null;
+    }
+  }
+
+  public async resumeGame(sessionId: string): Promise<GameSession | null> {
+    try {
+      const doc = await this.client.mutation(api.games.resume, {
+        sessionId: sessionId as Id<"gameSessions">,
+        clientId: this.clientId,
+      });
+      return doc ? mapSession(doc as unknown as SessionDoc) : null;
+    } catch (e) {
+      console.error("resumeGame failed", e);
+      return null;
     }
   }
 

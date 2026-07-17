@@ -487,7 +487,8 @@ const GameOverlay: React.FC = () => {
       // Remove games that have ended - but give 5 second buffer for game over sequence
       // This ensures countdown sounds and game over modal can play
       setActiveGames(prev => {
-        const stillActive = prev.filter(g => now < g.endTime + 5000);
+        // Paused games are kept regardless of endTime — resume extends it.
+        const stillActive = prev.filter(g => g.pausedAt != null || now < g.endTime + 5000);
         if (stillActive.length !== prev.length) {
           console.log('🧹 Cleaned up', prev.length - stillActive.length, 'ended games (after 5s buffer)');
         }
@@ -540,6 +541,10 @@ const GameOverlay: React.FC = () => {
       }
 
       activeGames.forEach(game => {
+          // Coach paused the game: freeze warnings, countdown, and auto-stop.
+          // Resume extends endTime, so the timers pick up exactly where they left off.
+          if (game.pausedAt != null) return;
+
           if (!gameStates.current[game.id]) {
              gameStates.current[game.id] = {
                 hasPlayed30Warning: false,

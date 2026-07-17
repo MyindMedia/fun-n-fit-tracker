@@ -88,6 +88,9 @@ export interface GameSession {
   isActive: boolean;
   startedBy: string;
   roster: string[];
+  // Coach pause: pausedAt is set while paused; pausedMs = accumulated pause time
+  pausedAt?: number | null;
+  pausedMs?: number;
   results?: GameResult;
 }
 
@@ -218,6 +221,7 @@ export interface Student {
   // Layered avatar (components/avatar): photo vs avatar + equipped look
   avatarMode?: 'PHOTO' | 'AVATAR';
   gearEquipped?: string | null;
+  fitTokens?: number;
   avatarLook?: {
     body?: 'M' | 'F';
     skin?: string;
@@ -248,7 +252,8 @@ export interface Transaction {
     | 'PARTNER_VISIT'
     | 'SPECIAL_TASK'
     | 'SYSTEM'
-    | 'STORE_PURCHASE';
+    | 'STORE_PURCHASE'
+    | 'JACKPOT';
   description: string;
   createdAt: string | Date; // Can be ISO string or Date object
   adminName?: string;

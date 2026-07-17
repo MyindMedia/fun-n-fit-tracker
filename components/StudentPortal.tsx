@@ -9,6 +9,7 @@ import LootCrates from './avatar/LootCrates';
 import GearShop from './avatar/GearShop';
 import PlayerCard, { thingName } from './Student/PlayerCard';
 import GameCenterStats from './Student/GameCenterStats';
+import MarketplaceTab from './Student/MarketplaceTab';
 import TrophyCase from './TrophyCase';
 import LevelPath from './LevelPath';
 import { getStudentDisplayName, getInitials } from '../utils/studentDisplay';
@@ -24,7 +25,7 @@ interface StudentPortalProps {
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
 
 const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefresh }) => {
-  const [activeTab, setActiveTab] = useState<'PROFILE' | 'PROGRESS' | 'AWARDS' | 'FRIENDS' | 'TEAM' | 'STORE' | 'NEWS'>('PROFILE');
+  const [activeTab, setActiveTab] = useState<'PROFILE' | 'PROGRESS' | 'AWARDS' | 'FRIENDS' | 'TEAM' | 'STORE' | 'MARKET' | 'NEWS'>('PROFILE');
   const [ranks, setRanks] = useState<Rank[]>([]);
   const [trophies, setTrophies] = useState<Trophy[]>([]);
   const [friends, setFriends] = useState<Student[]>([]);
@@ -851,6 +852,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
               { id: 'PROGRESS', label: 'Stats', icon: Ic.Chart },
               { id: 'AWARDS', label: 'Awards', icon: Ic.Medal },
               { id: 'STORE', label: 'Item Shop', icon: Ic.Store },
+              { id: 'MARKET', label: 'Marketplace', icon: Ic.Gift },
               { id: 'NEWS', label: 'News', icon: Ic.Note },
               { id: 'FRIENDS', label: 'Friends', icon: Ic.Users },
               { id: 'TEAM', label: 'Team', icon: Ic.Home }
@@ -878,6 +880,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
           {activeTab === 'PROGRESS' && renderProgressTab()}
           {activeTab === 'AWARDS' && <TrophyCase student={student} />}
           {activeTab === 'STORE' && renderStoreTab()}
+          {activeTab === 'MARKET' && <MarketplaceTab student={student} onRefresh={() => onRefresh?.()} />}
           {activeTab === 'NEWS' && renderNewsTab()}
           {activeTab === 'FRIENDS' && renderFriendsTab()}
           {activeTab === 'TEAM' && renderTeamTab()}

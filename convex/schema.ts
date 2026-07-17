@@ -45,6 +45,8 @@ export default defineSchema({
     avatarMode: v.optional(v.union(v.literal("PHOTO"), v.literal("AVATAR"))),
     // Equipped gear item (gearCatalog.ts) — multiplies point earning by source
     gearEquipped: v.optional(v.union(v.string(), v.null())),
+    // FitTokens balance (parent-paid cosmetic currency; audited in fitTokenLedger)
+    fitTokens: v.optional(v.number()),
     avatarLook: v.optional(
       v.object({
         body: v.optional(v.union(v.literal("M"), v.literal("F"))),
@@ -73,6 +75,9 @@ export default defineSchema({
     // Coach picks at launch: MANUAL scoring or NFC bands. In NFC mode every
     // tap is auto-routed to this session and processed per the game's rules.
     captureMode: v.optional(v.union(v.literal("MANUAL"), v.literal("NFC"))),
+    // Coach pause: pausedAt set while paused; pausedMs accumulates total paused time
+    pausedAt: v.optional(v.union(v.number(), v.null())),
+    pausedMs: v.optional(v.number()),
     results: v.optional(gameResults),
     createdAt: v.number(),
   })
@@ -559,6 +564,116 @@ export default defineSchema({
     .index("by_ts", ["ts"])
     .index("by_session", ["sessionId", "ts"])
     .index("by_student", ["studentId", "ts"]),
+
+  // ── FitTokens: parent-paid cosmetic currency (vanity only, never power) ────
+  fitTokenPacks: defineTable({
+    key: v.string(),
+    name: v.string(),
+    tokens: v.number(),
+    priceLabel: v.string(), // display only, e.g. "$4.99" — money moves on hosted checkout
+    paymentUrl: v.optional(v.union(v.string(), v.null())), // hosted checkout link (Stripe/GHL)
+    sort: v.number(),
+    active: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_key", ["key"])
+    .index("by_active", ["active"]),
+
+  fitTokenPurchases: defineTable({
+    parentId: v.id("parents"),
+    studentId: v.id("students"),
+    packKey: v.string(),
+    tokens: v.number(),
+    reference: v.string(), // FT-XXXXXX, rides the hosted checkout as client_reference_id
+    status: v.union(v.literal("PENDING"), v.literal("CREDITED"), v.literal("CANCELLED")),
+    creditedBy: v.optional(v.union(v.string(), v.null())), // "WEBHOOK" or admin name
+    createdAt: v.number(),
+    resolvedAt: v.optional(v.union(v.number(), v.null())),
+  })
+    .index("by_reference", ["reference"])
+    .index("by_status", ["status", "createdAt"])
+    .index("by_parent", ["parentId", "createdAt"])
+    .index("by_student", ["studentId", "createdAt"]),
+
+  fitTokenLedger: defineTable({
+    studentId: v.id("students"),
+    amount: v.number(), // +credit / -spend
+    kind: v.union(
+      v.literal("PURCHASE"),
+      v.literal("ADJUST"),
+      v.literal("SPEND"),
+      v.literal("JACKPOT")
+    ),
+    description: v.string(),
+    byName: v.optional(v.union(v.string(), v.null())),
+    createdAt: v.number(),
+  })
+    .index("by_student", ["studentId", "createdAt"])
+    .index("by_createdAt", ["createdAt"]),
+
+  // ── Consumable gear activations (DAILY cooldown / ONE_SHOT) ───────────────
+  gearActivations: defineTable({
+    studentId: v.id("students"),
+    gearKey: v.string(),
+    kind: v.union(v.literal("DAILY"), v.literal("ONE_SHOT")),
+    date: v.string(), // YYYY-MM-DD local — DAILY items: one per day
+    activatedAt: v.number(),
+    expiresAt: v.number(), // effect window end
+  })
+    .index("by_student_date", ["studentId", "date"])
+    .index("by_student", ["studentId", "expiresAt"]),
+
+  // ── Points marketplace: in-kind donated prizes, confirmed handover ────────
+  marketItems: defineTable({
+    name: v.string(),
+    description: v.string(),
+    icon: v.string(), // Ic icon key or short label
+    imageUrl: v.optional(v.union(v.string(), v.null())),
+    pointCost: v.number(),
+    qtyAvailable: v.number(),
+    donatedBy: v.optional(v.union(v.string(), v.null())),
+    active: v.boolean(),
+    createdAt: v.number(),
+  }).index("by_active", ["active"]),
+
+  marketOrders: defineTable({
+    studentId: v.id("students"),
+    itemId: v.id("marketItems"),
+    itemName: v.string(),
+    cost: v.number(),
+    claimCode: v.string(), // 6-char code the family shows at the desk
+    status: v.union(v.literal("PENDING"), v.literal("FULFILLED"), v.literal("CANCELLED")),
+    requestedVia: v.union(v.literal("STUDENT"), v.literal("PARENT")),
+    confirmedBy: v.optional(v.union(v.string(), v.null())),
+    createdAt: v.number(),
+    resolvedAt: v.optional(v.union(v.number(), v.null())),
+  })
+    .index("by_status", ["status", "createdAt"])
+    .index("by_student", ["studentId", "createdAt"])
+    .index("by_claimCode", ["claimCode"]),
+
+  // ── Jackpot: coach-triggered random gift wheel ─────────────────────────────
+  jackpotPrizes: defineTable({
+    key: v.string(),
+    label: v.string(),
+    kind: v.union(v.literal("POINTS"), v.literal("TOKENS"), v.literal("AVATAR_ITEM")),
+    value: v.string(), // POINTS/TOKENS: amount; AVATAR_ITEM: rarity
+    weight: v.number(),
+    active: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_key", ["key"])
+    .index("by_active", ["active"]),
+
+  jackpotSpins: defineTable({
+    studentId: v.id("students"),
+    prizeKey: v.string(),
+    label: v.string(), // what actually landed (resolved item name etc.)
+    byAdmin: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_student", ["studentId", "createdAt"])
+    .index("by_createdAt", ["createdAt"]),
 
   // ── Game center: perk redemptions ──────────────────────────────────────────
   redemptions: defineTable({

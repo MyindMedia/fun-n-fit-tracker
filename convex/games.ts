@@ -107,6 +107,89 @@ export const start = mutation({
   },
 });
 
+// ── Coach pause / resume ─────────────────────────────────────────────────────
+// pausedAt marks a live pause; pausedMs accumulates completed pause time.
+// Resume pushes endTime forward by exactly the paused span, so every existing
+// countdown / auto-stop / transactions-window consumer stays correct with zero
+// timer math changes anywhere else.
+//
+// INTEGRATION: components/GameOverlay.tsx (not owned by this workstream)
+// auto-stops a game when `game.endTime - now <= 0` (~line 631) and plays the
+// 30s/10s countdown alerts from the same math. While a game is PAUSED its
+// endTime is frozen, so a pause that outlives the scheduled end will trigger
+// that auto-stop (and the alerts will fire during the pause). The mapped
+// sessions GameOverlay already receives carry pausedAt; the one-line fix there
+// is to skip the countdown/auto-stop block while `game.pausedAt != null`.
+
+export const pause = mutation({
+  args: {
+    sessionId: v.id("gameSessions"),
+    clientId: v.optional(v.string()),
+  },
+  handler: async (ctx, { sessionId, clientId }) => {
+    const session = await ctx.db.get(sessionId);
+    if (!session) throw new Error("Session not found");
+    if (!session.isActive) throw new Error("Game is not active");
+    if (session.pausedAt != null) throw new Error("Game is already paused");
+
+    const now = Date.now();
+    await ctx.db.patch(sessionId, { pausedAt: now });
+
+    await logActivity(ctx, {
+      type: "POINTS",
+      message: `Paused: ${session.title}`,
+      adminName: session.startedBy,
+    });
+
+    await publishEvent(
+      ctx,
+      "game_pause",
+      { sessionId, title: session.title, ts: now },
+      clientId
+    );
+
+    return await ctx.db.get(sessionId);
+  },
+});
+
+export const resume = mutation({
+  args: {
+    sessionId: v.id("gameSessions"),
+    clientId: v.optional(v.string()),
+  },
+  handler: async (ctx, { sessionId, clientId }) => {
+    const session = await ctx.db.get(sessionId);
+    if (!session) throw new Error("Session not found");
+    if (!session.isActive) throw new Error("Game is not active");
+    if (session.pausedAt == null) throw new Error("Game is not paused");
+
+    const now = Date.now();
+    const pausedFor = Math.max(0, now - session.pausedAt);
+    await ctx.db.patch(sessionId, {
+      pausedMs: (session.pausedMs ?? 0) + pausedFor,
+      pausedAt: null,
+      // The clock did not run during the pause: push the scheduled end out by
+      // exactly the paused span so remaining time picks up where it froze.
+      endTime: session.endTime + pausedFor,
+    });
+
+    await logActivity(ctx, {
+      type: "POINTS",
+      message: `Resumed: ${session.title}`,
+      adminName: session.startedBy,
+    });
+
+    await publishEvent(
+      ctx,
+      "game_resume",
+      { sessionId, title: session.title, ts: now },
+      clientId
+    );
+
+    return await ctx.db.get(sessionId);
+  },
+});
+
 export const stop = mutation({
   args: {
     sessionId: v.id("gameSessions"),
@@ -115,6 +198,14 @@ export const stop = mutation({
   handler: async (ctx, { sessionId, clientId }) => {
     const session = await ctx.db.get(sessionId);
     if (!session) throw new Error("Session not found");
+
+    // Ending a PAUSED game folds the open pause into pausedMs. The game is
+    // over, so endTime is NOT extended; the scoring window below still uses
+    // the session's scheduled window, which resume() has already kept honest.
+    const stoppedAt = Date.now();
+    const totalPausedMs =
+      (session.pausedMs ?? 0) +
+      (session.pausedAt != null ? Math.max(0, stoppedAt - session.pausedAt) : 0);
 
     // Score the session from the points ledger recorded during the game window
     const txs = await ctx.db
@@ -157,7 +248,9 @@ export const stop = mutation({
     await ctx.db.patch(sessionId, {
       isActive: false,
       results,
-      endTime: Date.now(),
+      endTime: stoppedAt,
+      pausedAt: null,
+      pausedMs: totalPausedMs,
     });
 
     await logActivity(ctx, {

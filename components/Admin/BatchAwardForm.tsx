@@ -11,11 +11,17 @@ interface BatchAwardFormProps {
   onSuccess: () => void;
 }
 
+// Quick-pick reasons for manual coach awards; the pick (or free text) becomes
+// the transaction description shown in the Activity Log.
+const REASON_CHIPS = ['Hustle', 'Teamwork', 'Effort', 'Listening', 'Leadership', 'Helping out', 'Game winner'];
+
 const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, onSuccess }) => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [points, setPoints] = useState<string>('10');
   const [loading, setLoading] = useState(false);
   const [filterHouse, setFilterHouse] = useState<string>('all');
+  const [reasonChip, setReasonChip] = useState<string | null>(null);
+  const [reasonText, setReasonText] = useState('');
 
   const toggle = (id: string) => {
     if (loading) return;
@@ -55,10 +61,16 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
     const confirmMsg = `Award ${pts} points to ${selected.size} athletes?`;
     if (!window.confirm(confirmMsg)) return;
 
+    // Fast coaches never get blocked: untouched reason falls back cleanly.
+    const reason = reasonText.trim() || reasonChip || '';
+    const description = reason ? `Coach award: ${reason}` : 'Coach award';
+
     setLoading(true);
     try {
-      await supabaseService.addBatchPoints(Array.from(selected), pts, 'Batch Reward', adminName);
+      await supabaseService.addBatchPoints(Array.from(selected), pts, description, adminName);
       setSelected(new Set());
+      setReasonChip(null);
+      setReasonText('');
       onSuccess();
     } catch (error) {
       console.error("Batch Award Failed:", error);
@@ -202,6 +214,37 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
             />
             <span className="font-black text-white/40 text-xs flex-shrink-0">PTS</span>
           </div>
+        </div>
+
+        {/* Reason: quick chips + free text; optional, defaults to "Coach award" */}
+        <div className="space-y-2 pt-1">
+          <label className="text-[10px] font-black uppercase tracking-widest block" style={{ color: 'var(--pz-text)' }}>
+            What is this for?
+          </label>
+          <div className="flex gap-1.5 flex-wrap">
+            {REASON_CHIPS.map(chip => (
+              <button
+                key={chip}
+                onClick={() => setReasonChip(prev => (prev === chip ? null : chip))}
+                disabled={loading}
+                className={`touch-btn px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wide transition-all ${
+                  reasonChip === chip
+                    ? 'bg-[#CBFE1C] text-[#0B0E13]'
+                    : 'bg-white/5 text-white/60 border border-white/10 active:bg-white/10'
+                }`}
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+          <input
+            type="text"
+            value={reasonText}
+            disabled={loading}
+            onChange={(e) => setReasonText(e.target.value)}
+            placeholder="Or type your own reason (optional)"
+            className="w-full bg-[#171C27] border border-white/10 px-3 py-2 text-sm font-bold text-white placeholder-white/30 focus:border-[#CBFE1C] outline-none disabled:opacity-50"
+          />
         </div>
       </div>
 

@@ -4,6 +4,12 @@ import { useClerk } from '@clerk/clerk-react';
 import { supabaseService } from '../services/supabaseService';
 import { parentAuth } from '../services/parentAuth';
 import { gameCenter } from '../services/gameCenter';
+import {
+    fitTokensClient,
+    FitTokenPack,
+    FitTokenPurchase,
+    StartPurchaseResult,
+} from '../services/fitTokensClient';
 import { Student, HouseId } from '../types';
 import { HOUSES, RANKS } from '../constants';
 import CheckInScanner from './Parent/CheckInScanner';
@@ -737,6 +743,9 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                 </div>
             </div>
 
+            {/* ── FitTokens (parent-paid avatar currency) ───────────────── */}
+            <FitTokensCard student={student} />
+
             {/* ── Stats Summary ─────────────────────────────────────────── */}
             <div style={{ ...styles.card, marginBottom: '1.25rem' }}>
                 <div className="pz-eyebrow" style={pStyles.eyebrow}>Athlete Summary</div>
@@ -912,6 +921,300 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
 };
 
 /* -------------------------------------------------------------------------- */
+/* FitTokens card (balance + Get FitTokens sheet + purchase history)          */
+/* -------------------------------------------------------------------------- */
+const PURCHASE_CHIPS: Record<string, { bg: string; border: string; color: string; label: string }> = {
+    PENDING: { bg: 'rgba(245,158,11,0.10)', border: 'rgba(245,158,11,0.35)', color: '#fcd34d', label: 'Pending' },
+    CREDITED: { bg: 'rgba(16,185,129,0.10)', border: 'rgba(16,185,129,0.3)', color: '#6ee7b7', label: 'Credited' },
+    CANCELLED: { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.14)', color: PZ.muted, label: 'Cancelled' },
+};
+
+const FitTokensCard: React.FC<{ student: Student }> = ({ student }) => {
+    const [packs, setPacks] = useState<FitTokenPack[]>([]);
+    const [purchases, setPurchases] = useState<FitTokenPurchase[]>([]);
+    const [sheetOpen, setSheetOpen] = useState(false);
+    const [intent, setIntent] = useState<StartPurchaseResult | null>(null);
+    const [busyKey, setBusyKey] = useState<string | null>(null);
+    const [copiedRef, setCopiedRef] = useState<string | null>(null);
+
+    useEffect(() => {
+        fitTokensClient.packs()
+            .then(setPacks)
+            .catch(err => console.warn('Failed to load FitToken packs:', err));
+        let unsub: (() => void) | undefined;
+        try {
+            // Live list: status chips flip on their own when the desk or the
+            // payment webhook credits a code.
+            unsub = fitTokensClient.subscribeMyPurchases(rows => {
+                setPurchases(rows.filter(r => r.studentId === student.id));
+            });
+        } catch (err) {
+            console.warn('Failed to load FitToken purchases:', err);
+        }
+        return () => { if (unsub) unsub(); };
+    }, [student.id]);
+
+    const copyReference = async (ref: string) => {
+        try {
+            await navigator.clipboard.writeText(ref);
+            setCopiedRef(ref);
+            setTimeout(() => setCopiedRef(null), 2000);
+        } catch {
+            window.prompt('Copy this code:', ref);
+        }
+    };
+
+    const openPayment = (paymentUrl: string, reference: string) => {
+        const url = paymentUrl
+            + (paymentUrl.includes('?') ? '&' : '?')
+            + 'client_reference_id=' + encodeURIComponent(reference);
+        window.open(url, '_blank', 'noopener');
+    };
+
+    const handlePick = async (pack: FitTokenPack) => {
+        if (busyKey) return;
+        setBusyKey(pack.key);
+        try {
+            const res = await fitTokensClient.startPurchase(student.id, pack.key);
+            setIntent(res);
+        } catch (err: any) {
+            alert(err?.message || 'Could not start the purchase. Please try again.');
+        } finally {
+            setBusyKey(null);
+        }
+    };
+
+    const handleCancel = async (purchaseId: string) => {
+        if (busyKey) return;
+        if (!window.confirm('Cancel this FitTokens purchase? The code will stop working.')) return;
+        setBusyKey(purchaseId);
+        try {
+            await fitTokensClient.cancelPurchase(purchaseId);
+            if (intent?.purchaseId === purchaseId) setIntent(null);
+        } catch (err: any) {
+            alert(err?.message || 'Could not cancel that purchase.');
+        } finally {
+            setBusyKey(null);
+        }
+    };
+
+    const firstName = student.fullName.split(' ')[0];
+
+    return (
+        <div style={{ ...styles.card, marginBottom: '1.25rem' }}>
+            <div className="pz-eyebrow" style={pStyles.eyebrow}>FitTokens</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ color: PZ.volt, display: 'inline-flex' }}><Ic.Coin size={26} /></span>
+                        <span className="pz-display" style={{ fontSize: '2rem', color: PZ.volt, lineHeight: 1 }}>
+                            {(student.fitTokens ?? 0).toLocaleString()}
+                        </span>
+                    </div>
+                    <p style={{ margin: '0.45rem 0 0', color: PZ.muted, fontSize: '0.8rem', fontWeight: 500, lineHeight: 1.45 }}>
+                        FitTokens unlock avatar looks in {firstName}'s studio. They never affect
+                        points, boosts, or scores.
+                    </p>
+                </div>
+                <button
+                    onClick={() => { setIntent(null); setSheetOpen(true); }}
+                    className="pz-btn"
+                    style={{
+                        ...pStyles.btnPrimary, minHeight: '44px', padding: '0 1rem',
+                        whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                    }}
+                >
+                    <Ic.Coin size={16} /> Get FitTokens
+                </button>
+            </div>
+
+            {purchases.length > 0 && (
+                <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: PZ.muted, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        Recent Purchases
+                    </div>
+                    {purchases.map(p => {
+                        const chip = PURCHASE_CHIPS[p.status] ?? PURCHASE_CHIPS.PENDING;
+                        return (
+                            <div key={p.id} style={{
+                                background: PZ.panel2, border: `1px solid ${PZ.border}`, borderRadius: '4px',
+                                padding: '0.6rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap',
+                            }}>
+                                <div style={{ flex: '1 1 170px', minWidth: 0 }}>
+                                    <div style={{ color: PZ.white, fontWeight: 700, fontSize: '0.85rem' }}>
+                                        {p.packName} · {p.tokens.toLocaleString()} tokens
+                                    </div>
+                                    <div style={{ color: PZ.muted, fontSize: '0.72rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                                        <button
+                                            onClick={() => copyReference(p.reference)}
+                                            title="Copy code"
+                                            style={{
+                                                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                                                color: PZ.volt, fontWeight: 800, fontFamily: 'inherit', fontSize: '0.75rem',
+                                                letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                                            }}
+                                        >
+                                            <Ic.ClipboardCheck size={13} /> {p.reference}
+                                        </button>
+                                        {copiedRef === p.reference && <span style={{ color: PZ.volt }}>Copied</span>}
+                                        <span>· {new Date(p.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                </div>
+                                <span style={{
+                                    background: chip.bg, border: `1px solid ${chip.border}`, color: chip.color,
+                                    borderRadius: '3px', padding: '0.25rem 0.55rem', fontSize: '0.65rem',
+                                    fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0,
+                                }}>
+                                    {chip.label}
+                                </span>
+                                {p.status === 'PENDING' && (
+                                    <button
+                                        onClick={() => handleCancel(p.id)}
+                                        disabled={busyKey === p.id}
+                                        className="pz-btn-ghost"
+                                        style={{
+                                            minHeight: '36px', padding: '0 0.75rem', fontSize: '0.7rem', fontWeight: 700,
+                                            textTransform: 'uppercase', letterSpacing: '0.06em', cursor: 'pointer',
+                                            opacity: busyKey === p.id ? 0.6 : 1, flexShrink: 0,
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {/* Get FitTokens sheet */}
+            {sheetOpen && (
+                <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Get FitTokens"
+                    onClick={() => setSheetOpen(false)}
+                    style={{
+                        position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(6,8,12,0.8)',
+                        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+                        padding: '1rem', boxSizing: 'border-box',
+                    }}
+                >
+                    <div
+                        onClick={e => e.stopPropagation()}
+                        style={{ ...styles.card, width: '100%', maxWidth: '440px', maxHeight: '85vh', overflowY: 'auto' }}
+                    >
+                        {!intent ? (
+                            <>
+                                <div className="pz-eyebrow" style={pStyles.eyebrow}>Get FitTokens</div>
+                                <p style={{ margin: '0 0 1rem', color: PZ.muted, fontSize: '0.85rem', fontWeight: 500, lineHeight: 1.45 }}>
+                                    Pick a pack for <span style={{ color: PZ.white, fontWeight: 700 }}>{firstName}</span>.
+                                    You'll get a reference code to pay with.
+                                </p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                                    {packs.map(pack => (
+                                        <button
+                                            key={pack.key}
+                                            onClick={() => handlePick(pack)}
+                                            disabled={busyKey === pack.key}
+                                            style={{
+                                                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem',
+                                                background: PZ.panel2, border: `1px solid ${PZ.border}`, clipPath: PZ.notchSm,
+                                                padding: '0.85rem 1rem', cursor: 'pointer', fontFamily: 'inherit',
+                                                minHeight: '56px', textAlign: 'left', width: '100%',
+                                                opacity: busyKey === pack.key ? 0.6 : 1,
+                                            }}
+                                        >
+                                            <div style={{ minWidth: 0 }}>
+                                                <div style={{ color: PZ.white, fontWeight: 800, fontSize: '0.9375rem' }}>{pack.name}</div>
+                                                <div style={{ color: PZ.volt, fontSize: '0.78rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                    <Ic.Coin size={14} /> {pack.tokens.toLocaleString()} tokens
+                                                </div>
+                                            </div>
+                                            <div className="pz-display" style={{ color: PZ.white, fontSize: '1.125rem', flexShrink: 0 }}>
+                                                {pack.priceLabel}
+                                            </div>
+                                        </button>
+                                    ))}
+                                    {packs.length === 0 && (
+                                        <p style={{ margin: 0, color: PZ.muted, fontSize: '0.85rem', fontWeight: 500 }}>
+                                            No packs are available right now. Ask at the front desk.
+                                        </p>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={() => setSheetOpen(false)}
+                                    className="pz-btn-ghost"
+                                    style={{ ...pStyles.btnSecondary, width: '100%', marginTop: '1rem', minHeight: '44px' }}
+                                >
+                                    Close
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <div className="pz-eyebrow" style={pStyles.eyebrow}>Your Reference Code</div>
+                                <p style={{ margin: '0 0 0.75rem', color: PZ.muted, fontSize: '0.85rem', fontWeight: 500, lineHeight: 1.45 }}>
+                                    {intent.packName} · {intent.tokens.toLocaleString()} tokens for{' '}
+                                    <span style={{ color: PZ.white, fontWeight: 700 }}>{firstName}</span>
+                                </p>
+                                <div style={{
+                                    background: PZ.voltFaint, border: `1px solid ${PZ.voltDim}`, clipPath: PZ.notchSm,
+                                    padding: '1rem', textAlign: 'center', marginBottom: '0.75rem',
+                                }}>
+                                    <div className="pz-display" style={{ fontSize: '2rem', color: PZ.volt, letterSpacing: '0.12em', lineHeight: 1 }}>
+                                        {intent.reference}
+                                    </div>
+                                    <button
+                                        onClick={() => copyReference(intent.reference)}
+                                        className="pz-btn-ghost"
+                                        style={{
+                                            marginTop: '0.6rem', minHeight: '40px', padding: '0 0.875rem', cursor: 'pointer',
+                                            fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+                                            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                                        }}
+                                    >
+                                        <Ic.ClipboardCheck size={16} />
+                                        {copiedRef === intent.reference ? 'Copied' : 'Copy Code'}
+                                    </button>
+                                </div>
+                                {intent.paymentUrl ? (
+                                    <>
+                                        <button
+                                            onClick={() => openPayment(intent.paymentUrl!, intent.reference)}
+                                            className="pz-btn"
+                                            style={{ ...pStyles.btnPrimary, width: '100%', minHeight: '48px', fontSize: '0.9375rem' }}
+                                        >
+                                            Pay Now ({intent.priceLabel})
+                                        </button>
+                                        <p style={{ margin: '0.6rem 0 0', color: PZ.faint, fontSize: '0.75rem', fontWeight: 500, lineHeight: 1.45 }}>
+                                            Checkout opens in a new tab. Your code rides along with the payment,
+                                            so the tokens land automatically. You can also pay at the front desk
+                                            with this code.
+                                        </p>
+                                    </>
+                                ) : (
+                                    <p style={{ margin: 0, color: PZ.muted, fontSize: '0.85rem', fontWeight: 500, lineHeight: 1.5 }}>
+                                        Pay at the front desk ({intent.priceLabel}) and show this code.
+                                        Staff will add the tokens to {firstName}'s account right away.
+                                    </p>
+                                )}
+                                <button
+                                    onClick={() => { setSheetOpen(false); setIntent(null); }}
+                                    className="pz-btn-ghost"
+                                    style={{ ...pStyles.btnSecondary, width: '100%', marginTop: '1rem', minHeight: '44px' }}
+                                >
+                                    Done
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+/* -------------------------------------------------------------------------- */
 /* Sub-components */
 /* -------------------------------------------------------------------------- */
 const StudentCard: React.FC<{
@@ -969,8 +1272,14 @@ const StudentCard: React.FC<{
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div className="pz-display" style={{ color: PZ.volt, fontSize: '1.5rem' }}>
-                    {student.points.toLocaleString()} <span style={{ fontSize: '0.6875rem', color: PZ.muted, fontFamily: PZ.bodyFont, fontWeight: 700, letterSpacing: '0.1em' }}>PTS</span>
+                <div style={{ minWidth: 0 }}>
+                    <div className="pz-display" style={{ color: PZ.volt, fontSize: '1.5rem' }}>
+                        {student.points.toLocaleString()} <span style={{ fontSize: '0.6875rem', color: PZ.muted, fontFamily: PZ.bodyFont, fontWeight: 700, letterSpacing: '0.1em' }}>PTS</span>
+                    </div>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: PZ.muted, fontSize: '0.72rem', fontWeight: 700, marginTop: '0.2rem' }}>
+                        <span style={{ color: PZ.volt, display: 'inline-flex' }}><Ic.Coin size={13} /></span>
+                        {(student.fitTokens ?? 0).toLocaleString()} FitTokens
+                    </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                     <button

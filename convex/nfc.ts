@@ -381,16 +381,53 @@ export const autoScan = mutation({
       checkedIn,
     };
 
-    // Find the live NFC-mode session this kid is playing in.
+    // Find the live NFC-mode session this kid is playing in. A PAUSED session
+    // (pausedAt set) is never a scan target: taps route to an unpaused one.
     const active = await ctx.db
       .query("gameSessions")
       .withIndex("by_active", (q) => q.eq("isActive", true))
       .collect();
-    const session = active.find(
+    const candidates = active.filter(
       (s) => s.captureMode === "NFC" && s.roster.includes(student._id)
     );
+    const session = candidates.find((s) => s.pausedAt == null);
 
     if (!session) {
+      const pausedSession = candidates.find((s) => s.pausedAt != null);
+      if (pausedSession) {
+        // The kid's only matching game is paused. Presence was already handled
+        // above (never double check-in); just log the check-in scan when this
+        // tap was the one that marked them Here, then tell the coach.
+        if (checkedIn) {
+          await ctx.db.insert("nfcScans", {
+            ts,
+            kind: "CHECKIN",
+            tagUid: normalizeUid(args.tagUid),
+            studentId: student._id,
+            studentName: student.fullName,
+            houseId: student.houseId,
+            actor: args.adminName,
+          });
+        }
+        // INTEGRATION: components/AdminDashboard.tsx handleGlobalScan (frozen)
+        // has no GAME_PAUSED branch yet. This shape degrades gracefully there:
+        // `status` carries the real check-in outcome, so the existing fallback
+        // toasts stay truthful ("already checked in" / "checked in"). To show
+        // the pause itself, add before the status fallback:
+        //   else if (res.mode === 'GAME_PAUSED') {
+        //     haptic('warning');
+        //     pushScanToast(res.message);
+        //   }
+        return {
+          mode: "GAME_PAUSED" as const,
+          status: checkedIn ? (checkInStatus ?? "OK") : ("ALREADY" as const),
+          gamePaused: true,
+          gameTitle: pausedSession.title,
+          studentName: student.fullName,
+          message: `Game is paused: ${pausedSession.title}. Tap not counted.`,
+          ...base,
+        };
+      }
       // No game to feed — behave like the front door.
       if (!checkedIn) {
         return { mode: "CHECKIN" as const, status: "ALREADY" as const, ...base };

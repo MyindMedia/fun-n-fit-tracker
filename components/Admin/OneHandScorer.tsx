@@ -53,6 +53,8 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
 
   const handleScore = async (studentId: string | undefined, houseId: any, amount: number, desc: string) => {
     if (amount === 0) return;
+    // Paused game: scoring is locked (DrillLauncher also disables the buttons).
+    if (session.pausedAt != null) return;
     if (studentId && outs[studentId]) return;
     try {
       await supabaseService.recordScoreEvent(session.id, studentId, houseId, amount, adminName, desc);

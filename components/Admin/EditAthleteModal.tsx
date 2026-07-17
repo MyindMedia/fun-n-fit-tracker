@@ -13,6 +13,10 @@ interface EditAthleteModalProps {
   onRefresh: () => void;
 }
 
+// Quick-pick reasons for manual coach adjustments; the pick (or free text)
+// becomes the transaction description shown in the Activity Log.
+const REASON_CHIPS = ['Hustle', 'Teamwork', 'Effort', 'Listening', 'Leadership', 'Helping out', 'Game winner'];
+
 const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName, onClose, onRefresh }) => {
   const [activeTab, setActiveTab] = useState<'INFO' | 'POINTS'>('INFO');
   const [name, setName] = useState(student.fullName);
@@ -20,6 +24,8 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
   const [gender, setGender] = useState<'Male' | 'Female'>(student.gender);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [reasonChip, setReasonChip] = useState<string | null>(null);
+  const [reasonText, setReasonText] = useState('');
 
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -89,7 +95,10 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
   };
 
   const handleAdjustPoints = async (amount: number) => {
-    const desc = amount > 0 ? "Manual Coach Award" : "Manual Adjustment";
+    // Untouched reason falls back to the default so a fast coach is never blocked.
+    const reason = reasonText.trim() || reasonChip || '';
+    const prefix = amount > 0 ? 'Coach award' : 'Coach deduction';
+    const desc = reason ? `${prefix}: ${reason}` : prefix;
     await supabaseService.addPoints(student.id, amount, 'MANUAL', desc, adminName);
     onRefresh();
     try {
@@ -244,6 +253,33 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
                    <div className="p-8 border border-white/10" style={{ background: 'var(--pz-panel-2)' }}>
                       <h4 className="text-xl text-[#CBFE1C] mb-2">Manual Point Override</h4>
                       <p className="text-xs font-medium" style={{ color: 'var(--pz-text)' }}>Use these presets to quickly adjust the athlete's point total outside of regular sessions.</p>
+                   </div>
+
+                   {/* Reason: quick chips + free text; optional, defaults to Coach award / Coach deduction */}
+                   <div className="space-y-3">
+                      <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>What is this for?</div>
+                      <div className="flex gap-2 flex-wrap">
+                         {REASON_CHIPS.map(chip => (
+                           <button
+                             key={chip}
+                             onClick={() => setReasonChip(prev => (prev === chip ? null : chip))}
+                             className={`px-3 py-2 text-[10px] font-black uppercase tracking-wide transition-all ${
+                               reasonChip === chip
+                                 ? 'bg-[#CBFE1C] text-[#0B0E13]'
+                                 : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                             }`}
+                           >
+                             {chip}
+                           </button>
+                         ))}
+                      </div>
+                      <input
+                        type="text"
+                        value={reasonText}
+                        onChange={(e) => setReasonText(e.target.value)}
+                        placeholder="Or type your own reason (optional)"
+                        className="w-full px-4 py-3 border border-white/10 bg-[#171C27] text-white placeholder-white/40 font-bold focus:outline-none focus:border-[#CBFE1C]"
+                      />
                    </div>
 
                    <div className="grid grid-cols-2 gap-8">

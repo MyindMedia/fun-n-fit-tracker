@@ -13,6 +13,7 @@ import {
 } from '../../avatarCatalog';
 import { gameCenter } from '../../services/gameCenter';
 import { supabaseService } from '../../services/supabaseService';
+import { fitTokensClient } from '../../services/fitTokensClient';
 import AvatarRig from './AvatarRig';
 import { Ic } from '../icons';
 
@@ -50,6 +51,8 @@ const AvatarStudio: React.FC<AvatarStudioProps> = ({ student, onClose, onSaved }
   const [saving, setSaving] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [balance, setBalance] = useState(student.points);
+  // FitTokens: vanity-only currency, always shown as coin + number, never money
+  const [tokenBalance, setTokenBalance] = useState(student.fitTokens ?? 0);
 
   const loadOwned = async () => {
     try {
@@ -84,6 +87,24 @@ const AvatarStudio: React.FC<AvatarStudioProps> = ({ student, onClose, onSaved }
       equip(item);
     } catch (err: any) {
       alert(err?.userMessage || err?.message || 'Purchase failed');
+    } finally {
+      setBusyKey(null);
+    }
+  };
+
+  // Token buy path: FitTokens unlock cosmetics only, same equip-after flow as
+  // the point purchase above.
+  const handleTokenBuy = async (item: AvatarItemDef) => {
+    if (busyKey || !item.tokenPrice) return;
+    if (!window.confirm(`Unlock ${item.name} for ${item.tokenPrice} FitTokens?`)) return;
+    setBusyKey(item.key);
+    try {
+      const res = await fitTokensClient.buyAvatarItem(student.id, item.key);
+      setTokenBalance(res.balance);
+      await loadOwned();
+      equip(item);
+    } catch (err: any) {
+      alert(err?.message || 'FitTokens purchase failed');
     } finally {
       setBusyKey(null);
     }
@@ -128,7 +149,16 @@ const AvatarStudio: React.FC<AvatarStudioProps> = ({ student, onClose, onSaved }
       <div className="flex items-center justify-between px-4 py-3 flex-shrink-0" style={{ background: 'var(--pz-panel)', borderBottom: '1px solid var(--pz-border)' }}>
         <button onClick={onClose} className="touch-btn pz-btn-ghost font-bold text-xs px-3 py-1">Cancel</button>
         <h2 className="text-sm text-white uppercase tracking-wide inline-flex items-center gap-2"><Ic.Shirt size={18} /> Avatar Studio</h2>
-        <div className="text-xs font-black" style={{ color: 'var(--pz-volt)' }}>{balance.toLocaleString()} pts</div>
+        <div className="flex items-center gap-2.5">
+          <div className="text-xs font-black" style={{ color: 'var(--pz-volt)' }}>{balance.toLocaleString()} pts</div>
+          <div
+            className="text-xs font-black inline-flex items-center gap-1 px-1.5 py-0.5"
+            style={{ color: 'var(--pz-volt)', background: 'rgba(203,254,28,0.10)', clipPath: NOTCH_SM }}
+            title="FitTokens"
+          >
+            <Ic.Coin size={13} /> {tokenBalance.toLocaleString()}
+          </div>
+        </div>
       </div>
 
       <div className="flex-grow overflow-y-auto custom-scrollbar">
@@ -262,9 +292,37 @@ const AvatarStudio: React.FC<AvatarStudioProps> = ({ student, onClose, onSaved }
                         {item.name}
                       </div>
                       {!unlocked ? (
-                        <div className="text-[9px] font-bold inline-flex items-center gap-1" style={{ color: rarityColor }}>
-                          <Ic.Lock size={10} /> {item.cost} pts
-                        </div>
+                        <>
+                          <div className="text-[9px] font-bold inline-flex items-center gap-1 flex-wrap justify-center" style={{ color: rarityColor }}>
+                            <span className="inline-flex items-center gap-0.5"><Ic.Lock size={10} /> {item.cost} pts</span>
+                            {item.tokenPrice != null && (
+                              <span className="inline-flex items-center gap-0.5"><Ic.Coin size={10} /> {item.tokenPrice}</span>
+                            )}
+                          </div>
+                          {item.tokenPrice != null && tokenBalance >= item.tokenPrice && (
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              onClick={e => { e.stopPropagation(); handleTokenBuy(item); }}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleTokenBuy(item);
+                                }
+                              }}
+                              className="text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 inline-flex items-center gap-1"
+                              style={{
+                                clipPath: NOTCH_SM,
+                                background: 'rgba(203,254,28,0.12)',
+                                border: '1px solid rgba(203,254,28,0.4)',
+                                color: 'var(--pz-volt)',
+                              }}
+                            >
+                              <Ic.Coin size={10} /> Use FitTokens
+                            </span>
+                          )}
+                        </>
                       ) : level > 0 ? (
                         <div className="text-[9px] font-black uppercase" style={{ color: 'var(--pz-volt)' }}>{UPGRADE_TIERS[level]} tier</div>
                       ) : item.isDefault ? (

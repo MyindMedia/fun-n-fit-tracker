@@ -311,6 +311,46 @@ around town, perk shop, kid corner (PIN login + Avatar Studio + crates,
 points-only note), live board panorama, 3-step sign-up, contact. Screenshot
 session was minted via a TEMPORARY convex mutation, deleted after the shoot.
 
+# Economy wave (2026-07-16, fifth /goal directive)
+
+Lawrence's feature list; session ran autonomously, defaults noted here, full spec in
+`ECONOMY_SPEC.md`. Compliance review (compliance-ops, PCI lens) ran BEFORE build.
+
+1. **FitTokens** — parent-paid cosmetic currency. Real payments happen ONLY on external
+   hosted checkout pages (Stripe Payment Link / GHL checkout link, configured per pack in
+   admin) reached from the PARENT portal; our code stores pack/reference/status, never card
+   data (SAQ A posture). Crediting via `POST /fittoken-purchase` webhook
+   (x-fittoken-secret, same pattern as /parent-invite — wire it to the GHL purchase
+   automation) or admin confirmation in the new Token Center. Tokens buy VANITY ONLY
+   (avatar items; token prices added across the catalog) — never gear, boosts, or points.
+   Student portal shows no money surface anywhere (COPPA posture). Balance is
+   per-student with a full ledger.
+2. **Consumable loadouts** — gear gains usage classes: PASSIVE (current always-on slot),
+   DAILY (activate once per day, 15-min effect, cools down till midnight), ONE_SHOT
+   (strongest; consumed on use, re-earn or re-buy). One live activation at a time,
+   enforced server-side in the same applyPoints path as passive gear; combined factor
+   still clamped [0.5, 2.0]. Anti-abuse by design per Lawrence's directive.
+3. **Trading** — extended to loadout GEAR alongside avatar items + badges, with per-item
+   `tradable` flags: rank C/B non-achievement passives tradable; rank A/S, unlock-gated,
+   and consumable gear non-tradable; legendary avatar items non-tradable; starters stay
+   non-tradable. Enforced server-side.
+4. **Game pause/resume** — gameSessions.pausedAt/pausedMs; Pause/Resume next to End in
+   the coach controls; timers freeze; paused sessions are skipped by NFC autoScan; live
+   board shows PAUSED.
+5. **Manual point comments** — coach quick-award surfaces gain quick-pick reason chips +
+   free text; reason lands in transactions.description ("Coach award: Hustle") and shows
+   in the Activity Log with the existing "by <coach>" attribution.
+6. **Jackpot** — admin picks a kid (or random present kid), volt prize wheel, server-side
+   weighted pick from an editable prize pool (points / small FitToken drops / random
+   avatar item), audited in jackpotSpins, big-board celebration. JACKPOT source excluded
+   from multipliers/gear (gifts are never amplified).
+7. **In-kind marketplace** — donated real-world prizes (seeded example: Angels Game
+   Tickets pair) with point prices + limited quantity; kid redeems in a new Marketplace
+   tab → points deducted, qty reserved, 6-char claim code issued; staff CONFIRMS the
+   handover in the new admin Marketplace queue (or cancels → auto refund + qty restore).
+8. Built by four parallel agents with a binding file-ownership matrix (spec §8);
+   foundation (schema/types/stubs) laid single-author first to avoid collisions.
+
 ## Open questions from E2E verification (2026-07-15)
 - **Spending can demote.** Ranks are computed from *current* points (pre-existing
   mechanic), so a big perk purchase that drops a kid below a rank threshold triggers the
