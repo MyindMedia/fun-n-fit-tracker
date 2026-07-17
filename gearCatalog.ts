@@ -32,6 +32,7 @@ export interface GearItemDef {
   usage?: GearUsage; // undefined = PASSIVE (always-on equipped slot)
   durationMin?: number; // DAILY/ONE_SHOT effect window (default 15)
   tradable?: boolean; // GEAR trades only when explicitly true
+  xpBoost?: number; // consumables only: extra XP factor while live (+1.0 = 2x XP)
 }
 
 export const GEAR_RANK_COLORS: Record<GearRank, string> = {
@@ -310,6 +311,22 @@ GEAR_ITEMS.push(
     effects: { game: 0.60, earn: 0.60 }, price: 500, usage: 'ONE_SHOT', durationMin: 15,
     unlock: { type: 'CHECKINS', count: 30, label: 'Check in 30 times' },
     flavor: 'You did the work. The sky owes you one.',
+  },
+);
+
+// ── Wave 4: XP tokens (Volt System) ──────────────────────────────────────────
+// Timed Double-XP tokens, COD-style. No point effects — they multiply the XP
+// mirror in applyPoints while live (xpBoost +1.0 = 2x XP). Consumed on use.
+GEAR_ITEMS.push(
+  {
+    key: 'xp_spark', name: 'XP Spark', rank: 'B', icon: '/assets/gear/gear_star.png',
+    effects: {}, price: 150, usage: 'ONE_SHOT', durationMin: 15, xpBoost: 1.0,
+    flavor: 'Double XP. Fifteen minutes. Make them count.',
+  },
+  {
+    key: 'xp_storm', name: 'XP Storm', rank: 'A', icon: '/assets/gear/gear_crystal.png',
+    effects: {}, price: 300, usage: 'ONE_SHOT', durationMin: 15, xpBoost: 2.0,
+    flavor: 'Triple XP rolls in like weather. Nothing stays dry.',
   },
 );
 

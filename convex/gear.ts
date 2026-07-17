@@ -9,6 +9,7 @@ import {
   gearItem,
   isConsumable,
 } from "../gearCatalog";
+import { voltEffects, voltRule } from "../voltCatalog";
 
 // Gear: ranked power items with perks AND downsides. One equipped per kid;
 // applyPoints reads students.gearEquipped and multiplies earning by source.
@@ -127,10 +128,14 @@ export const buy = mutation({
     if (!student) throw new Error("Student not found");
     const owned = await ownedKeys(ctx, studentId);
     if (owned.has(gearKey)) throw new Error("Already owned");
-    if (student.points < item.price) {
-      throw new Error(`${item.name} costs ${item.price} pts — you have ${student.points}`);
+    // Volt shop discount (Piggy Bank perk / Team Captain specialty)
+    const discountPct = voltEffects(student.voltLoadout).shopDiscountPct;
+    const price = Math.max(1, Math.round(item.price * (1 - discountPct / 100)));
+    if (student.points < price) {
+      throw new Error(`${item.name} costs ${price} pts — you have ${student.points}`);
     }
-    await applyPoints(ctx, studentId, -item.price, "STORE_PURCHASE", `${item.name} (gear)`, student.fullName);
+    const note = discountPct > 0 ? ` (perk -${discountPct}%)` : "";
+    await applyPoints(ctx, studentId, -price, "STORE_PURCHASE", `${item.name} (gear)${note}`, student.fullName);
     await ctx.db.insert("studentGear", {
       studentId,
       gearKey,
@@ -213,11 +218,20 @@ export const activate = mutation({
     if (!ownedRow) throw new Error("You don't own that boost yet");
 
     const now = Date.now();
+    const volt = voltEffects(student.voltLoadout);
+    // Double Down wildcard (Volt System) lifts the one-at-a-time rule to two.
+    const maxLive = voltRule(student.voltLoadout, "DOUBLE_BOOST") ? 2 : 1;
     const live = await ctx.db
       .query("gearActivations")
       .withIndex("by_student", (q) => q.eq("studentId", studentId).gt("expiresAt", now))
-      .first();
-    if (live) throw new Error("One boost at a time. Wait for the timer to finish.");
+      .collect();
+    if (live.length >= maxLive) {
+      throw new Error(
+        maxLive === 1
+          ? "One boost at a time. Wait for the timer to finish."
+          : "Two boosts are already running. Wait for a timer to finish."
+      );
+    }
 
     const date = resolveLocalDate(localDate);
     if (item.usage === "DAILY") {
@@ -230,7 +244,11 @@ export const activate = mutation({
       }
     }
 
-    const expiresAt = now + (item.durationMin ?? GEAR_DEFAULT_DURATION_MIN) * 60_000;
+    // Marathon wildcard: 25-minute base window; Momentum perk adds minutes on top.
+    const baseMin = voltRule(student.voltLoadout, "MARATHON")
+      ? 25
+      : item.durationMin ?? GEAR_DEFAULT_DURATION_MIN;
+    const expiresAt = now + (baseMin + volt.boostMinutesPlus) * 60_000;
     await ctx.db.insert("gearActivations", {
       studentId,
       gearKey,

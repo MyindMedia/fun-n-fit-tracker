@@ -6,12 +6,16 @@ import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { applyPoints, logActivity, publishEvent } from "./helpers";
 import { AVATAR_ITEMS, AvatarRarity } from "../avatarCatalog";
+import { gearItem } from "../gearCatalog";
 
 const prizeKind = v.union(
   v.literal("POINTS"),
   v.literal("TOKENS"),
-  v.literal("AVATAR_ITEM")
+  v.literal("AVATAR_ITEM"),
+  v.literal("GEAR_ITEM")
 );
+
+type PrizeKind = "POINTS" | "TOKENS" | "AVATAR_ITEM" | "GEAR_ITEM";
 
 // Stable ordering shared by the editor and the wheel: heaviest first, then key.
 const sortPrizes = <T extends { weight: number; key: string }>(rows: T[]): T[] =>
@@ -107,7 +111,7 @@ export const toggleActive = mutation({
 const DEFAULT_PRIZES: Array<{
   key: string;
   label: string;
-  kind: "POINTS" | "TOKENS" | "AVATAR_ITEM";
+  kind: PrizeKind;
   value: string;
   weight: number;
 }> = [
@@ -116,6 +120,7 @@ const DEFAULT_PRIZES: Array<{
   { key: "p100", label: "100 Points", kind: "POINTS", value: "100", weight: 12 },
   { key: "t5", label: "5 FitTokens", kind: "TOKENS", value: "5", weight: 10 },
   { key: "itemU", label: "Mystery Item", kind: "AVATAR_ITEM", value: "uncommon", weight: 9 },
+  { key: "xpToken", label: "XP Spark (2x XP)", kind: "GEAR_ITEM", value: "xp_spark", weight: 6 },
   { key: "itemL", label: "LEGENDARY Item", kind: "AVATAR_ITEM", value: "legendary", weight: 3 },
   { key: "p250", label: "MEGA 250 Points", kind: "POINTS", value: "250", weight: 1 },
 ];
@@ -174,11 +179,28 @@ export const spin = mutation({
     // Fulfill in the same mutation. The JACKPOT sourceType is on the
     // multiplier/gear exclusion list in helpers.applyPoints (agent B, spec
     // section 2), so gift credits are never amplified.
-    let resolvedKind: "POINTS" | "TOKENS" | "AVATAR_ITEM" = picked.kind;
+    let resolvedKind: PrizeKind = picked.kind;
     let label = picked.label;
     let resolvedItemKey: string | undefined;
 
-    if (picked.kind === "POINTS") {
+    if (picked.kind === "GEAR_ITEM") {
+      // Grant a gear/consumable item (e.g. an XP token) straight to the bag.
+      const item = gearItem(picked.value);
+      if (!item) {
+        resolvedKind = "POINTS";
+        label = "50 Points (prize retired)";
+        await applyPoints(ctx, args.studentId, 50, "JACKPOT", "Jackpot prize", args.byAdmin);
+      } else {
+        resolvedItemKey = item.key;
+        label = item.name;
+        await ctx.db.insert("studentGear", {
+          studentId: args.studentId,
+          gearKey: item.key,
+          acquiredVia: "ACHIEVEMENT",
+          acquiredAt: Date.now(),
+        });
+      }
+    } else if (picked.kind === "POINTS") {
       const amount = Math.max(1, Math.round(Number(picked.value) || 0));
       await applyPoints(ctx, args.studentId, amount, "JACKPOT", "Jackpot prize", args.byAdmin);
     } else if (picked.kind === "TOKENS") {

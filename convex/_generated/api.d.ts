@@ -44,6 +44,7 @@ import type * as staff from "../staff.js";
 import type * as students from "../students.js";
 import type * as tournaments from "../tournaments.js";
 import type * as trades from "../trades.js";
+import type * as volt from "../volt.js";
 import type * as wearables from "../wearables.js";
 import type * as xp from "../xp.js";
 
@@ -90,6 +91,7 @@ declare const fullApi: ApiFromModules<{
   students: typeof students;
   tournaments: typeof tournaments;
   trades: typeof trades;
+  volt: typeof volt;
   wearables: typeof wearables;
   xp: typeof xp;
 }>;

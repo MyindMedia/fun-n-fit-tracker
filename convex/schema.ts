@@ -47,6 +47,17 @@ export default defineSchema({
     gearEquipped: v.optional(v.union(v.string(), v.null())),
     // FitTokens balance (parent-paid cosmetic currency; audited in fitTokenLedger)
     fitTokens: v.optional(v.number()),
+    // Volt System loadout (voltCatalog.ts): equipped perk per row + wildcard;
+    // flex is the Perk Greed fourth slot.
+    voltLoadout: v.optional(
+      v.object({
+        perk1: v.optional(v.union(v.string(), v.null())),
+        perk2: v.optional(v.union(v.string(), v.null())),
+        perk3: v.optional(v.union(v.string(), v.null())),
+        flex: v.optional(v.union(v.string(), v.null())),
+        wildcard: v.optional(v.union(v.string(), v.null())),
+      })
+    ),
     avatarLook: v.optional(
       v.object({
         body: v.optional(v.union(v.literal("M"), v.literal("F"))),
@@ -656,8 +667,13 @@ export default defineSchema({
   jackpotPrizes: defineTable({
     key: v.string(),
     label: v.string(),
-    kind: v.union(v.literal("POINTS"), v.literal("TOKENS"), v.literal("AVATAR_ITEM")),
-    value: v.string(), // POINTS/TOKENS: amount; AVATAR_ITEM: rarity
+    kind: v.union(
+      v.literal("POINTS"),
+      v.literal("TOKENS"),
+      v.literal("AVATAR_ITEM"),
+      v.literal("GEAR_ITEM")
+    ),
+    value: v.string(), // POINTS/TOKENS: amount; AVATAR_ITEM: rarity; GEAR_ITEM: gear key
     weight: v.number(),
     active: v.boolean(),
     createdAt: v.number(),

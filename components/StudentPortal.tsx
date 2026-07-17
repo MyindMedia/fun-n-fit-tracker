@@ -8,6 +8,8 @@ import AvatarRig from './avatar/AvatarRig';
 import LootCrates from './avatar/LootCrates';
 import GearShop from './avatar/GearShop';
 import PlayerCard, { thingName } from './Student/PlayerCard';
+import VoltStatsCard from './volt/VoltStatsCard';
+import VoltLoadout from './volt/VoltLoadout';
 import GameCenterStats from './Student/GameCenterStats';
 import MarketplaceTab from './Student/MarketplaceTab';
 import TrophyCase from './TrophyCase';
@@ -46,6 +48,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
   const [isSaving, setIsSaving] = useState(false);
   const [showAddFriend, setShowAddFriend] = useState(false);
   const [showAvatarCreator, setShowAvatarCreator] = useState(false);
+  const [showVoltLoadout, setShowVoltLoadout] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Player inspection + trades
@@ -182,6 +185,20 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
     }
   };
 
+  if (showVoltLoadout) {
+    return (
+      <div className="fixed inset-0 z-[250] animate-fade-in" style={{ background: 'var(--pz-bg)' }}>
+        <VoltLoadout
+          student={student}
+          onClose={() => setShowVoltLoadout(false)}
+          onChanged={() => {
+            if (onRefresh) onRefresh();
+          }}
+        />
+      </div>
+    );
+  }
+
   if (showAvatarCreator) {
     return (
       <div className="fixed inset-0 z-[250] animate-fade-in" style={{ background: 'var(--pz-bg)' }}>
@@ -199,6 +216,9 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
   // Tab Components
   const renderProfileTab = () => (
     <div className="space-y-5">
+      {/* Volt System: COD-style level, loadout, and combat record */}
+      <VoltStatsCard student={student} onOpenLoadout={() => setShowVoltLoadout(true)} />
+
       {/* Avatar & Name Display — player-profile card */}
       <div className="pz-card relative grid grid-cols-2 gap-4 p-4">
         <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: HOUSES[student.houseId].colorHex }} />

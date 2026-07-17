@@ -1,6 +1,8 @@
 import { MutationCtx, QueryCtx } from "./_generated/server";
 import { Id, Doc } from "./_generated/dataModel";
 import { RANKS, DEMOTION_PENALTY_POINTS } from "../constants";
+import { voltEffects, voltLevelForXp, XP_SOURCES, XP_FACTOR_MAX } from "../voltCatalog";
+import { gearItem } from "../gearCatalog";
 import { gearDelta, GEAR_FACTOR_MAX, GEAR_FACTOR_MIN, GearSource } from "../gearCatalog";
 
 export interface RankInfo {
@@ -104,6 +106,22 @@ export async function applyPoints(
   const student = await ctx.db.get(studentId);
   if (!student) throw new Error("Student not found");
 
+  // Volt System (voltCatalog.ts): the kid's merged perk/wildcard bonuses.
+  const volt = voltEffects(student.voltLoadout);
+
+  // Live consumable activations (points boosts AND XP tokens). Usually one;
+  // the Double Down wildcard allows two, so read them all.
+  let liveActivations: Array<Doc<"gearActivations">> = [];
+  if (amount > 0) {
+    const nowTs = Date.now();
+    liveActivations = await ctx.db
+      .query("gearActivations")
+      .withIndex("by_student", (q) =>
+        q.eq("studentId", studentId).gt("expiresAt", nowTs)
+      )
+      .collect();
+  }
+
   // Global point multiplier (2x Fridays etc.) — set from the admin dashboard.
   // Only boosts positive earnings; spends, refunds, system credits, and
   // jackpot gifts stay 1:1.
@@ -145,15 +163,7 @@ export async function applyPoints(
           suffix += ` (gear ${pct > 0 ? "+" : ""}${pct}%)`;
         }
       }
-      const nowTs = Date.now();
-      const activation = await ctx.db
-        .query("gearActivations")
-        .withIndex("by_student", (q) =>
-          q.eq("studentId", studentId).gt("expiresAt", nowTs)
-        )
-        .order("desc")
-        .first();
-      if (activation) {
+      for (const activation of liveActivations) {
         const boost = 1 + gearDelta(activation.gearKey, gearSource);
         if (boost !== 1) {
           combined *= boost;
@@ -161,9 +171,20 @@ export async function applyPoints(
           suffix += ` (boost ${pct > 0 ? "+" : ""}${pct}%)`;
         }
       }
+      // Volt perks: percent bonuses join the same combined factor + clamp.
+      const perkPct = gearSource === "game" ? volt.gamePct : gearSource === "earn" ? volt.earnPct : 0;
+      if (perkPct > 0) {
+        combined *= 1 + perkPct / 100;
+        suffix += ` (perk +${perkPct}%)`;
+      }
       combined = Math.min(GEAR_FACTOR_MAX, Math.max(GEAR_FACTOR_MIN, combined));
       if (combined !== 1) {
         amount = Math.max(1, Math.round(amount * combined));
+      }
+      // Flat check-in bonus from Volt perks lands AFTER multipliers (never amplified).
+      if (gearSource === "checkin" && volt.checkinFlat > 0) {
+        amount += volt.checkinFlat;
+        suffix += ` (perk +${volt.checkinFlat})`;
       }
       if (suffix) {
         description = `${description}${suffix}`;
@@ -178,7 +199,12 @@ export async function applyPoints(
   const qualifiedInitial = ranks.filter((r) => basePoints >= r.threshold);
   const newRankInitial = qualifiedInitial[qualifiedInitial.length - 1] ?? ranks[0];
 
-  const isDemotion = amount < 0 && newRankInitial.threshold < oldRank.threshold;
+  // Iron Will perk (Volt System): rank can still drop, but the penalty
+  // points never hit — big shop spends stop stinging twice.
+  const isDemotion =
+    amount < 0 &&
+    newRankInitial.threshold < oldRank.threshold &&
+    !volt.demotionShield;
   const finalPoints = isDemotion
     ? Math.max(0, basePoints - DEMOTION_PENALTY_POINTS)
     : basePoints;
@@ -298,6 +324,63 @@ export async function applyPoints(
       },
       clientId
     );
+  }
+
+  // ── Volt XP mirror ─────────────────────────────────────────────────────────
+  // Positive earnings grant XP alongside points. XP never decreases; spends,
+  // refunds, and system credits never grant it. Multipliers: Volt perk xpPct,
+  // live XP tokens (gearCatalog xpBoost), and the admin xp_multiplier event
+  // setting — capped at XP_FACTOR_MAX overall.
+  if (amount > 0 && XP_SOURCES.includes(sourceType)) {
+    let xpFactor = 1 + volt.xpPct / 100;
+    for (const activation of liveActivations) {
+      xpFactor += gearItem(activation.gearKey)?.xpBoost ?? 0;
+    }
+    const xpMultRow = await ctx.db
+      .query("appSettings")
+      .withIndex("by_key", (q) => q.eq("key", "xp_multiplier"))
+      .unique();
+    const xpMult = xpMultRow ? parseFloat(xpMultRow.value) : 1;
+    if (Number.isFinite(xpMult) && xpMult > 1) {
+      xpFactor += xpMult - 1;
+    }
+    xpFactor = Math.min(XP_FACTOR_MAX, Math.max(1, xpFactor));
+
+    const xpGain = Math.max(1, Math.round(amount * xpFactor));
+    const oldXp = student.totalXp ?? 0;
+    const newXp = oldXp + xpGain;
+    await ctx.db.insert("xpTransactions", {
+      studentId,
+      amount: xpGain,
+      sourceType,
+      description: xpFactor > 1 ? `${description} (${xpFactor.toFixed(2)}x XP)` : description,
+      createdAt: Date.now(),
+    });
+    await ctx.db.patch(studentId, { totalXp: newXp });
+
+    const oldLevel = voltLevelForXp(oldXp);
+    const newLevel = voltLevelForXp(newXp);
+    if (newLevel > oldLevel) {
+      await logActivity(ctx, {
+        type: "RANK_UP",
+        message: `hit Volt Level ${newLevel}!`,
+        studentId,
+        studentName: student.fullName,
+      });
+      await publishEvent(
+        ctx,
+        "rank_up",
+        {
+          type: "BADGE_EARNED",
+          studentName: student.fullName,
+          achievement: `VOLT LEVEL ${newLevel}`,
+          studentAvatar: student.avatarUrl,
+          message: `${student.fullName} hit Volt Level ${newLevel}!`,
+          ts: Date.now(),
+        },
+        clientId
+      );
+    }
   }
 
   return {

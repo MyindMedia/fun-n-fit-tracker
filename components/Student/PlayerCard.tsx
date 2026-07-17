@@ -3,6 +3,14 @@ import { Student } from '../../types';
 import { HOUSES, BADGES, RANKS } from '../../constants';
 import { GEAR_RANK_COLORS, GEAR_SOURCE_LABELS, GearSource, gearItem } from '../../gearCatalog';
 import { avatarItem, RARITY_COLORS } from '../../avatarCatalog';
+import {
+  VOLT_SPECIALTY_META,
+  VoltLoadout,
+  voltActiveSpecialty,
+  voltPerk,
+  voltWildcard,
+} from '../../voltCatalog';
+import VoltMedallion from '../volt/VoltMedallion';
 import { gameCenter } from '../../services/gameCenter';
 import { getStudentDisplayName } from '../../utils/studentDisplay';
 import { medalColor, MedalRow } from '../TrophyCase';
@@ -37,6 +45,17 @@ const PlayerCard: React.FC<{
   const rank = RANKS.find(r => r.id === player.rankId) || RANKS[0];
   const dn = getStudentDisplayName(player);
   const gear = gearItem(player.gearEquipped);
+
+  // Volt build mini-row: the student doc carries voltLoadout, the shared
+  // Student type does not (yet), so extend the prop typing locally only.
+  const voltLoadout = (player as Student & { voltLoadout?: VoltLoadout | null }).voltLoadout ?? null;
+  const voltPerks = voltLoadout
+    ? [voltLoadout.perk1, voltLoadout.perk2, voltLoadout.perk3, voltLoadout.flex]
+        .map(k => voltPerk(k))
+        .filter((p): p is NonNullable<typeof p> => !!p)
+    : [];
+  const voltWc = voltWildcard(voltLoadout?.wildcard);
+  const voltSpec = voltActiveSpecialty(voltLoadout);
 
   const [medals, setMedals] = useState<MedalRow[]>([]);
   const [showTrade, setShowTrade] = useState(false);
@@ -165,6 +184,35 @@ const PlayerCard: React.FC<{
             <Ic.XMark size={16} />
           </button>
         </div>
+
+        {/* Volt build: equipped perk medallions + active specialty */}
+        {(voltPerks.length > 0 || voltWc) && (
+          <div className="pz-card-sm p-3 mb-3">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="pz-eyebrow">Volt Build</div>
+              {voltSpec && (
+                <span
+                  className="text-[9px] font-black uppercase tracking-widest"
+                  style={{ color: VOLT_SPECIALTY_META[voltSpec].color }}
+                >
+                  {VOLT_SPECIALTY_META[voltSpec].bonusName} active
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {voltPerks.map(p => (
+                <span key={p.key} title={`${p.name}: ${p.blurb}`}>
+                  <VoltMedallion perk={p} size={40} state="unlocked" />
+                </span>
+              ))}
+              {voltWc && (
+                <span title={`${voltWc.name}: ${voltWc.blurb}`}>
+                  <VoltMedallion wildcard={voltWc} size={40} state="unlocked" />
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Equipped gear */}
         {gear ? (

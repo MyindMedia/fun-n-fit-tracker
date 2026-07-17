@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { Id, Doc } from "./_generated/dataModel";
 import { logActivity } from "./helpers";
 import { avatarItem, DEFAULT_LOOK } from "../avatarCatalog";
+import { voltEffects } from "../voltCatalog";
 import { gearItem } from "../gearCatalog";
 import { BADGES } from "../constants";
 
@@ -174,7 +175,10 @@ export const propose = mutation({
     if (dupes.some((t) => t.toStudentId === args.toStudentId && t.giveKey === args.giveKey && t.wantKey === args.wantKey)) {
       throw new Error("You already sent that exact offer");
     }
-    if (dupes.length >= 5) throw new Error("Too many open offers — cancel one first");
+    // Deal Maker perk (Volt System) raises the open-offer cap above 5.
+    const sender = await ctx.db.get(args.fromStudentId);
+    const offerCap = 5 + voltEffects(sender?.voltLoadout).tradeSlotsPlus;
+    if (dupes.length >= offerCap) throw new Error("Too many open offers — cancel one first");
 
     await ctx.db.insert("trades", {
       ...args,

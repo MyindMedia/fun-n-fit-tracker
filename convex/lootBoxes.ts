@@ -9,6 +9,7 @@ import {
   SHARD_REFUND_PCT,
   AvatarRarity,
 } from "../avatarCatalog";
+import { voltEffects } from "../voltCatalog";
 
 // Points-only loot crates. Kid-safety rules are structural, not optional:
 // points are earned by exercise (no money path), odds are published in the UI
@@ -30,14 +31,17 @@ export const open = mutation({
     }
 
     const date = resolveLocalDate(args.localDate);
+    // Volt perks/wildcards (Collector, High Roller) raise the daily crate cap.
+    const volt = voltEffects(student.voltLoadout);
+    const capPerDay = LOOT_DAILY_CAP + volt.crateCapPlus;
     const todays = await ctx.db
       .query("lootBoxOpens")
       .withIndex("by_student_date", (q) =>
         q.eq("studentId", args.studentId).eq("date", date)
       )
       .collect();
-    if (todays.length >= LOOT_DAILY_CAP) {
-      throw new Error(`Crate limit reached — come back tomorrow! (${LOOT_DAILY_CAP}/day)`);
+    if (todays.length >= capPerDay) {
+      throw new Error(`Crate limit reached — come back tomorrow! (${capPerDay}/day)`);
     }
 
     // Pay first (multiplier-exempt STORE_PURCHASE), then roll.
@@ -89,7 +93,9 @@ export const open = mutation({
       await ctx.db.patch(existing._id, { upgradeLevel });
     } else {
       outcome = "SHARDS";
-      refund = Math.round(boxDef.cost * SHARD_REFUND_PCT);
+      // Bargain Hunter perk lifts the shard refund above the base 40%.
+      const refundPct = Math.max(SHARD_REFUND_PCT, volt.shardRefundPct / 100);
+      refund = Math.round(boxDef.cost * refundPct);
       await applyPoints(
         ctx,
         args.studentId,
@@ -137,7 +143,7 @@ export const open = mutation({
       refund,
       balance: after?.points ?? 0,
       opensToday: todays.length + 1,
-      capPerDay: LOOT_DAILY_CAP,
+      capPerDay,
     };
   },
 });
@@ -146,10 +152,13 @@ export const todayStatus = query({
   args: { studentId: v.id("students"), localDate: v.optional(v.string()) },
   handler: async (ctx, { studentId, localDate }) => {
     const date = resolveLocalDate(localDate);
+    const student = await ctx.db.get(studentId);
+    const capPerDay =
+      LOOT_DAILY_CAP + voltEffects(student?.voltLoadout).crateCapPlus;
     const todays = await ctx.db
       .query("lootBoxOpens")
       .withIndex("by_student_date", (q) => q.eq("studentId", studentId).eq("date", date))
       .collect();
-    return { opensToday: todays.length, capPerDay: LOOT_DAILY_CAP };
+    return { opensToday: todays.length, capPerDay };
   },
 });

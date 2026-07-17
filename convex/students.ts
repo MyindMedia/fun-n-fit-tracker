@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { houseId } from "./schema";
 import { logActivity, studentDefaults } from "./helpers";
 import { BADGES } from "../constants";
+import { voltEffects } from "../voltCatalog";
 
 export const list = query({
   args: {},
@@ -270,6 +271,9 @@ export const purchaseWearable = mutation({
   handler: async (ctx, { studentId, wearableId, cost }) => {
     const student = await ctx.db.get(studentId);
     if (!student) throw new Error("Student not found");
+    // Volt shop discount (Piggy Bank perk / Team Captain specialty)
+    const discountPct = voltEffects(student.voltLoadout).shopDiscountPct;
+    cost = Math.max(1, Math.round(cost * (1 - discountPct / 100)));
     if (student.points < cost) {
       throw new Error("Insufficient Funds: not enough points to purchase this item.");
     }

@@ -541,6 +541,14 @@ class GameCenterService {
     });
   }
 
+  // Double XP events (Volt System): multiplies the XP mirror only, points untouched.
+  public async setXpMultiplier(mult: number): Promise<void> {
+    await this.client.mutation(api.settings.upsert, {
+      key: 'xp_multiplier',
+      value: String(mult),
+    });
+  }
+
   // Smart tap: live NFC-mode game decides (splits or points), else check-in.
   public async nfcAutoScan(tagUid: string, adminName: string): Promise<any> {
     return await this.client.mutation(api.nfc.autoScan, {
@@ -740,6 +748,16 @@ class GameCenterService {
     return this.client.onUpdate(api.settings.all, {}, (rows) => {
       const row = (rows as Array<{ key: string; value: string }>).find(
         (r) => r.key === 'point_multiplier'
+      );
+      const mult = row ? parseFloat(row.value) : 1;
+      cb(Number.isFinite(mult) && mult >= 1 ? mult : 1);
+    });
+  }
+
+  public subscribeXpMultiplier(cb: (mult: number) => void): () => void {
+    return this.client.onUpdate(api.settings.all, {}, (rows) => {
+      const row = (rows as Array<{ key: string; value: string }>).find(
+        (r) => r.key === 'xp_multiplier'
       );
       const mult = row ? parseFloat(row.value) : 1;
       cb(Number.isFinite(mult) && mult >= 1 ? mult : 1);

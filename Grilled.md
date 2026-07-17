@@ -358,6 +358,41 @@ Lawrence's feature list; session ran autonomously, defaults noted here, full spe
    (value shared in the 07-16 chat; pack paymentUrls still empty — paste the
    GHL/Stripe hosted checkout links in Token Center when ready).
 
+# Volt System (2026-07-16, sixth directive)
+
+Lawrence's ask: recreate Black Ops 6's multiplayer perk/wildcard/specialty
+system ("Volt System") with perk medallion cards, a COD-style stats area on
+the player profile, XP-gated unlocks the kid swaps freely, and timed XP
+boosts. Spec: `VOLT_SPEC.md`. Key decisions:
+
+1. **Volt Level** rides `students.totalXp` (was dormant). applyPoints now
+   mirrors positive earnings into XP (spends/refunds/system never grant it;
+   XP never decreases). One-time `volt:backfillXp` seeds every kid's XP from
+   lifetime positive earnings, so history counts. 40 levels, quadratic curve.
+2. **15 perks in 3 rows** (Hustle/Game/Legend), each perk color-coded to a
+   specialty: STRIKER volt (game), SCOUT cyan (around town), CAPTAIN violet
+   (attendance/economy). Equip one per row, free, swap anytime. All three
+   rows same color → specialty bonus (Volt Surge / Trailblazer / Team
+   Captain), the BO6 Combat Specialty rule.
+3. **5 wildcards**: Marathon (25-min boosts), Double Down (two live boosts),
+   High Roller (+2 crates/day), Perk Greed (4th flex perk), XP Tycoon (+25%
+   XP). One equipped.
+4. **Every effect is real and server-side**: perk percentages join the same
+   combined gear/boost factor in applyPoints (global [0.5, 2.0] clamp
+   holds); flat check-in bonuses land after multipliers; Iron Will removes
+   the spend-demotion penalty (answers the standing open question as an
+   EARNABLE perk); crate caps, shard refunds, trade slots, shop discounts,
+   and boost durations all hook their existing paths.
+5. **XP tokens** (COD Double XP): gearCatalog wave 4 — XP Spark (2x, 150
+   pts) and XP Storm (3x, 300 pts), ONE_SHOT via the existing activation
+   machinery; jackpot wheel can drop an XP Spark (new GEAR_ITEM prize kind);
+   admin BoostControl gains a "Double XP Event" toggle (xp_multiplier
+   setting, XP only, never points). XP factor cap 4x.
+6. **UI**: code-drawn SVG hex medallions (zero assets, like the avatar rig),
+   VoltLoadout full-screen recreating the BO6 perks screen, VoltStatsCard
+   COD-style stats area at the top of the kid's Profile tab, equipped
+   medallions visible on friend PlayerCards.
+
 ## Open questions from E2E verification (2026-07-15)
 - **Spending can demote.** Ranks are computed from *current* points (pre-existing
   mechanic), so a big perk purchase that drops a kid below a rank threshold triggers the
