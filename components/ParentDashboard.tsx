@@ -733,8 +733,9 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                             placeholder="PIN"
                             aria-label="4-digit login PIN"
                             style={{
-                                ...styles.input, width: '86px', textAlign: 'center',
-                                fontWeight: 900, letterSpacing: '0.35em', fontSize: '1rem',
+                                ...styles.input, width: '120px', textAlign: 'center',
+                                fontWeight: 900, letterSpacing: '0.3em', fontSize: '1rem',
+                                paddingLeft: '0.9rem', paddingRight: '0.55rem',
                             }}
                         />
                         <button

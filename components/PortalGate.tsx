@@ -112,15 +112,25 @@ const PortalGate: React.FC = () => {
       .finally(() => void client.close());
   }, [ticket]);
 
-  // Redeem the invitation ticket: new invitees sign UP with it; someone who
-  // already has an account with that email signs IN with it. Either path
-  // marks the Clerk invitation accepted.
+  // Redeem the ticket. Sign-IN first: existing accounts (sign-in tokens, or
+  // an invited coach whose account already exists) enter with zero friction
+  // and no captcha. If the ticket is a fresh invitation, sign-in rejects it
+  // and we fall through to the sign-UP path (which may show the captcha).
   useEffect(() => {
     if (!ticket || !isLoaded || isSignedIn || ticketTried.current) return;
     if (!signUp || !signIn) return;
     ticketTried.current = true;
     setTicketPhase('redeeming');
     (async () => {
+      try {
+        const trySignIn = await signIn.create({ strategy: 'ticket', ticket });
+        if (trySignIn.status === 'complete' && trySignIn.createdSessionId) {
+          await setActiveFromSignIn({ session: trySignIn.createdSessionId });
+          clearStoredTicket();
+          setTicketPhase('done');
+          return;
+        }
+      } catch { /* not a sign-in ticket for an existing account — sign up */ }
       try {
         const res = await signUp.create({ strategy: 'ticket', ticket });
         if (res.status === 'complete' && res.createdSessionId) {
