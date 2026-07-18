@@ -158,6 +158,21 @@ const AdminDashboard: React.FC = () => {
   const [showGameHistory, setShowGameHistory] = useState(false);
   const [showActivityLog, setShowActivityLog] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  // Main tab to restore when backing out of a More-menu sub-page
+  const [returnTab, setReturnTab] = useState<'GAMES' | 'ATHLETES'>('GAMES');
+
+  // Every sub-page is entered from the More menu, so Back reopens that menu
+  // (and restores the main tab underneath) instead of dumping to Games.
+  const openSubPage = (tab: typeof activeTab) => {
+    if (activeTab === 'GAMES' || activeTab === 'ATHLETES') setReturnTab(activeTab);
+    setShowMoreMenu(false);
+    setActiveTab(tab);
+  };
+
+  const closeSubPage = () => {
+    setActiveTab(returnTab);
+    setShowMoreMenu(true);
+  };
 
   const [toasts, setToasts] = useState<Array<{ id: string; message: string; amount?: number }>>([]);
 
@@ -448,7 +463,7 @@ const AdminDashboard: React.FC = () => {
           <BoostControl />
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('MEDALS'); }}
+            onClick={() => openSubPage('MEDALS')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
             style={{ borderColor: 'rgba(203,254,28,0.35)' }}
           >
@@ -460,7 +475,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('CHECKIN'); }}
+            onClick={() => openSubPage('CHECKIN')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 text-[#0B0E13] active:scale-[0.98] transition-transform"
             style={{ background: 'var(--pz-volt)', borderColor: 'var(--pz-volt)' }}
           >
@@ -472,7 +487,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('MESSAGES'); }}
+            onClick={() => openSubPage('MESSAGES')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Chat size={24} /></span>
@@ -483,7 +498,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('STAFF'); }}
+            onClick={() => openSubPage('STAFF')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Users size={24} /></span>
@@ -494,7 +509,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('NFC'); }}
+            onClick={() => openSubPage('NFC')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Nfc size={24} /></span>
@@ -505,7 +520,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('SCANLOG'); }}
+            onClick={() => openSubPage('SCANLOG')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.History size={24} /></span>
@@ -516,7 +531,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('PARTNERS'); }}
+            onClick={() => openSubPage('PARTNERS')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Store size={24} /></span>
@@ -527,7 +542,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('TASKS'); }}
+            onClick={() => openSubPage('TASKS')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Star size={24} /></span>
@@ -538,7 +553,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('REDEMPTIONS'); }}
+            onClick={() => openSubPage('REDEMPTIONS')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Gift size={24} /></span>
@@ -549,7 +564,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('HOUSEDRAFT'); }}
+            onClick={() => openSubPage('HOUSEDRAFT')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Home size={24} /></span>
@@ -560,7 +575,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('MARKET'); }}
+            onClick={() => openSubPage('MARKET')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Cart size={24} /></span>
@@ -571,7 +586,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('JACKPOT'); }}
+            onClick={() => openSubPage('JACKPOT')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Confetti size={24} /></span>
@@ -582,7 +597,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('TOKENS'); }}
+            onClick={() => openSubPage('TOKENS')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Coin size={24} /></span>
@@ -626,7 +641,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('SEASONS'); }}
+            onClick={() => openSubPage('SEASONS')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Calendar size={24} /></span>
@@ -637,7 +652,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('TOURNAMENTS'); }}
+            onClick={() => openSubPage('TOURNAMENTS')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Trophy size={24} /></span>
@@ -648,7 +663,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('BRANDING'); }}
+            onClick={() => openSubPage('BRANDING')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Sparkle size={24} /></span>
@@ -659,7 +674,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('PARENTS'); }}
+            onClick={() => openSubPage('PARENTS')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Family size={24} /></span>
@@ -670,7 +685,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('BLOG'); }}
+            onClick={() => openSubPage('BLOG')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Note size={24} /></span>
@@ -681,7 +696,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setActiveTab('INSIGHTS'); }}
+            onClick={() => openSubPage('INSIGHTS')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Chart size={24} /></span>
@@ -704,7 +719,7 @@ const AdminDashboard: React.FC = () => {
             </button>
 
             <button
-              onClick={() => { setShowMoreMenu(false); setActiveTab('RESET'); }}
+              onClick={() => openSubPage('RESET')}
               className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
               style={{ borderColor: 'rgba(248,113,113,0.4)' }}
             >
@@ -751,7 +766,7 @@ const AdminDashboard: React.FC = () => {
           {/* Back Button (shown on sub-pages) OR Coach Info */}
           {SUB_PAGES.includes(activeTab) ? (
             <button
-              onClick={() => setActiveTab('GAMES')}
+              onClick={closeSubPage}
               className="touch-btn flex items-center gap-2 text-white font-black text-sm px-3 py-2 min-h-[44px] bg-white/5 border border-white/10 active:bg-white/10 transition-all"
               style={{ clipPath: NOTCH_SM }}
             >
