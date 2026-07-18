@@ -65,7 +65,10 @@ async function verifyClerkJwt(token: string, expectedIssuer: string) {
 
 export const signIn = action({
   args: { clerkToken: v.string() },
-  handler: async (ctx, { clerkToken }) => {
+  handler: async (
+    ctx,
+    { clerkToken }
+  ): Promise<{ token: string; parent: { id: string; email: string; fullName: string; phone?: string } }> => {
     const issuer = process.env.CLERK_JWT_ISSUER;
     const secretKey = process.env.CLERK_SECRET_KEY;
     if (!issuer || !secretKey) {
