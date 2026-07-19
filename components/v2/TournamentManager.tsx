@@ -100,7 +100,14 @@ const TournamentManager: React.FC = () => {
   if (selectedTournament && details) {
     const { tournament, participants, matches } = details;
     const availableStudents = allStudents.filter(s => !participants.some(p => p.studentId === s.id));
-    const filteredAvailable = availableStudents.filter(s => s.fullName.toLowerCase().includes(searchStudent.toLowerCase()));
+    const filteredAvailable = availableStudents
+      .filter(s => s.fullName.toLowerCase().includes(searchStudent.toLowerCase()))
+      // Current attendees (checked in) float to the top of the registration list.
+      .sort((a, b) => {
+        if (!!a.isPresent !== !!b.isPresent) return a.isPresent ? -1 : 1;
+        return a.fullName.localeCompare(b.fullName);
+      });
+    const attendeeCount = availableStudents.filter(s => s.isPresent).length;
 
     return (
       <div className="pz-scope space-y-6 animate-fade-in">
@@ -139,20 +146,36 @@ const TournamentManager: React.FC = () => {
                     onChange={e => setSearchStudent(e.target.value)}
                     className="w-full p-2 text-sm rounded-lg border border-white/10 bg-[#171C27] text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] mb-2"
                   />
-                  {searchStudent && (
-                    <div className="max-h-40 overflow-y-auto space-y-1">
-                      {filteredAvailable.map(s => (
+                  <div className="flex items-center justify-between px-1 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#ABABAB]">Add players</span>
+                    {attendeeCount > 0 && (
+                      <span className="text-[10px] font-bold text-emerald-400">{attendeeCount} here today</span>
+                    )}
+                  </div>
+                  <div className="max-h-64 overflow-y-auto space-y-1">
+                    {filteredAvailable.length === 0 ? (
+                      <div className="text-xs text-white/40 px-3 py-2">
+                        {searchStudent ? 'No matches.' : 'Everyone is already in the roster.'}
+                      </div>
+                    ) : (
+                      filteredAvailable.map(s => (
                         <button
                           key={s.id}
                           onClick={() => handleJoin(s.id)}
-                          className="w-full text-left px-3 py-2 text-xs font-bold text-white hover:bg-white/5 rounded-lg flex justify-between"
+                          className="w-full text-left px-3 py-2 text-xs font-bold text-white hover:bg-white/5 rounded-lg flex justify-between items-center gap-2"
                         >
-                          <span>{s.fullName}</span>
-                          <span className="text-[#CBFE1C]">+ Add</span>
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.isPresent ? 'bg-emerald-400' : 'bg-white/20'}`}
+                              title={s.isPresent ? 'Checked in today' : 'Not checked in'}
+                            />
+                            <span className="truncate">{s.fullName}</span>
+                          </span>
+                          <span className="text-[#CBFE1C] flex-shrink-0">+ Add</span>
                         </button>
-                      ))}
-                    </div>
-                  )}
+                      ))
+                    )}
+                  </div>
                 </div>
               )}
 

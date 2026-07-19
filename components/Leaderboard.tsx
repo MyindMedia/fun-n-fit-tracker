@@ -167,6 +167,7 @@ const Leaderboard: React.FC = () => {
   const [pointFlash, setPointFlash] = useState<{ id: string; amount: number; name: string; message: string; avatar?: string; xPos: number } | null>(null);
   const [statusFlash, setStatusFlash] = useState<{ id: string; isOut: boolean; name: string; avatar?: string; xPos: number } | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<Student | null>(null);
+  const [houseDetail, setHouseDetail] = useState<{ house: House; students: Student[] } | null>(null);
   // Today is the main board: fresh start at zero every day before sessions.
   const [timeRange, setTimeRange] = useState<TimeRange>('DAY');
   const [isLoading, setIsLoading] = useState(true);
@@ -657,6 +658,50 @@ const Leaderboard: React.FC = () => {
           onClose={() => setSelectedProfile(null)}
         />
       )}
+      {houseDetail && (
+        <div
+          className="pz-scope fixed inset-0 z-[9998] bg-black/70 backdrop-blur-md flex items-center justify-center p-4"
+          onClick={() => setHouseDetail(null)}
+        >
+          <div className="pz-card w-full max-w-md max-h-[85vh] overflow-y-auto p-5" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-4 mb-4">
+              {houseDetail.house.icon && <img src={houseDetail.house.icon} className="w-16 h-16 shrink-0 object-contain" alt="" />}
+              <div className="min-w-0 flex-grow">
+                <h2 className="text-2xl leading-none truncate" style={{ color: houseDetail.house.colorHex }}>{houseDetail.house.name}</h2>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.25em] mt-1" style={{ color: 'var(--pz-text)' }}>{houseDetail.house.mascot || 'Team'}</div>
+              </div>
+              <button
+                onClick={() => setHouseDetail(null)}
+                aria-label="Close"
+                className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center shrink-0 text-lg leading-none"
+              >×</button>
+            </div>
+            <div className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: 'var(--pz-text)' }}>
+              {houseDetail.students.length} player{houseDetail.students.length !== 1 ? 's' : ''}
+            </div>
+            <div className="space-y-2">
+              {houseDetail.students.length === 0 ? (
+                <div className="text-sm italic py-6 text-center" style={{ color: 'var(--pz-text)' }}>No players on this team yet.</div>
+              ) : houseDetail.students.map((s, i) => {
+                const studentRank = ranks.find(r => r.id === s.rankId);
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => { setHouseDetail(null); setSelectedProfile(s); }}
+                    className="w-full pz-card-sm flex items-center gap-3 p-2.5 hover:border-[#CBFE1C] transition-all cursor-pointer text-left"
+                    style={{ background: 'var(--pz-panel-2)' }}
+                  >
+                    <span className="text-xs font-black w-5 text-center shrink-0" style={{ color: 'var(--pz-text)' }}>{i + 1}</span>
+                    <StudentAvatar student={s} rank={studentRank} size="sm" />
+                    <span className="flex-grow font-bold text-sm text-white truncate">{s.fullName}</span>
+                    <span className="text-sm font-black shrink-0" style={{ color: 'var(--pz-volt)' }}>{s.points}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-10">
         <div className="flex-grow flex flex-col gap-5 md:gap-6 min-w-0">
@@ -750,7 +795,13 @@ const Leaderboard: React.FC = () => {
                 return (
                   <div
                     key={entry.name}
-                    className={isLeader ? 'md:col-span-3' : ''}
+                    onClick={async () => {
+                      if (!house) return;
+                      const all = await supabaseService.getStudents();
+                      const roster = all.filter(s => s.houseId === house.id).sort((a, b) => b.points - a.points);
+                      setHouseDetail({ house, students: roster });
+                    }}
+                    className={`${isLeader ? 'md:col-span-3' : ''} cursor-pointer`}
                     style={{ filter: glowFilter, transition: 'filter 0.4s ease' }}
                   >
                     {isLeader ? (
