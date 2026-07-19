@@ -43,6 +43,18 @@ const BulkAwardForm: React.FC<BulkAwardFormProps> = ({ students, adminName, onCo
     setSelectedStudents(new Set(ids));
   };
 
+  // Picking a specific team auto-selects that team's present players; "All
+  // Houses" stays as-is (nobody pre-selected) so the coach can hand-pick.
+  const handleHouseFilterChange = (value: HouseId | 'ALL') => {
+    setHouseFilter(value);
+    if (value === 'ALL') {
+      setSelectedStudents(new Set());
+    } else {
+      const ids = students.filter(s => s.houseId === value && s.isPresent).map(s => s.id);
+      setSelectedStudents(new Set(ids));
+    }
+  };
+
   const clearSelection = () => {
     setSelectedStudents(new Set());
   };
@@ -98,7 +110,8 @@ const BulkAwardForm: React.FC<BulkAwardFormProps> = ({ students, adminName, onCo
       setReasonChip(null);
       setAmount(10);
       setActionType('AWARD');
-      onComplete();
+      // Stay on the award screen after awarding (coaches often award several
+      // rounds in a row). "Done" closes it.
     } catch (err: any) {
       console.error('Bulk award failed:', err);
       alert(`Failed to award points: ${err.message || 'Unknown error'}`);
@@ -109,7 +122,15 @@ const BulkAwardForm: React.FC<BulkAwardFormProps> = ({ students, adminName, onCo
 
   return (
     <div className="pz-scope p-2 sm:p-4">
-      <h2 className="text-3xl text-white mb-6 tracking-tight">Bulk Point Awards</h2>
+      <div className="flex items-center justify-between gap-3 mb-6">
+        <h2 className="text-3xl text-white tracking-tight">Bulk Point Awards</h2>
+        <button
+          onClick={onComplete}
+          className="touch-btn flex-shrink-0 px-4 py-2 text-xs font-black uppercase tracking-widest bg-white/10 text-white/70 border border-white/10 hover:bg-white/20 transition-all"
+        >
+          Done
+        </button>
+      </div>
 
       {/* Award Type Selector */}
       <div className="mb-6">
@@ -200,7 +221,7 @@ const BulkAwardForm: React.FC<BulkAwardFormProps> = ({ students, adminName, onCo
             <div className="flex gap-2">
               <select
                 value={houseFilter}
-                onChange={(e) => setHouseFilter(e.target.value as HouseId | 'ALL')}
+                onChange={(e) => handleHouseFilterChange(e.target.value as HouseId | 'ALL')}
                 className="px-3 py-1 text-xs font-bold border border-white/10 bg-[#171C27] text-white focus:outline-none focus:border-[#CBFE1C]"
               >
                 <option value="ALL">All Houses</option>

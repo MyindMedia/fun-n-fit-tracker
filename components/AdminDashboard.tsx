@@ -1011,9 +1011,9 @@ const AdminDashboard: React.FC = () => {
             onClick={() => setShowEnrollAthlete(true)}
           />
           <QuickActionButton
-            icon={<Ic.History size={25} />}
-            label="History"
-            onClick={() => setShowGameHistory(true)}
+            icon={<Ic.Medal size={25} />}
+            label="Legends"
+            onClick={() => openSubPage('MEDALS')}
           />
           <QuickActionButton
             icon={<Ic.Settings size={25} />}
