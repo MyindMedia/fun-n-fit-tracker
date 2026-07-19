@@ -165,6 +165,10 @@ const Leaderboard: React.FC = () => {
   const [topStudents, setTopStudents] = useState<Student[]>([]);
   const [recentEvents, setRecentEvents] = useState<NotificationEvent[]>([]);
   const [pointFlash, setPointFlash] = useState<{ id: string; amount: number; name: string; message: string; avatar?: string; xPos: number } | null>(null);
+  // Collapse duplicate point broadcasts (the same award reaches the board via
+  // several emit paths) into one pop, held on screen for a full 5 seconds.
+  const lastFlashRef = useRef<{ key: string; at: number }>({ key: '', at: 0 });
+  const flashTimerRef = useRef<number | null>(null);
   const [statusFlash, setStatusFlash] = useState<{ id: string; isOut: boolean; name: string; avatar?: string; xPos: number } | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<Student | null>(null);
   const [houseDetail, setHouseDetail] = useState<{ house: House; students: Student[] } | null>(null);
@@ -378,6 +382,12 @@ const Leaderboard: React.FC = () => {
 
     // Listen for instant point broadcasts (faster than Postgres realtime)
     const u6 = supabaseService.on('points_broadcast', async (data: { studentId: string; studentName: string; amount: number; message: string; ts: number }) => {
+      // Same award can arrive several times (local emit + broadcast bus); show it once.
+      const key = `${data.studentId}|${data.amount}|${data.message}`;
+      const now = Date.now();
+      if (key === lastFlashRef.current.key && now - lastFlashRef.current.at < 3000) return;
+      lastFlashRef.current = { key, at: now };
+
       console.log('📢 Received points_broadcast event:', data);
       try { if (data.amount > 0) AudioService.playRandomAward(); else AudioService.playPointLost(); } catch (err) { console.warn('Audio playback failed:', err); }
 
@@ -389,9 +399,10 @@ const Leaderboard: React.FC = () => {
       const positions = [15, 30, 50, 70, 85];
       const xPos = positions[Math.floor(Math.random() * positions.length)];
 
-      // Show floating bubble
+      // Show floating bubble for a full 5s; one timer so a later pop doesn't clear early.
       setPointFlash({ id, amount: data.amount, name: data.studentName, message: data.message, avatar: student?.avatarUrl, xPos });
-      setTimeout(() => setPointFlash(null), 2500);
+      if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+      flashTimerRef.current = window.setTimeout(() => setPointFlash(null), 5000);
 
       // Refresh data to update leaderboard
       refreshData(false);
