@@ -88,9 +88,10 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
 
   const resetDay = async () => {
     if (isBusy) return;
-    if (!window.confirm('Reset all athletes to inactive for a new day?')) return;
+    if (!window.confirm("Start a new day?\n\nThis clears today's points board and marks everyone inactive. Season totals, XP, medals and gear are all kept.")) return;
     setIsBusy(true);
     try {
+      await supabaseService.markDayReset(adminName);
       await supabaseService.resetDailyPresence(adminName);
       onRefresh();
     } finally {

@@ -62,12 +62,14 @@ export const sendFromStaff = mutation({
     if (!text) throw new Error("Message is empty");
     const parent = await ctx.db.get(parentId);
     if (!parent) throw new Error("Parent not found");
+    // Coach notifications always read "Coach <name>" (in-app + push).
+    const coachLabel = adminName.startsWith("Coach") ? adminName : `Coach ${adminName}`;
     const conversationId = await getOrCreateConversation(ctx, parentId);
     const now = Date.now();
     await ctx.db.insert("messages", {
       conversationId,
       senderType: "STAFF",
-      senderName: adminName,
+      senderName: coachLabel,
       body: text,
       createdAt: now,
     });
@@ -79,7 +81,7 @@ export const sendFromStaff = mutation({
     });
     // Ping only this family's devices.
     await ctx.scheduler.runAfter(0, internal.pushNode.deliver, {
-      title: `Message from Coach ${adminName}`,
+      title: `Message from ${coachLabel}`,
       body: text.slice(0, 140),
       url: "/#/parent-dashboard",
       tag: "fnf-message",

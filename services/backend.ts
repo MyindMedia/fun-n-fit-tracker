@@ -758,6 +758,15 @@ class ConvexBackendService {
     }
   }
 
+  // Clears the Today board (season totals kept). See convex/points.markDayReset.
+  public async markDayReset(adminName: string) {
+    try {
+      await this.client.mutation(api.points.markDayReset, { adminName });
+    } catch (e) {
+      this.handleError("markDayReset", e);
+    }
+  }
+
   public async awardBadge(studentId: string, badgeId: string, adminName: string) {
     try {
       await this.client.mutation(api.students.awardBadge, {
@@ -817,6 +826,7 @@ class ConvexBackendService {
         if (range === "WEEK") start.setDate(start.getDate() - 6);
         const { students, houseTotals } = (await this.client.query(api.points.earnedBetween, {
           startMs: range === "ALL" ? 0 : start.getTime(),
+          applyDayReset: range === "DAY",
         })) as {
           students: Array<{
             studentId: string;

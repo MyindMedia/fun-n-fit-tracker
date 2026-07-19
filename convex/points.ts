@@ -216,15 +216,48 @@ export const latest = query({
 // Range leaderboard: aggregates the transactions ledger, so a "today" board
 // resets naturally at midnight while lifetime totals stay untouched — every
 // past day remains queryable by its ms range.
+// "Reset for the day": clear the Today board without touching season totals,
+// XP, medals, or gear. Just stamps a marker earnedBetween reads for the DAY view.
+export const markDayReset = mutation({
+  args: { adminName: v.string() },
+  handler: async (ctx, { adminName }) => {
+    const now = Date.now();
+    const existing = await ctx.db
+      .query("appSettings")
+      .withIndex("by_key", (q) => q.eq("key", "day_reset_at"))
+      .unique();
+    if (existing) await ctx.db.patch(existing._id, { value: String(now), updatedAt: now });
+    else await ctx.db.insert("appSettings", { key: "day_reset_at", value: String(now), updatedAt: now });
+    await logActivity(ctx, {
+      type: "SYSTEM",
+      message: "Today's points board cleared for a new day (season totals kept)",
+      adminName,
+    });
+    return { ok: true };
+  },
+});
+
 export const earnedBetween = query({
-  args: { startMs: v.number(), endMs: v.optional(v.number()) },
-  handler: async (ctx, { startMs, endMs }) => {
+  args: { startMs: v.number(), endMs: v.optional(v.number()), applyDayReset: v.optional(v.boolean()) },
+  handler: async (ctx, { startMs, endMs, applyDayReset }) => {
+    // The Today board can be manually cleared without touching totals: a coach
+    // "reset for the day" stamps a marker; if it's newer than the window start,
+    // Today counts only points earned since the reset. Season/Week ignore it.
+    let effectiveStart = startMs;
+    if (applyDayReset) {
+      const row = await ctx.db
+        .query("appSettings")
+        .withIndex("by_key", (q) => q.eq("key", "day_reset_at"))
+        .unique();
+      const marker = row ? Number(row.value) : NaN;
+      if (!Number.isNaN(marker) && marker > effectiveStart) effectiveStart = marker;
+    }
     const txs = await ctx.db
       .query("transactions")
       .withIndex("by_createdAt", (q) =>
         endMs !== undefined
-          ? q.gte("createdAt", startMs).lte("createdAt", endMs)
-          : q.gte("createdAt", startMs)
+          ? q.gte("createdAt", effectiveStart).lte("createdAt", endMs)
+          : q.gte("createdAt", effectiveStart)
       )
       .collect();
 
