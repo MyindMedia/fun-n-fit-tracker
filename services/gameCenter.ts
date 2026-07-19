@@ -145,6 +145,17 @@ class GameCenterService {
     return rows.map(mapId) as CheckIn[];
   }
 
+  // Per-game points + awards for a student (newest game first).
+  public async gameStatsForStudent(
+    studentId: string,
+    limit?: number
+  ): Promise<Array<{ gameSessionId: string; gameTitle: string; endTime: number; points: number; awards: string[] }>> {
+    return (await this.client.query(api.games.statsForStudent, {
+      studentId: studentId as Id<"students">,
+      limit,
+    })) as any;
+  }
+
   // ── Parent News feed ─────────────────────────────────────────────────────────
 
   public subscribeParentNews(

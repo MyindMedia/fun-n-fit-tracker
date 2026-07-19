@@ -1,8 +1,53 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
+import { Id } from "./_generated/dataModel";
 import { logActivity, publishEvent } from "./helpers";
 import { GAME_LIBRARY } from "../constants";
+
+// Per-game points + awards a student earned, newest game first. Feeds the
+// student portal so kids/staff can see what each game was worth.
+export const statsForStudent = query({
+  args: { studentId: v.id("students"), limit: v.optional(v.number()) },
+  handler: async (ctx, { studentId, limit }) => {
+    const txs = await ctx.db
+      .query("transactions")
+      .withIndex("by_student", (q) => q.eq("studentId", studentId))
+      .collect();
+    const medalRows = await ctx.db
+      .query("medals")
+      .withIndex("by_student", (q) => q.eq("studentId", studentId))
+      .collect();
+
+    const byGame = new Map<string, { points: number; awards: string[] }>();
+    for (const t of txs) {
+      if (!t.gameSessionId) continue;
+      const g = byGame.get(t.gameSessionId) ?? { points: 0, awards: [] };
+      g.points += t.amount;
+      byGame.set(t.gameSessionId, g);
+    }
+    for (const m of medalRows) {
+      if (!m.gameSessionId) continue;
+      const g = byGame.get(m.gameSessionId) ?? { points: 0, awards: [] };
+      g.awards.push(m.title);
+      byGame.set(m.gameSessionId, g);
+    }
+
+    const rows = [];
+    for (const [sessionId, agg] of byGame) {
+      const session = await ctx.db.get(sessionId as Id<"gameSessions">);
+      rows.push({
+        gameSessionId: sessionId,
+        gameTitle: session?.title ?? "Game",
+        endTime: session?.endTime ?? session?.createdAt ?? 0,
+        points: agg.points,
+        awards: agg.awards,
+      });
+    }
+    rows.sort((a, b) => b.endTime - a.endTime);
+    return limit ? rows.slice(0, limit) : rows;
+  },
+});
 
 export const active = query({
   args: {},

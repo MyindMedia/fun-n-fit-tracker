@@ -103,7 +103,8 @@ export async function applyPoints(
   sourceType: string,
   description: string,
   adminName: string,
-  clientId?: string
+  clientId?: string,
+  gameSessionId?: Id<"gameSessions">
 ): Promise<AwardResult> {
   const student = await ctx.db.get(studentId);
   if (!student) throw new Error("Student not found");
@@ -245,6 +246,7 @@ export async function applyPoints(
     sourceType,
     description,
     adminName,
+    gameSessionId,
     createdAt: Date.now(),
   });
 

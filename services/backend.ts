@@ -1174,7 +1174,7 @@ class ConvexBackendService {
     }
   }
 
-  public async addBatchPoints(ids: string[], amount: number, desc: string, admin: string) {
+  public async addBatchPoints(ids: string[], amount: number, desc: string, admin: string, sessionId?: string) {
     try {
       const results = (await this.client.mutation(api.points.batchAward, {
         studentIds: ids as Id<"students">[],
@@ -1182,6 +1182,7 @@ class ConvexBackendService {
         description: desc,
         adminName: admin,
         clientId: this.clientId,
+        gameSessionId: sessionId ? (sessionId as Id<"gameSessions">) : undefined,
       })) as AwardResult[];
       for (const r of results) await this.handleAwardResult(r);
     } catch (e) {

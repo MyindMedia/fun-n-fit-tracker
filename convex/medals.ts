@@ -17,6 +17,7 @@ export const award = mutation({
     bonusPoints: v.optional(v.number()),
     awardedBy: v.string(),
     localDate: v.optional(v.string()),
+    gameSessionId: v.optional(v.id("gameSessions")),
   },
   handler: async (ctx, args) => {
     const date = resolveLocalDate(args.localDate);
@@ -32,6 +33,7 @@ export const award = mutation({
         note: args.note ?? null,
         awardedBy: args.awardedBy,
         date,
+        gameSessionId: args.gameSessionId,
         createdAt: Date.now(),
       });
 
@@ -42,7 +44,9 @@ export const award = mutation({
           args.bonusPoints,
           "MANUAL",
           `${args.title} medal`,
-          args.awardedBy
+          args.awardedBy,
+          undefined,
+          args.gameSessionId
         );
       }
 

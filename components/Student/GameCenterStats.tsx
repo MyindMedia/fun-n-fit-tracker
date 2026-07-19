@@ -29,14 +29,18 @@ const GameCenterStats: React.FC<GameCenterStatsProps> = ({ studentId }) => {
     totalCheckIns: number;
     businessVisits: number;
   } | null>(null);
+  const [games, setGames] = useState<Array<{
+    gameSessionId: string; gameTitle: string; endTime: number; points: number; awards: string[];
+  }>>([]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [history, visits] = await Promise.all([
+        const [history, visits, gameStats] = await Promise.all([
           gameCenter.checkinHistoryForStudent(studentId),
           gameCenter.visitsForStudent(studentId),
+          gameCenter.gameStatsForStudent(studentId, 8),
         ]);
         if (cancelled) return;
         setStats({
@@ -44,6 +48,7 @@ const GameCenterStats: React.FC<GameCenterStatsProps> = ({ studentId }) => {
           totalCheckIns: new Set(history.map((c) => c.date)).size,
           businessVisits: visits.length,
         });
+        setGames(gameStats);
       } catch (err) {
         console.error('Game center stats failed:', err);
         if (!cancelled) setStats({ streak: 0, totalCheckIns: 0, businessVisits: 0 });
@@ -60,6 +65,9 @@ const GameCenterStats: React.FC<GameCenterStatsProps> = ({ studentId }) => {
     { icon: Ic.Store, value: stats?.businessVisits, label: 'Town Visits' },
   ];
 
+  const fmtDate = (ts: number): string =>
+    ts ? new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+
   return (
     <div className="pz-card p-5 text-white">
       <div className="pz-eyebrow mb-3 flex items-center gap-2">
@@ -74,6 +82,38 @@ const GameCenterStats: React.FC<GameCenterStatsProps> = ({ studentId }) => {
           </div>
         ))}
       </div>
+
+      {games.length > 0 && (
+        <div className="mt-4">
+          <div className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: 'var(--pz-text)' }}>
+            Points by Game
+          </div>
+          <div className="space-y-2">
+            {games.map((g) => (
+              <div
+                key={g.gameSessionId}
+                className="pz-card-sm p-3 flex items-center gap-3"
+                style={{ background: 'var(--pz-panel-2)' }}
+              >
+                <div className="flex-grow min-w-0">
+                  <div className="text-sm font-bold text-white truncate">{g.gameTitle}</div>
+                  <div className="text-[11px] flex items-center gap-2 flex-wrap" style={{ color: 'var(--pz-text)' }}>
+                    <span>{fmtDate(g.endTime)}</span>
+                    {g.awards.length > 0 && (
+                      <span className="inline-flex items-center gap-1" style={{ color: 'var(--pz-volt)' }}>
+                        <Ic.Medal size={11} /> {g.awards.join(', ')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="pz-display text-lg shrink-0" style={{ color: 'var(--pz-volt)' }}>
+                  {g.points >= 0 ? '+' : ''}{g.points}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

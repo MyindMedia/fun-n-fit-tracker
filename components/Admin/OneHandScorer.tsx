@@ -85,7 +85,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
   const bulkAwardStillIn = async (amount: number) => {
     if (session.pausedAt != null || stillInIds.length === 0) return;
     try {
-      await supabaseService.addBatchPoints(stillInIds, amount, `${session.title || 'Game'}: still in`, adminName);
+      await supabaseService.addBatchPoints(stillInIds, amount, `${session.title || 'Game'}: still in`, adminName, session.id);
       AudioService.playRandomAward();
       AdminNotifications.pointsAwarded(amount, `${stillInIds.length} still in`);
     } catch (err: any) {

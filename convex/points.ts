@@ -35,6 +35,7 @@ export const batchAward = mutation({
     description: v.string(),
     adminName: v.string(),
     clientId: v.optional(v.string()),
+    gameSessionId: v.optional(v.id("gameSessions")),
   },
   handler: async (ctx, args) => {
     const results = [];
@@ -48,7 +49,8 @@ export const batchAward = mutation({
             "MANUAL",
             args.description,
             args.adminName,
-            args.clientId
+            args.clientId,
+            args.gameSessionId
           )
         );
       } catch {
@@ -126,7 +128,8 @@ export const recordScoreEvent = mutation({
         "MANUAL",
         args.description,
         args.adminName,
-        args.clientId
+        args.clientId,
+        args.sessionId
       );
       return [result];
     }
@@ -148,7 +151,8 @@ export const recordScoreEvent = mutation({
             "MANUAL",
             args.description,
             args.adminName,
-            args.clientId
+            args.clientId,
+            args.sessionId
           )
         );
       }
