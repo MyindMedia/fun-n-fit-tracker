@@ -16,6 +16,7 @@ import { Student, HouseId } from '../types';
 import { HOUSES, RANKS } from '../constants';
 import CheckInScanner from './Parent/CheckInScanner';
 import ParentMessages from './Parent/ParentMessages';
+import ParentNews from './Parent/ParentNews';
 import EarnAroundTown from './Parent/EarnAroundTown';
 import PerksHistory from './Parent/PerksHistory';
 import StudentDetailExtras from './Parent/StudentDetailExtras';
@@ -31,11 +32,12 @@ import { getStudentDisplayName } from '../utils/studentDisplay';
 import { Ic, DataIcon, IconProps } from './icons';
 import { haptic } from '../utils/haptics';
 
-type TabId = 'my-students' | 'add' | 'check-in' | 'messages' | 'earn' | 'perks';
+type TabId = 'my-students' | 'add' | 'check-in' | 'news' | 'messages' | 'earn' | 'perks';
 
 const TABS: Array<{ id: Exclude<TabId, 'add'>; label: string; icon: React.FC<IconProps> }> = [
     { id: 'my-students', label: 'My Kids', icon: Ic.Family },
     { id: 'check-in', label: 'Check In', icon: Ic.QrCode },
+    { id: 'news', label: 'News', icon: Ic.Megaphone },
     { id: 'messages', label: 'Messages', icon: Ic.Chat },
     { id: 'earn', label: 'Earn', icon: Ic.Coin },
     { id: 'perks', label: 'Perks', icon: Ic.Gift },
@@ -273,6 +275,7 @@ const ParentDashboard: React.FC = () => {
                 />
             )}
 
+            {activeTab === 'news' && <ParentNews />}
             {activeTab === 'messages' && <ParentMessages />}
 
             {activeTab === 'earn' && (

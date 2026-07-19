@@ -145,6 +145,27 @@ class GameCenterService {
     return rows.map(mapId) as CheckIn[];
   }
 
+  // ── Parent News feed ─────────────────────────────────────────────────────────
+
+  public subscribeParentNews(
+    cb: (feed: {
+      announcements: Array<{
+        id: string; title: string; excerpt: string; content: string; priority: string; publishedAt: number;
+      }>;
+      alerts: Array<{
+        id: string; type: string; studentName: string; avatarUrl: string | null; message: string; timestamp: number;
+      }>;
+    }) => void
+  ): () => void {
+    const token = parentAuth.sessionToken;
+    if (!token) return () => {};
+    return this.client.onUpdate(
+      api.news.forParent,
+      { sessionToken: token },
+      (r) => cb(r as any)
+    );
+  }
+
   // ── Messaging ──────────────────────────────────────────────────────────────
 
   public async sendMessageAsParent(body: string): Promise<void> {

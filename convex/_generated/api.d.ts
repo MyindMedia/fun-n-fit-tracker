@@ -31,6 +31,7 @@ import type * as market from "../market.js";
 import type * as medals from "../medals.js";
 import type * as messaging from "../messaging.js";
 import type * as migration from "../migration.js";
+import type * as news from "../news.js";
 import type * as nfc from "../nfc.js";
 import type * as parents from "../parents.js";
 import type * as partners from "../partners.js";
@@ -83,6 +84,7 @@ declare const fullApi: ApiFromModules<{
   medals: typeof medals;
   messaging: typeof messaging;
   migration: typeof migration;
+  news: typeof news;
   nfc: typeof nfc;
   parents: typeof parents;
   partners: typeof partners;

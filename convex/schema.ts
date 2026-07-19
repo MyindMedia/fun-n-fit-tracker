@@ -134,10 +134,12 @@ export default defineSchema({
     sourceType: v.string(), // MANUAL | FIT | REDEMPTION | SYSTEM | STORE_PURCHASE
     description: v.optional(v.string()),
     adminName: v.optional(v.union(v.string(), v.null())), // who gave/took the points
+    gameSessionId: v.optional(v.id("gameSessions")), // set when earned in a game
     createdAt: v.number(),
   })
     .index("by_student", ["studentId", "createdAt"])
-    .index("by_createdAt", ["createdAt"]),
+    .index("by_createdAt", ["createdAt"])
+    .index("by_session", ["gameSessionId"]),
 
   // Coach-awarded accolades (Session Legend, MVP, custom) — the superlatives
   // record, separate from the static badges/trophies catalogs.
@@ -148,11 +150,13 @@ export default defineSchema({
     note: v.optional(v.union(v.string(), v.null())),
     awardedBy: v.string(),
     date: v.string(), // YYYY-MM-DD
+    gameSessionId: v.optional(v.id("gameSessions")), // set when awarded in a game
     createdAt: v.number(),
   })
     .index("by_student", ["studentId", "createdAt"])
     .index("by_createdAt", ["createdAt"])
-    .index("by_date", ["date"]),
+    .index("by_date", ["date"])
+    .index("by_session", ["gameSessionId"]),
 
   notifications: defineTable({
     type: v.string(), // POINTS | RANK_UP | RANK_DOWN | GAME_END | ENROLL | BADGE_EARNED | REWARD_CLAIMED | LAP_TIME | ACCOUNT_DELETE
