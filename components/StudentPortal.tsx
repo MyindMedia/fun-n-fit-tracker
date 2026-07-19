@@ -15,6 +15,7 @@ import { VoltTag } from './StudentAvatar';
 import { voltLevelForXp } from '../voltCatalog';
 import { gearItem, GEAR_RANK_COLORS } from '../gearCatalog';
 import GameCenterStats from './Student/GameCenterStats';
+import AthleteStatsReport from './AthleteStatsReport';
 import MarketplaceTab from './Student/MarketplaceTab';
 import PendingCelebrations from './PendingCelebrations';
 import TrophyCase, { EarnedBadges } from './TrophyCase';
@@ -467,6 +468,12 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       <div className="space-y-5 min-w-0">
       {/* Game Center stats */}
       <GameCenterStats studentId={student.id} />
+
+      {/* Full stats report — awards, games played, challenges, achievements */}
+      <div>
+        <h3 className="text-sm text-white uppercase tracking-wide mb-3">Full Stats Report</h3>
+        <AthleteStatsReport student={student} />
+      </div>
 
       {/* Badges — milestone badges computed from real activity */}
       <div>

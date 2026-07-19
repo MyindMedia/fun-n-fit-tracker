@@ -80,7 +80,11 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
                 const studentRank = ranks.find(r => r.id === s.rankId);
                 return (
                   <div key={s.id} className="pz-card-sm p-4 flex flex-col md:flex-row justify-between items-center gap-4 group hover:border-[#CBFE1C]/40 transition-all" style={{ background: 'var(--pz-panel-2)' }}>
-                    <div className="flex items-center gap-6 flex-grow min-w-0">
+                    <div
+                      className="flex items-center gap-6 flex-grow min-w-0 cursor-pointer"
+                      onClick={() => onOpenEdit(s)}
+                      title="View full stats report"
+                    >
                       <StudentAvatar
                         student={s}
                         rank={studentRank}

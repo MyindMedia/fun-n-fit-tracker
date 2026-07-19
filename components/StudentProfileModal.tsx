@@ -10,6 +10,7 @@ import QRCode from 'qrcode';
 import { getStudentDisplayName } from '../utils/studentDisplay';
 import { Ic, DataIcon } from './icons';
 import { VoltTag } from './StudentAvatar';
+import AthleteStatsReport from './AthleteStatsReport';
 
 interface StudentProfileModalProps {
   student: Student;
@@ -23,7 +24,7 @@ interface StudentProfileModalProps {
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
 
 const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onClose, adminName, onRefresh, isAdminMode = false }) => {
-  const [activeTab, setActiveTab] = useState<'TROPHY' | 'PEPTALK' | 'QRCODE' | 'EDIT' | 'POINTS'>('TROPHY');
+  const [activeTab, setActiveTab] = useState<'STATS' | 'TROPHY' | 'PEPTALK' | 'QRCODE' | 'EDIT' | 'POINTS'>('STATS');
   const [aiFeedback, setAiFeedback] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
@@ -511,6 +512,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
         <div className="flex-grow flex flex-col min-h-0 overflow-hidden" style={{ background: 'var(--pz-panel)' }}>
            <div className="p-4 md:p-8 pb-0 flex justify-between items-center z-10" style={{ borderBottom: '1px solid var(--pz-border)' }}>
               <div className="flex gap-2 md:gap-4 overflow-x-auto no-scrollbar pb-1">
+                 <button onClick={() => setActiveTab('STATS')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'STATS' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Stats Report</button>
                  <button onClick={() => setActiveTab('TROPHY')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'TROPHY' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Trophy Case</button>
                  <button onClick={() => setActiveTab('PEPTALK')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap ${activeTab === 'PEPTALK' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}>Coach Pep Talk</button>
                  <button onClick={() => setActiveTab('QRCODE')} className={`pb-3 md:pb-4 px-3 md:px-4 font-black text-[9px] md:text-[10px] uppercase tracking-widest relative whitespace-nowrap inline-flex items-center gap-1.5 ${activeTab === 'QRCODE' ? 'text-[#CBFE1C]' : 'text-slate-400'}`}><Ic.QrCode size={14} /> QR Code</button>
@@ -525,6 +527,10 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
            </div>
 
            <div className="flex-grow overflow-y-auto p-6 md:p-12 custom-scrollbar min-h-0">
+              {activeTab === 'STATS' && (
+                 <AthleteStatsReport student={student} />
+              )}
+
               {activeTab === 'TROPHY' && (
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                     {earnedBadges.length === 0 ? (

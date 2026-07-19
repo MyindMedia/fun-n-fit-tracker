@@ -49,6 +49,31 @@ export const statsForStudent = query({
   },
 });
 
+// A student's challenges (completed first) for the full stats report.
+export const challengesForStudent = query({
+  args: { studentId: v.id("students") },
+  handler: async (ctx, { studentId }) => {
+    const rows = await ctx.db
+      .query("studentChallenges")
+      .withIndex("by_student", (q) => q.eq("studentId", studentId))
+      .collect();
+    const out = [];
+    for (const r of rows) {
+      const ch = await ctx.db.get(r.challengeId);
+      out.push({
+        id: r._id as string,
+        title: ch?.title ?? "Challenge",
+        type: ch?.type ?? null,
+        progress: r.progress,
+        requirement: ch?.requirement ?? null,
+        isCompleted: r.isCompleted,
+      });
+    }
+    out.sort((a, b) => (a.isCompleted === b.isCompleted ? 0 : a.isCompleted ? -1 : 1));
+    return out;
+  },
+});
+
 export const active = query({
   args: {},
   handler: async (ctx) => {

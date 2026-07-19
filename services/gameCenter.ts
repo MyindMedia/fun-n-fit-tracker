@@ -156,6 +156,15 @@ class GameCenterService {
     })) as any;
   }
 
+  // A student's challenges (completed first) for the full stats report.
+  public async challengesForStudent(
+    studentId: string
+  ): Promise<Array<{ id: string; title: string; type: string | null; progress: number; requirement: number | null; isCompleted: boolean }>> {
+    return (await this.client.query(api.games.challengesForStudent, {
+      studentId: studentId as Id<"students">,
+    })) as any;
+  }
+
   // ── Parent News feed ─────────────────────────────────────────────────────────
 
   public subscribeParentNews(
