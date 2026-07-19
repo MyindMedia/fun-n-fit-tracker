@@ -531,6 +531,7 @@ class GameCenterService {
     note?: string;
     bonusPoints?: number;
     awardedBy: string;
+    gameSessionId?: string;
   }): Promise<{ awarded: number; results: Array<{ studentId: string; fullName: string }> }> {
     return await this.client.mutation(api.medals.award, {
       studentIds: args.studentIds as Id<'students'>[],
@@ -540,6 +541,16 @@ class GameCenterService {
       bonusPoints: args.bonusPoints,
       awardedBy: args.awardedBy,
       localDate: localDate(),
+      gameSessionId: args.gameSessionId ? (args.gameSessionId as Id<'gameSessions'>) : undefined,
+    });
+  }
+
+  // Coach gifts a gear item to a student (free, end-of-game reward).
+  public async grantGear(studentId: string, gearKey: string, byAdmin: string): Promise<void> {
+    await this.client.mutation(api.gear.grant, {
+      studentId: studentId as Id<'students'>,
+      gearKey,
+      byAdmin,
     });
   }
 

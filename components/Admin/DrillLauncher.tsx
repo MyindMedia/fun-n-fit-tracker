@@ -5,6 +5,7 @@ import { GameSession, Student, GameDefinition } from '../../types';
 import { supabaseService } from '../../services/supabaseService';
 import { HOUSES, GAME_LIBRARY } from '../../constants';
 import OneHandScorer from './OneHandScorer';
+import EndGameAwards from './EndGameAwards';
 import BulkAwardForm from './BulkAwardForm';
 import { generateGameIdeas } from '../../services/geminiService';
 import { AdminNotifications } from '../../utils/notifications';
@@ -194,6 +195,7 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
   const [aiSuggestion, setAiSuggestion] = useState<any>(null);
   const [isLaunching, setIsLaunching] = useState(false);
   const [showBulkAward, setShowBulkAward] = useState(false);
+  const [wrapUpSession, setWrapUpSession] = useState<GameSession | null>(null);
 
   // Dynamic Game Data
   const [availableGames, setAvailableGames] = useState<GameDefinition[]>([]);
@@ -359,6 +361,15 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
         document.body
       )}
 
+      {wrapUpSession && (
+        <EndGameAwards
+          session={wrapUpSession}
+          students={students}
+          adminName={adminName}
+          onClose={() => setWrapUpSession(null)}
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-3">
         <div>
@@ -455,6 +466,12 @@ const DrillLauncher: React.FC<DrillLauncherProps> = ({ adminName, students }) =>
                           Pause
                         </>
                       )}
+                    </button>
+                    <button
+                      onClick={() => setWrapUpSession(session)}
+                      className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-[9px] font-black uppercase shrink-0 active:scale-95 border border-white/10"
+                    >
+                      Awards
                     </button>
                     <button
                       onClick={async () => {
