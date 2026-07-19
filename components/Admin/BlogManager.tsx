@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { BlogPost } from '../../types';
 import { supabaseService } from '../../services/supabaseService';
 import { Ic } from '../icons';
@@ -223,9 +224,11 @@ const BlogManager: React.FC = () => {
         )}
       </div>
 
-      {/* Form Modal - Rendered inline to prevent re-mounting */}
-      {showForm && editingPost && (
-        <div className="mobile-modal animate-fade-in" style={{ zIndex: 'var(--z-modal, 200)' }}>
+      {/* Form modal: portal to <body> so the parent pz-card's notch clip-path
+          can't clip it (it was hiding the Save + audience controls), and lift
+          it above the tab bar. */}
+      {showForm && editingPost && createPortal(
+        <div className="pz-scope mobile-modal animate-fade-in" style={{ zIndex: 9999 }}>
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeForm} />
           <div className="relative flex flex-col w-full h-full animate-slide-up overflow-hidden" style={{ background: 'var(--pz-bg)' }}>
             {/* Header */}
@@ -367,7 +370,8 @@ const BlogManager: React.FC = () => {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );
