@@ -36,6 +36,8 @@ const GameOverlay: React.FC = () => {
   // Queue for level-ups that happen during games - shown after winner modal
   const [queuedLevelUps, setQueuedLevelUps] = useState<QueuedLevelUp[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  // End-of-game reveal steps: 0 = Winning Team, 1 = Points, 2 = MVP (one at a time)
+  const [winnerStep, setWinnerStep] = useState(0);
 
   const gameStates = useRef<Record<string, {
     hasPlayed30Warning: boolean,
@@ -409,6 +411,10 @@ const GameOverlay: React.FC = () => {
       duration: 3 + Math.random() * 2
     }));
     setConfettiPieces(pieces);
+    // Reveal the result one beat at a time: Winning Team -> Points -> MVP.
+    setWinnerStep(0);
+    const step1 = setTimeout(() => setWinnerStep(1), 3500);
+    const step2 = setTimeout(() => setWinnerStep(2), 7000);
     const ttl = setTimeout(() => {
       setGameResults(prev => prev.filter(r => r.game.id !== latest.game.id));
       setConfettiPieces([]);
@@ -419,7 +425,7 @@ const GameOverlay: React.FC = () => {
         AudioService.playLevelUp();
       }
     }, 12000);
-    return () => clearTimeout(ttl);
+    return () => { clearTimeout(ttl); clearTimeout(step1); clearTimeout(step2); };
   }, [gameResults, queuedLevelUps]);
 
   useEffect(() => {
@@ -698,34 +704,58 @@ const GameOverlay: React.FC = () => {
                 >
                   <div className="absolute inset-0 opacity-10 bg-gradient-to-tr from-white to-transparent animate-pulse" />
                   <div className="relative z-10">
-                    <div className="pz-eyebrow text-sm md:text-base mb-4">Winning Team</div>
-                    {winnerHouse ? (
-                      <div className="flex flex-col items-center mb-8">
-                        <img src={winnerHouse.customIcon} className="w-32 h-32 md:w-48 md:h-48 object-contain drop-shadow-xl" />
-                        <div className="pz-display text-3xl md:text-4xl mt-4" style={{ color: winnerHouse.colorHex }}>
-                          {winnerHouse.name}
+                    {winnerStep === 0 && (
+                      <>
+                        <div className="pz-eyebrow text-sm md:text-base mb-4">Winning Team</div>
+                        {winnerHouse ? (
+                          <div className="flex flex-col items-center">
+                            <img src={winnerHouse.customIcon} className="w-40 h-40 md:w-56 md:h-56 object-contain drop-shadow-xl" />
+                            <div className="pz-display text-4xl md:text-5xl mt-4" style={{ color: winnerHouse.colorHex }}>
+                              {winnerHouse.name}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-xl" style={{ color: 'var(--pz-text)' }}>No team data available</div>
+                        )}
+                      </>
+                    )}
+                    {winnerStep === 1 && (
+                      <div className="flex flex-col items-center py-8">
+                        <div className="pz-eyebrow text-sm md:text-base mb-4">Final Points</div>
+                        <div className="pz-display text-6xl md:text-7xl" style={{ color: winnerAccent }}>
+                          {(res.results.winningHouseScore ?? res.results.mvpStudentScore ?? 0).toLocaleString()}
+                        </div>
+                        <div className="text-sm uppercase tracking-widest mt-2" style={{ color: 'var(--pz-text)' }}>
+                          {winnerHouse ? `${winnerHouse.name} points` : 'points'}
                         </div>
                       </div>
-                    ) : (
-                      <div className="text-xl mb-8" style={{ color: 'var(--pz-text)' }}>No team data available</div>
                     )}
-                    <div className="pz-eyebrow text-sm md:text-base mb-4">MVP Player</div>
-                    {mvp ? (
-                      <div className="flex flex-col items-center">
-                        <img src={mvp.avatarUrl} className="w-36 h-36 md:w-44 md:h-44 rounded-full border-8 shadow-xl object-cover" style={{ borderColor: winnerAccent }} />
-                        {mvp.gamerTag ? (
-                          <>
-                            <div className="pz-display text-white text-2xl md:text-3xl mt-4">{mvp.gamerTag}</div>
-                            <div className="font-bold text-lg mt-1" style={{ color: 'var(--pz-text)' }}>{mvp.fullName}</div>
-                          </>
+                    {winnerStep >= 2 && (
+                      <>
+                        <div className="pz-eyebrow text-sm md:text-base mb-4">MVP Player</div>
+                        {mvp ? (
+                          <div className="flex flex-col items-center">
+                            <img src={mvp.avatarUrl} className="w-36 h-36 md:w-44 md:h-44 rounded-full border-8 shadow-xl object-cover" style={{ borderColor: winnerAccent }} />
+                            {mvp.gamerTag ? (
+                              <>
+                                <div className="pz-display text-white text-2xl md:text-3xl mt-4">{mvp.gamerTag}</div>
+                                <div className="font-bold text-lg mt-1" style={{ color: 'var(--pz-text)' }}>{mvp.fullName}</div>
+                              </>
+                            ) : (
+                              <div className="pz-display text-white text-2xl md:text-3xl mt-4">{mvp.fullName}</div>
+                            )}
+                            <div className="font-black text-base uppercase mt-2" style={{ color: 'var(--pz-volt)' }}>{mvpRank?.name || 'Athlete'}</div>
+                          </div>
                         ) : (
-                          <div className="pz-display text-white text-2xl md:text-3xl mt-4">{mvp.fullName}</div>
+                          <div className="text-xl" style={{ color: 'var(--pz-text)' }}>No MVP data available</div>
                         )}
-                        <div className="font-black text-base uppercase mt-2" style={{ color: 'var(--pz-volt)' }}>{mvpRank?.name || 'Athlete'}</div>
-                      </div>
-                    ) : (
-                      <div className="text-xl" style={{ color: 'var(--pz-text)' }}>No MVP data available</div>
+                      </>
                     )}
+                    <div className="flex justify-center gap-2 mt-8">
+                      {[0, 1, 2].map(s => (
+                        <span key={s} className="w-2 h-2 rounded-full transition-all" style={{ background: s <= winnerStep ? winnerAccent : 'rgba(255,255,255,0.2)' }} />
+                      ))}
+                    </div>
                   </div>
                   {confettiPieces.map(p => (
                     <div
