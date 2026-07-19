@@ -3,6 +3,7 @@ import { Student, Badge, Rank } from '../types';
 import { gameCenter } from '../services/gameCenter';
 import { supabaseService } from '../services/supabaseService';
 import { Ic, DataIcon } from './icons';
+import { voltLevelForXp, voltNextLevelXp, voltPerk, voltWildcard } from '../voltCatalog';
 
 interface Props {
   student: Student;
@@ -55,6 +56,13 @@ const AthleteStatsReport: React.FC<Props> = ({ student }) => {
   const nextRank = ranks[currentRankIndex + 1] || null;
   const earnedBadges = badges.filter(b => student.badges?.includes(b.id));
   const challengesWon = challenges.filter(c => c.isCompleted).length;
+  const voltLevel = voltLevelForXp(student.totalXp ?? 0);
+  const voltNext = voltNextLevelXp(student.totalXp ?? 0);
+  const loadout = student.voltLoadout;
+  const perks = [loadout?.perk1, loadout?.perk2, loadout?.perk3, loadout?.flex]
+    .map(k => voltPerk(k))
+    .filter(Boolean);
+  const wildcard = voltWildcard(loadout?.wildcard);
 
   const Stat: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
     <div className="pz-card-sm p-4 text-center" style={{ background: 'var(--pz-panel-2)' }}>
@@ -91,6 +99,44 @@ const AthleteStatsReport: React.FC<Props> = ({ student }) => {
           </div>
         </div>
       )}
+
+      <div>
+        <SectionHead>Volt Level &amp; Perks</SectionHead>
+        <div className="pz-card-sm p-4 space-y-3" style={{ background: 'var(--pz-panel-2)' }}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="pz-display text-3xl" style={{ color: 'var(--pz-volt)' }}>{voltLevel}</span>
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>Volt Level</div>
+                <div className="text-[11px]" style={{ color: 'var(--pz-text)' }}>{(student.totalXp ?? 0).toLocaleString()} XP</div>
+              </div>
+            </div>
+            {voltNext && (
+              <div className="text-right text-[11px]" style={{ color: 'var(--pz-text)' }}>{voltNext.needed} XP to Lv {voltNext.nextLevel}</div>
+            )}
+          </div>
+          {voltNext && (
+            <div className="h-2 bg-white/10 overflow-hidden rounded-full">
+              <div className="h-full" style={{ width: `${Math.min(100, Math.max(0, (1 - voltNext.needed / Math.max(1, voltNext.span)) * 100))}%`, background: 'var(--pz-volt)' }} />
+            </div>
+          )}
+          <div>
+            <div className="text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: 'var(--pz-text)' }}>Loadout · Perks</div>
+            {perks.length === 0 && !wildcard ? (
+              <div className="text-xs italic" style={{ color: 'var(--pz-text)' }}>No perks equipped.</div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {perks.map((p, i) => (
+                  <span key={i} className="text-[10px] font-black uppercase tracking-wide px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white">{p!.name}</span>
+                ))}
+                {wildcard && (
+                  <span className="text-[10px] font-black uppercase tracking-wide px-2 py-1 rounded-md" style={{ background: 'var(--pz-volt)', color: '#0B0E13' }}>{wildcard.name}</span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       <div>
         <SectionHead>Awards · {medals.length}</SectionHead>
