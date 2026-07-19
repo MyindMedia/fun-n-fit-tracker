@@ -77,6 +77,23 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
     AudioService.playWarningBeep();
   };
 
+  // Everyone still in the game (rostered, not marked out).
+  const stillInIds = roster.filter(s => !outs[s.id]).map(s => s.id);
+
+  // One tap awards the same points to every player still in the game. Since
+  // game scoring is time-windowed over the ledger, these count for the game.
+  const bulkAwardStillIn = async (amount: number) => {
+    if (session.pausedAt != null || stillInIds.length === 0) return;
+    try {
+      await supabaseService.addBatchPoints(stillInIds, amount, `${session.title || 'Game'}: still in`, adminName);
+      AudioService.playRandomAward();
+      AdminNotifications.pointsAwarded(amount, `${stillInIds.length} still in`);
+    } catch (err: any) {
+      console.error('Bulk still-in award failed:', err);
+      AdminNotifications.error(`Failed to award: ${err.message || 'Please try again'}`);
+    }
+  };
+
   const renderTemplateUI = () => {
     // Default to Rep Counter if game definition is missing (e.g. custom quick game)
     const template = game?.templateId || 'TEMPLATE_REP_COUNTER';
@@ -329,6 +346,27 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
       <div className="flex-grow overflow-y-auto custom-scrollbar">
         {renderTemplateUI()}
       </div>
+      {stillInIds.length > 0 && (
+        <div className="shrink-0 bg-white/5 border border-white/10 rounded-lg p-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-[9px] font-black uppercase tracking-widest text-[#CBFE1C] whitespace-nowrap">
+              All still in · {stillInIds.length}
+            </div>
+            <div className="flex gap-1.5">
+              {[1, 3, 5, 10].map(amt => (
+                <button
+                  key={amt}
+                  onClick={() => bulkAwardStillIn(amt)}
+                  disabled={session.pausedAt != null}
+                  className="bg-[#CBFE1C] text-[#0B0E13] font-black px-3 py-1.5 rounded-lg text-xs active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  +{amt}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       <UndoBar lastEvents={lastEvents} onUndo={undo} />
     </div>
   );
