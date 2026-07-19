@@ -16,6 +16,7 @@ import { voltLevelForXp } from '../voltCatalog';
 import { gearItem, GEAR_RANK_COLORS } from '../gearCatalog';
 import GameCenterStats from './Student/GameCenterStats';
 import AthleteStatsReport from './AthleteStatsReport';
+import PortalPinToggle from './Student/PortalPinToggle';
 import MarketplaceTab from './Student/MarketplaceTab';
 import PendingCelebrations from './PendingCelebrations';
 import TrophyCase, { EarnedBadges } from './TrophyCase';
@@ -412,6 +413,9 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
       >
         {isSaving ? 'Saving...' : 'Save Profile'}
       </button>
+
+      {/* Sign-in PIN: on / off */}
+      <PortalPinToggle studentId={student.id} />
       </div>
     </div>
   );
