@@ -85,11 +85,22 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
   const lastStanding = roster.length > 1 && stillInIds.length === 1
     ? roster.find(s => s.id === stillInIds[0]) ?? null
     : null;
+  const WINNER_BONUS = 25;
   const lastStandingRef = useRef<string | null>(null);
+  const winnerAwardedRef = useRef(false);
   useEffect(() => {
     if (lastStanding && lastStandingRef.current !== lastStanding.id) {
       lastStandingRef.current = lastStanding.id;
       try { AudioService.playWinnerFanfare(); } catch (e) { /* audio optional */ }
+      // Crown the last player standing automatically: a one-time Game Winner
+      // bonus tagged to this game (guarded so reviving players can't double it).
+      if (!winnerAwardedRef.current) {
+        winnerAwardedRef.current = true;
+        supabaseService
+          .recordScoreEvent(session.id, lastStanding.id, undefined, WINNER_BONUS, adminName, 'Game Winner')
+          .catch((err: any) => console.error('Auto winner bonus failed:', err));
+        AdminNotifications.pointsAwarded(WINNER_BONUS, `${getStudentDisplayName(lastStanding).primary} · Winner`);
+      }
     }
     if (!lastStanding) lastStandingRef.current = null;
   }, [lastStanding]);

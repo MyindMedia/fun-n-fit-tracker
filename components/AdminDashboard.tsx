@@ -36,7 +36,7 @@ import SeasonReset from './Admin/SeasonReset';
 import HouseDraft from './Admin/HouseDraft';
 import { Ic } from './icons';
 import { gameCenter } from '../services/gameCenter';
-import { useNfcWedge, WedgeScan } from './useNfcWedge';
+import { useNfcWedge, useWebNfc, WedgeScan } from './useNfcWedge';
 import { haptic } from '../utils/haptics';
 
 // Sub-pages that swap the tab switcher for a back button + page title
@@ -219,7 +219,7 @@ const AdminDashboard: React.FC = () => {
     if (!adminNameRef.current || scanBusyRef.current) return;
     scanBusyRef.current = true;
     try {
-      const res = await gameCenter.nfcAutoScan(scan.uid, adminNameRef.current);
+      const res = await gameCenter.nfcAutoScan(scan.uid, adminNameRef.current, scan.studentId);
       if (res.mode === 'UNKNOWN_TAG') {
         haptic('warning');
         pushScanToast('Unknown band — open NFC Bands to assign it');
@@ -256,6 +256,9 @@ const AdminDashboard: React.FC = () => {
   handleGlobalScanRef.current = handleGlobalScan;
 
   useNfcWedge((scan) => void handleGlobalScanRef.current(scan), true);
+  // Mobile Web NFC (Android Chrome): tapping a band written with a student's
+  // marker resolves them directly for check-in / scoring / timing.
+  const webNfc = useWebNfc((scan) => void handleGlobalScanRef.current(scan));
   useEffect(
     () =>
       gameCenter.subscribeNfcAgentScans((scan) =>
@@ -861,6 +864,15 @@ const AdminDashboard: React.FC = () => {
           {/* Attendance Quick View (hidden on sub-pages for cleaner UI) */}
           {!SUB_PAGES.includes(activeTab) && (
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              {webNfc.supported && (
+                <button
+                  onClick={() => (webNfc.reading ? webNfc.stop() : webNfc.start())}
+                  title="Tap NFC bands to check in, score, or time"
+                  className={`touch-btn px-2 sm:px-3 py-1.5 rounded-lg text-[9px] font-black uppercase inline-flex items-center gap-1 border transition-all ${webNfc.reading ? 'bg-[#CBFE1C] text-[#0B0E13] border-[#CBFE1C]' : 'bg-white/5 text-white/60 border-white/10'}`}
+                >
+                  <Ic.Nfc size={14} /> <span className="hidden sm:inline">{webNfc.reading ? 'Reading' : 'Tap-in'}</span>
+                </button>
+              )}
               <AttendanceScanner
                 students={students}
                 adminName={adminName}

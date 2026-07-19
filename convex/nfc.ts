@@ -348,9 +348,14 @@ export const autoScan = mutation({
     tagUid: v.string(),
     adminName: v.string(),
     localDate: v.optional(v.string()),
+    // Set when the band carries a written FNF marker (see writeNfcBand): the
+    // student is resolved directly instead of by the tag's hardware UID.
+    studentId: v.optional(v.id("students")),
   },
   handler: async (ctx, args): Promise<any> => {
-    const student = await findByTag(ctx, args.tagUid);
+    const student = args.studentId
+      ? await ctx.db.get(args.studentId)
+      : await findByTag(ctx, args.tagUid);
     const ts = Date.now();
     if (!student) {
       return { mode: "UNKNOWN_TAG" as const, tagUid: normalizeUid(args.tagUid) };

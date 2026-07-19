@@ -593,11 +593,12 @@ class GameCenterService {
   }
 
   // Smart tap: live NFC-mode game decides (splits or points), else check-in.
-  public async nfcAutoScan(tagUid: string, adminName: string): Promise<any> {
+  public async nfcAutoScan(tagUid: string, adminName: string, studentId?: string): Promise<any> {
     return await this.client.mutation(api.nfc.autoScan, {
       tagUid,
       adminName,
       localDate: localDate(),
+      studentId: studentId ? (studentId as Id<"students">) : undefined,
     });
   }
 
