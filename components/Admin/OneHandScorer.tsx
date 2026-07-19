@@ -80,6 +80,20 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
   // Everyone still in the game (rostered, not marked out).
   const stillInIds = roster.filter(s => !outs[s.id]).map(s => s.id);
 
+  // Last person standing wins automatically: when a multi-player game is down
+  // to a single active player, that player is the winner.
+  const lastStanding = roster.length > 1 && stillInIds.length === 1
+    ? roster.find(s => s.id === stillInIds[0]) ?? null
+    : null;
+  const lastStandingRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (lastStanding && lastStandingRef.current !== lastStanding.id) {
+      lastStandingRef.current = lastStanding.id;
+      try { AudioService.playWinnerFanfare(); } catch (e) { /* audio optional */ }
+    }
+    if (!lastStanding) lastStandingRef.current = null;
+  }, [lastStanding]);
+
   // One tap awards the same points to every player still in the game. Since
   // game scoring is time-windowed over the ledger, these count for the game.
   const bulkAwardStillIn = async (amount: number) => {
@@ -346,6 +360,15 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
       <div className="flex-grow overflow-y-auto custom-scrollbar">
         {renderTemplateUI()}
       </div>
+      {lastStanding && (
+        <div className="shrink-0 flex items-center gap-3 p-3 rounded-lg border animate-fade-in" style={{ background: 'rgba(203,254,28,0.12)', borderColor: 'rgba(203,254,28,0.55)' }}>
+          <span className="text-2xl">🏆</span>
+          <div className="flex-grow min-w-0">
+            <div className="text-[9px] font-black uppercase tracking-widest text-[#CBFE1C]">Last Standing · Winner</div>
+            <div className="font-black text-white truncate">{getStudentDisplayName(lastStanding).primary}</div>
+          </div>
+        </div>
+      )}
       {stillInIds.length > 0 && (
         <div className="shrink-0 bg-white/5 border border-white/10 rounded-lg p-2">
           <div className="flex items-center justify-between gap-2">
