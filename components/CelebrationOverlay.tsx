@@ -80,13 +80,13 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({ celebration, on
                 alt={celebration.studentName}
               />
               {celebration.type === 'RANK_UP' && celebration.rankIcon && (
-                <div className="absolute -bottom-4 -right-4 w-20 h-20 md:w-24 md:h-24 bg-white rounded-full border-4 shadow-2xl flex items-center justify-center animate-spin-in" style={{ borderColor: accent }}>
-                  <img src={celebration.rankIcon} className="w-16 h-16 md:w-20 md:h-20 object-contain" alt="Rank" />
+                <div className="absolute -bottom-4 -right-4 w-20 h-20 md:w-24 md:h-24 bg-white rounded-full border-4 shadow-2xl overflow-hidden animate-spin-in" style={{ borderColor: accent }}>
+                  <img src={celebration.rankIcon} className="w-full h-full object-cover" alt="Rank" />
                 </div>
               )}
               {celebration.type === 'BADGE_EARNED' && celebration.badgeIcon && (
-                <div className="absolute -bottom-4 -right-4 w-20 h-20 md:w-24 md:h-24 bg-white rounded-full border-4 shadow-2xl flex items-center justify-center animate-spin-in" style={{ borderColor: accent }}>
-                  <img src={celebration.badgeIcon} className="w-16 h-16 md:w-20 md:h-20 object-contain" alt="Badge" />
+                <div className="absolute -bottom-4 -right-4 w-20 h-20 md:w-24 md:h-24 bg-white rounded-full border-4 shadow-2xl overflow-hidden animate-spin-in" style={{ borderColor: accent }}>
+                  <img src={celebration.badgeIcon} className="w-full h-full object-cover" alt="Badge" />
                 </div>
               )}
             </div>
