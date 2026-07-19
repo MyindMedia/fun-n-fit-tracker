@@ -460,7 +460,7 @@ const AdminDashboard: React.FC = () => {
 
       {/* Batch Award Modal */}
       <MobileModal isOpen={showBatchAward} onClose={() => setShowBatchAward(false)} title="Batch Award" icon={<Ic.Star size={22} />}>
-        <BatchAwardForm students={students} adminName={adminName} onSuccess={() => { refreshData(); setShowBatchAward(false); }} />
+        <BatchAwardForm students={students} adminName={adminName} onSuccess={() => { refreshData(); }} />
       </MobileModal>
 
       {/* Enroll Athlete Modal */}

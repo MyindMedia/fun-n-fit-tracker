@@ -46,6 +46,23 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   };
 
+  // A single award reaches the board via several event paths (points_update,
+  // notification, transaction). Collapse them so one award = one bubble + one
+  // sound; different students in a batch still each get their own bubble.
+  const recentBubbleKeys = useRef<Map<string, number>>(new Map());
+  const addBubble = (studentId: string, amount: number, name: string, message: string) => {
+    const key = `${studentId}|${amount}`;
+    const now = Date.now();
+    const last = recentBubbleKeys.current.get(key);
+    if (last && now - last < 3000) return;
+    recentBubbleKeys.current.set(key, now);
+    recentBubbleKeys.current.forEach((t, k) => { if (now - t > 6000) recentBubbleKeys.current.delete(k); });
+    try { if (amount > 0) AudioService.playRandomAward(); else AudioService.playPointLost(); } catch (e) { /* audio optional */ }
+    const id = `${now}-${Math.random()}`;
+    setPointBubbles(prev => [{ id, amount, name, message }, ...prev].slice(0, 5));
+    setTimeout(() => { setPointBubbles(prev => prev.filter(b => b.id !== id)); }, 3000);
+  };
+
   const refreshData = async () => {
     try {
       const [s, stu] = await Promise.all([
@@ -82,12 +99,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         const lastTx = await supabaseService.getLastTransaction(updatedStudent.id);
         console.log('📝 Last transaction:', lastTx);
         if (lastTx && typeof lastTx.amount === 'number') {
-          const id = String(updatedStudent.id + '-' + Date.now());
-          const amount = lastTx.amount;
-          console.log('💰 Creating point bubble:', { name: updatedStudent.fullName, amount });
-          if (amount > 0) AudioService.playRandomAward(); else AudioService.playPointLost();
-          setPointBubbles(prev => [{ id, amount, name: updatedStudent.fullName, message: lastTx.description || 'Points updated' }, ...prev].slice(0, 5));
-          setTimeout(() => { setPointBubbles(prev => prev.filter(b => b.id !== id)); }, 2600);
+          addBubble(updatedStudent.id, lastTx.amount, updatedStudent.fullName, lastTx.description || 'Points updated');
         }
       } catch (err) {
         console.warn('Failed to process points update:', err);
@@ -96,10 +108,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     const unsubNotif = supabaseService.on('notification', async (e: any) => {
       if (!isLive) return;
       if (e.type === 'POINTS' && typeof e.amount === 'number') {
-        try { if (e.amount > 0) AudioService.playRandomAward(); else AudioService.playPointLost(); } catch (err) { console.warn('Audio playback failed:', err); }
-        const id = String(e.id || `${Date.now()}-${Math.random()}`);
-        setPointBubbles(prev => [{ id, amount: e.amount, name: e.studentName || 'Athlete', message: e.message }, ...prev].slice(0, 5));
-        setTimeout(() => { setPointBubbles(prev => prev.filter(b => b.id !== id)); }, 2600);
+        addBubble(e.studentId || e.id || 'x', e.amount, e.studentName || 'Athlete', e.message);
       }
       if (e.type === 'RANK_UP') {
         playLevelUpOnce();
@@ -136,10 +145,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       try {
         const stu = allStudents.find(s => s.id === t.studentId) || (await supabaseService.getStudents()).find(s => s.id === t.studentId);
         const name = stu?.fullName || 'Athlete';
-        if (t.amount > 0) AudioService.playRandomAward(); else AudioService.playPointLost();
-        const id = `${t.studentId}-${Date.now()}`;
-        setPointBubbles(prev => [{ id, amount: t.amount, name, message: t.description || 'Points updated' }, ...prev].slice(0, 5));
-        setTimeout(() => { setPointBubbles(prev => prev.filter(b => b.id !== id)); }, 2600);
+        addBubble(t.studentId, t.amount, name, t.description || 'Points updated');
       } catch (err) {
         console.warn('Transaction processing failed:', err);
       }
