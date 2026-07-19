@@ -104,12 +104,29 @@ export const update = mutation({
     isPublished: v.optional(v.boolean()),
   },
   handler: async (ctx, { id, ...updates }) => {
+    const existing = await ctx.db.get(id);
     const patch: Record<string, unknown> = {};
     for (const [k, val] of Object.entries(updates)) {
       if (val !== undefined) patch[k] = val;
     }
     if (updates.isPublished) patch.publishedAt = Date.now();
     if (Object.keys(patch).length > 0) await ctx.db.patch(id, patch);
+
+    // Alert everyone the moment a post flips from draft to published (the
+    // Draft->Live toggle and the edit-then-save path both land here), matching
+    // blog.create so no published announcement goes out silently.
+    if (updates.isPublished === true && existing && !existing.isPublished) {
+      const title = updates.title ?? existing.title;
+      await ctx.scheduler.runAfter(0, internal.pushNode.deliver, {
+        title: `Team alert: ${title}`,
+        body:
+          updates.excerpt ??
+          existing.excerpt ??
+          (updates.content ?? existing.content ?? "").slice(0, 120),
+        url: "/#/",
+        tag: "fnf-alert",
+      });
+    }
   },
 });
 

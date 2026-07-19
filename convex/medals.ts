@@ -1,6 +1,8 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import { applyPoints, logActivity, publishEvent, resolveLocalDate } from "./helpers";
+import { queueCelebration } from "./celebrations";
 
 // Coach-awarded accolades. "Session Legends" is the flagship flow: at the end
 // of a session, coaches pick their legends — each gets a medal row, optional
@@ -62,6 +64,29 @@ export const award = mutation({
         studentAvatar: student.avatarUrl,
         ts: Date.now(),
       });
+
+      // Notify the family: queue the congrats pop-up for the kid/parent portals
+      // and ping ONLY this kid's linked parents (child-specific, not everyone).
+      await queueCelebration(ctx, {
+        studentId,
+        kind: "AWARD",
+        title: args.title.toUpperCase(),
+        message: `${student.fullName} earned the ${args.title}!`,
+        icon: student.avatarUrl,
+      });
+      const links = await ctx.db
+        .query("parentStudentLinks")
+        .withIndex("by_student", (q) => q.eq("studentId", studentId))
+        .collect();
+      if (links.length > 0) {
+        await ctx.scheduler.runAfter(0, internal.pushNode.deliver, {
+          title: "New Award!",
+          body: `${student.fullName} earned the ${args.title}! Open the app for the celebration.`,
+          url: "/#/parent-dashboard",
+          tag: "fnf-award",
+          parentIds: links.map((l) => l.parentId as string),
+        });
+      }
 
       results.push({ studentId, fullName: student.fullName });
     }

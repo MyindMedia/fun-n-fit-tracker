@@ -705,7 +705,7 @@ export default defineSchema({
   // ── Pending celebrations: queued congrats shown on next app open ──────────
   pendingCelebrations: defineTable({
     studentId: v.id("students"),
-    kind: v.union(v.literal("LEVEL_UP"), v.literal("HOUSE_REVEAL")),
+    kind: v.union(v.literal("LEVEL_UP"), v.literal("HOUSE_REVEAL"), v.literal("AWARD")),
     title: v.string(),
     message: v.string(),
     icon: v.optional(v.union(v.string(), v.null())), // asset URL (house logo etc.)

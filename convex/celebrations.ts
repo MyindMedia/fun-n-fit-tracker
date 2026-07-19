@@ -10,7 +10,7 @@ export const queueCelebration = async (
   ctx: MutationCtx,
   args: {
     studentId: Id<"students">;
-    kind: "LEVEL_UP" | "HOUSE_REVEAL";
+    kind: "LEVEL_UP" | "HOUSE_REVEAL" | "AWARD";
     title: string;
     message: string;
     icon?: string;

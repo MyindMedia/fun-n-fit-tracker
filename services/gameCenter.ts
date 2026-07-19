@@ -923,7 +923,7 @@ class GameCenterService {
 export type PendingCelebration = {
   id: string;
   studentId: string;
-  kind: "LEVEL_UP" | "HOUSE_REVEAL";
+  kind: "LEVEL_UP" | "HOUSE_REVEAL" | "AWARD";
   title: string;
   message: string;
   icon: string | null;
