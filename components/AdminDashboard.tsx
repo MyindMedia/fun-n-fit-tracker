@@ -160,6 +160,24 @@ const AdminDashboard: React.FC = () => {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   // Main tab to restore when backing out of a More-menu sub-page
   const [returnTab, setReturnTab] = useState<'GAMES' | 'ATHLETES'>('GAMES');
+  // True while a MobileModal was opened FROM the More menu, so closing it
+  // reopens the menu list instead of dropping to the tab underneath.
+  const [returnToMore, setReturnToMore] = useState(false);
+
+  // Open a modal from the More menu and remember to come back to the menu.
+  const openModalFromMore = (open: () => void) => {
+    setShowMoreMenu(false);
+    setReturnToMore(true);
+    open();
+  };
+  // Close a modal; if it came from the More menu, reopen the menu list.
+  const closeModalToMore = (close: () => void) => {
+    close();
+    if (returnToMore) {
+      setReturnToMore(false);
+      setShowMoreMenu(true);
+    }
+  };
 
   // Every sub-page is entered from the More menu, so Back reopens that menu
   // (and restores the main tab underneath) instead of dumping to Games.
@@ -423,7 +441,7 @@ const AdminDashboard: React.FC = () => {
 
       {showQRScanner && (
         <QRScanner
-          onClose={() => setShowQRScanner(false)}
+          onClose={() => closeModalToMore(() => setShowQRScanner(false))}
           onStudentCheckedIn={refreshData}
         />
       )}
@@ -448,12 +466,12 @@ const AdminDashboard: React.FC = () => {
       </MobileModal>
 
       {/* Game History Modal */}
-      <MobileModal isOpen={showGameHistory} onClose={() => setShowGameHistory(false)} title="Game History" icon={<Ic.History size={22} />}>
+      <MobileModal isOpen={showGameHistory} onClose={() => closeModalToMore(() => setShowGameHistory(false))} title="Game History" icon={<Ic.History size={22} />}>
         <GameHistoryList history={gameHistory} />
       </MobileModal>
 
       {/* Activity Log Modal */}
-      <MobileModal isOpen={showActivityLog} onClose={() => setShowActivityLog(false)} title="Activity Log" icon={<Ic.Chart size={22} />}>
+      <MobileModal isOpen={showActivityLog} onClose={() => closeModalToMore(() => setShowActivityLog(false))} title="Activity Log" icon={<Ic.Chart size={22} />}>
         <ActivityLog events={globalActivity} />
       </MobileModal>
 
@@ -608,7 +626,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setShowGameHistory(true); }}
+            onClick={() => openModalFromMore(() => setShowGameHistory(true))}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.History size={24} /></span>
@@ -619,7 +637,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setShowActivityLog(true); }}
+            onClick={() => openModalFromMore(() => setShowActivityLog(true))}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Chart size={24} /></span>
@@ -630,7 +648,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => { setShowMoreMenu(false); setShowQRScanner(true); }}
+            onClick={() => openModalFromMore(() => setShowQRScanner(true))}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
             <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Camera size={24} /></span>
