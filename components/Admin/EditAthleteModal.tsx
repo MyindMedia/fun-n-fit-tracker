@@ -5,6 +5,7 @@ import { HOUSES } from '../../constants';
 import { supabaseService } from '../../services/supabaseService';
 import { AudioService } from '../../utils/audio';
 import { Ic } from '../icons';
+import { writeNfcBand, canWriteNfc } from '../useNfcWedge';
 
 interface EditAthleteModalProps {
   student: Student;
@@ -26,6 +27,29 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [reasonChip, setReasonChip] = useState<string | null>(null);
   const [reasonText, setReasonText] = useState('');
+  const [nfcWriting, setNfcWriting] = useState(false);
+  const [nfcStatus, setNfcStatus] = useState<string>('');
+
+  // Write this student's unique marker onto their NFC band so mobile readers
+  // resolve them on check-in / timing taps. (Android Chrome only.)
+  const writeBand = async () => {
+    if (nfcWriting) return;
+    setNfcStatus('');
+    if (!canWriteNfc()) {
+      setNfcStatus('This device can’t write NFC — use Android Chrome with NFC on.');
+      return;
+    }
+    setNfcWriting(true);
+    try {
+      await writeNfcBand(`fnf:${student.id}`);
+      setNfcStatus(`Band written for ${student.fullName.split(' ')[0]}. Tap it on a reader to check in.`);
+      try { AudioService.playRandomAward(); } catch (e) { /* audio optional */ }
+    } catch (e: any) {
+      setNfcStatus(e?.message || 'Could not write the band. Hold the tag steady and retry.');
+    } finally {
+      setNfcWriting(false);
+    }
+  };
 
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -226,6 +250,23 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
                                <button onClick={() => setGender('Female')} className={`flex-grow py-4 border font-black text-[10px] uppercase transition-all ${gender === 'Female' ? 'bg-pink-500 border-pink-500 text-white' : 'bg-white/5 border-white/10 text-white/50 hover:border-pink-400/50'}`}>Female</button>
                             </div>
                          </div>
+                      </div>
+
+                      <div>
+                         <label className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 block" style={{ color: 'var(--pz-text)' }}>NFC Band</label>
+                         <div className="flex flex-wrap items-center gap-3">
+                            <button
+                              onClick={writeBand}
+                              disabled={nfcWriting}
+                              className="px-6 py-4 border border-white/10 bg-white/5 text-white font-black text-[10px] uppercase tracking-widest inline-flex items-center gap-2 hover:border-[#CBFE1C] disabled:opacity-50 transition-all"
+                            >
+                               <Ic.Nfc size={14} /> {nfcWriting ? 'Tap the band…' : 'Write to Band'}
+                            </button>
+                            <span className="text-[11px] flex-1 min-w-[10rem]" style={{ color: 'var(--pz-text)' }}>
+                               Writes {name.split(' ')[0] || 'this athlete'}’s marker to their tag for check-ins &amp; timing on mobile readers.
+                            </span>
+                         </div>
+                         {nfcStatus && <div className="mt-2 text-[11px] font-bold text-[#CBFE1C]">{nfcStatus}</div>}
                       </div>
                    </div>
 

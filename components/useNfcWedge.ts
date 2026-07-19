@@ -12,6 +12,7 @@ const CHAR_RE = /^[0-9a-zA-Z:-]$/;
 export interface WedgeScan {
   uid: string;
   ts: number;
+  studentId?: string; // resolved from a written FNF marker record, when present
 }
 
 export function normalizeUid(raw: string): string {
@@ -69,6 +70,28 @@ export function useNfcWedge(onScan?: (scan: WedgeScan) => void, enabled = true) 
   return lastScan;
 }
 
+/** True on devices/browsers that can write NFC tags (Android Chrome). */
+export const canWriteNfc = (): boolean =>
+  typeof window !== 'undefined' && 'NDEFReader' in window;
+
+/**
+ * Write a student's unique marker to a physical NFC band (Android Chrome).
+ * The marker is stamped as both a text and URL record so mobile readers can
+ * resolve the student on check-in/timing taps. Prompts the user to tap the tag.
+ */
+export async function writeNfcBand(marker: string): Promise<void> {
+  if (!canWriteNfc()) {
+    throw new Error('NFC writing needs Android Chrome with NFC enabled.');
+  }
+  const writer = new (window as any).NDEFReader();
+  await writer.write({
+    records: [
+      { recordType: 'text', data: marker },
+      { recordType: 'url', data: `https://fnf.app/nfc/${encodeURIComponent(marker)}` },
+    ],
+  });
+}
+
 /** Web NFC (Android Chrome). Returns support flag + start function. */
 export function useWebNfc(onScan?: (scan: WedgeScan) => void) {
   const [supported] = useState(() => typeof window !== 'undefined' && 'NDEFReader' in window);
@@ -86,8 +109,19 @@ export function useWebNfc(onScan?: (scan: WedgeScan) => void) {
       await reader.scan({ signal: ctrl.signal });
       setReading(true);
       reader.onreading = (event: any) => {
+        // Prefer a written FNF marker (records) over the raw hardware UID.
+        let studentId: string | undefined;
+        try {
+          for (const rec of event.message?.records ?? []) {
+            const txt = new TextDecoder().decode(rec.data);
+            const m = /fnf(?::|%3A)([A-Za-z0-9]+)/i.exec(txt);
+            if (m) { studentId = m[1]; break; }
+          }
+        } catch (e) { /* unreadable records: fall back to UID */ }
         const uid = normalizeUid(event.serialNumber || '');
-        if (uid.length >= MIN_LEN) {
+        if (studentId) {
+          onScanRef.current?.({ uid, ts: Date.now(), studentId });
+        } else if (uid.length >= MIN_LEN) {
           onScanRef.current?.({ uid, ts: Date.now() });
         }
       };
