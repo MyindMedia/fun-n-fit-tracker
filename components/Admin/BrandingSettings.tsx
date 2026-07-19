@@ -8,12 +8,12 @@ import { Ic } from '../icons';
 
 type EditingItem = (Partial<Rank> & { itemType: 'RANK' }) | (Partial<Trophy> & { itemType: 'TROPHY' }) | null;
 
-const BrandingSettings: React.FC = () => {
+const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 'trophies' }> = ({ initialTab }) => {
   const [settings, setSettings] = useState<AppSettings>({});
   const [ranks, setRanks] = useState<Rank[]>([]);
   const [trophies, setTrophies] = useState<Trophy[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'logo' | 'sounds' | 'ranks' | 'trophies'>('logo');
+  const [activeTab, setActiveTab] = useState<'logo' | 'sounds' | 'ranks' | 'trophies'>(initialTab ?? 'logo');
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<EditingItem>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
