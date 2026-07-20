@@ -3,7 +3,9 @@ import { Student, Badge, Rank } from '../types';
 import { gameCenter } from '../services/gameCenter';
 import { supabaseService } from '../services/supabaseService';
 import { Ic, DataIcon } from './icons';
-import { voltLevelForXp, voltNextLevelXp, voltPerk, voltWildcard } from '../voltCatalog';
+import LevelPath from './LevelPath';
+import VoltStatsCard from './volt/VoltStatsCard';
+import VoltLoadout from './volt/VoltLoadout';
 
 interface Props {
   student: Student;
@@ -24,6 +26,7 @@ const AthleteStatsReport: React.FC<Props> = ({ student }) => {
   const [badges, setBadges] = useState<Badge[]>([]);
   const [ranks, setRanks] = useState<Rank[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [showLoadout, setShowLoadout] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,16 +56,8 @@ const AthleteStatsReport: React.FC<Props> = ({ student }) => {
 
   const currentRankIndex = ranks.findIndex(r => r.id === student.rankId);
   const currentRank = ranks[currentRankIndex];
-  const nextRank = ranks[currentRankIndex + 1] || null;
   const earnedBadges = badges.filter(b => student.badges?.includes(b.id));
   const challengesWon = challenges.filter(c => c.isCompleted).length;
-  const voltLevel = voltLevelForXp(student.totalXp ?? 0);
-  const voltNext = voltNextLevelXp(student.totalXp ?? 0);
-  const loadout = student.voltLoadout;
-  const perks = [loadout?.perk1, loadout?.perk2, loadout?.perk3, loadout?.flex]
-    .map(k => voltPerk(k))
-    .filter(Boolean);
-  const wildcard = voltWildcard(loadout?.wildcard);
 
   const Stat: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
     <div className="pz-card-sm p-4 text-center" style={{ background: 'var(--pz-panel-2)' }}>
@@ -76,6 +71,13 @@ const AthleteStatsReport: React.FC<Props> = ({ student }) => {
 
   return (
     <div className="space-y-8 pz-scope">
+      {/* Full-screen loadout editor, shared with the player portal */}
+      {showLoadout && (
+        <div className="fixed inset-0 z-[250] animate-fade-in" style={{ background: 'var(--pz-bg)' }}>
+          <VoltLoadout student={student} onClose={() => setShowLoadout(false)} />
+        </div>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Stat label="Points" value={student.points.toLocaleString()} />
         <Stat label="Rank" value={<span className="text-base">{currentRank?.name ?? '—'}</span>} />
@@ -83,59 +85,16 @@ const AthleteStatsReport: React.FC<Props> = ({ student }) => {
         <Stat label="Games" value={games.length} />
       </div>
 
-      {nextRank && currentRank && (
-        <div>
-          <SectionHead>Ranking</SectionHead>
-          <div className="pz-card-sm p-4" style={{ background: 'var(--pz-panel-2)' }}>
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: 'var(--pz-text)' }}>
-              <span>{currentRank.name}</span><span>{nextRank.name}</span>
-            </div>
-            <div className="h-3 bg-white/10 overflow-hidden rounded-full">
-              <div className="h-full" style={{ width: `${Math.min(100, Math.max(0, ((student.points - currentRank.threshold) / Math.max(1, nextRank.threshold - currentRank.threshold)) * 100))}%`, background: 'var(--pz-volt)' }} />
-            </div>
-            <div className="text-center text-[11px] mt-2" style={{ color: 'var(--pz-text)' }}>
-              {Math.max(0, nextRank.threshold - student.points)} pts to {nextRank.name}
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Rank ladder: the same "Road to Apex" path shown across every stats view */}
       <div>
-        <SectionHead>Volt Level &amp; Perks</SectionHead>
-        <div className="pz-card-sm p-4 space-y-3" style={{ background: 'var(--pz-panel-2)' }}>
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="pz-display text-3xl" style={{ color: 'var(--pz-volt)' }}>{voltLevel}</span>
-              <div>
-                <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>Volt Level</div>
-                <div className="text-[11px]" style={{ color: 'var(--pz-text)' }}>{(student.totalXp ?? 0).toLocaleString()} XP</div>
-              </div>
-            </div>
-            {voltNext && (
-              <div className="text-right text-[11px]" style={{ color: 'var(--pz-text)' }}>{voltNext.needed} XP to Lv {voltNext.nextLevel}</div>
-            )}
-          </div>
-          {voltNext && (
-            <div className="h-2 bg-white/10 overflow-hidden rounded-full">
-              <div className="h-full" style={{ width: `${Math.min(100, Math.max(0, (1 - voltNext.needed / Math.max(1, voltNext.span)) * 100))}%`, background: 'var(--pz-volt)' }} />
-            </div>
-          )}
-          <div>
-            <div className="text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: 'var(--pz-text)' }}>Loadout · Perks</div>
-            {perks.length === 0 && !wildcard ? (
-              <div className="text-xs italic" style={{ color: 'var(--pz-text)' }}>No perks equipped.</div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {perks.map((p, i) => (
-                  <span key={i} className="text-[10px] font-black uppercase tracking-wide px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white">{p!.name}</span>
-                ))}
-                {wildcard && (
-                  <span className="text-[10px] font-black uppercase tracking-wide px-2 py-1 rounded-md" style={{ background: 'var(--pz-volt)', color: '#0B0E13' }}>{wildcard.name}</span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        <SectionHead>Ranking</SectionHead>
+        <LevelPath points={student.points} rankId={student.rankId} ranks={ranks.length > 0 ? ranks : undefined} />
+      </div>
+
+      {/* Volt level bar: the same COD-style card shown in the player portal */}
+      <div>
+        <SectionHead>Volt Level &amp; Loadout</SectionHead>
+        <VoltStatsCard student={student} onOpenLoadout={() => setShowLoadout(true)} />
       </div>
 
       <div>
