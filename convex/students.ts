@@ -180,6 +180,99 @@ export const remove = mutation({
       .collect();
     for (const a of access) await ctx.db.delete(a._id);
 
+    // Awards + economy + attendance history (added later than the block above —
+    // keep this in sync with any new table that carries a studentId, or a hard
+    // delete leaves orphans like medals stranded on the Legends Wall).
+    const medals = await ctx.db
+      .query("medals")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const m of medals) await ctx.db.delete(m._id);
+
+    const gear = await ctx.db
+      .query("studentGear")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const g of gear) await ctx.db.delete(g._id);
+
+    const activations = await ctx.db
+      .query("gearActivations")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const a of activations) await ctx.db.delete(a._id);
+
+    const crates = await ctx.db
+      .query("lootBoxOpens")
+      .withIndex("by_student_date", (q) => q.eq("studentId", id))
+      .collect();
+    for (const c of crates) await ctx.db.delete(c._id);
+
+    const checkIns = await ctx.db
+      .query("checkIns")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const c of checkIns) await ctx.db.delete(c._id);
+
+    const visits = await ctx.db
+      .query("businessVisits")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const vst of visits) await ctx.db.delete(vst._id);
+
+    const submissions = await ctx.db
+      .query("taskSubmissions")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const sub of submissions) await ctx.db.delete(sub._id);
+
+    const scans = await ctx.db
+      .query("nfcScans")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const sc of scans) await ctx.db.delete(sc._id);
+
+    const ftPurchases = await ctx.db
+      .query("fitTokenPurchases")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const p of ftPurchases) await ctx.db.delete(p._id);
+
+    const ftLedger = await ctx.db
+      .query("fitTokenLedger")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const fl of ftLedger) await ctx.db.delete(fl._id);
+
+    const orders = await ctx.db
+      .query("marketOrders")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const o of orders) await ctx.db.delete(o._id);
+
+    const spins = await ctx.db
+      .query("jackpotSpins")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const sp of spins) await ctx.db.delete(sp._id);
+
+    const reds = await ctx.db
+      .query("redemptions")
+      .withIndex("by_student", (q) => q.eq("studentId", id))
+      .collect();
+    for (const r of reds) await ctx.db.delete(r._id);
+
+    // Trades reference two students (offered-by / offered-to).
+    const tradesFrom = await ctx.db
+      .query("trades")
+      .withIndex("by_from", (q) => q.eq("fromStudentId", id))
+      .collect();
+    for (const tr of tradesFrom) await ctx.db.delete(tr._id);
+    const tradesTo = await ctx.db
+      .query("trades")
+      .withIndex("by_to", (q) => q.eq("toStudentId", id))
+      .collect();
+    for (const tr of tradesTo) await ctx.db.delete(tr._id);
+
     await ctx.db.delete(id);
     await logActivity(ctx, {
       type: "ACCOUNT_DELETE",
