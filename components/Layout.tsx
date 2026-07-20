@@ -34,7 +34,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProfile, setSelectedProfile] = useState<Student | null>(null);
   const [globalCelebration, setGlobalCelebration] = useState<Celebration | null>(null);
-  const [pointBubbles, setPointBubbles] = useState<Array<{ id: string; amount: number; name: string; message: string }>>([]);
   const lastLevelUpSoundTs = useRef<number>(0);
 
   // Deduplicated level-up sound - only plays if not played in last 3 seconds
@@ -46,22 +45,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   };
 
-  // A single award reaches the board via several event paths (points_update,
-  // notification, transaction). Collapse them so one award = one bubble + one
-  // sound; different students in a batch still each get their own bubble.
-  const recentBubbleKeys = useRef<Map<string, number>>(new Map());
-  const addBubble = (studentId: string, amount: number, name: string, message: string) => {
-    const key = `${studentId}|${amount}`;
-    const now = Date.now();
-    const last = recentBubbleKeys.current.get(key);
-    if (last && now - last < 3000) return;
-    recentBubbleKeys.current.set(key, now);
-    recentBubbleKeys.current.forEach((t, k) => { if (now - t > 6000) recentBubbleKeys.current.delete(k); });
-    try { if (amount > 0) AudioService.playRandomAward(); else AudioService.playPointLost(); } catch (e) { /* audio optional */ }
-    const id = `${now}-${Math.random()}`;
-    setPointBubbles(prev => [{ id, amount, name, message }, ...prev].slice(0, 5));
-    setTimeout(() => { setPointBubbles(prev => prev.filter(b => b.id !== id)); }, 3000);
-  };
+  // NOTE: the live-board point popup + its award sound are owned entirely by the
+  // Leaderboard (points_broadcast -> pointFlash). Layout used to render its own
+  // duplicate bubble here, which showed the popup twice and played the sound
+  // twice on the live board; that system was removed.
 
   const refreshData = async () => {
     try {
@@ -91,25 +78,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     AudioService.preload();
 
     refreshData();
-    const unsubPoints = supabaseService.on('points_update', async (updatedStudent: Student) => {
+    const unsubPoints = supabaseService.on('points_update', () => {
+      // Board data refresh only — the point popup is owned by the Leaderboard.
       refreshData();
-      console.log('🔔 points_update event received, isLive:', isLive, 'student:', updatedStudent.fullName);
-      if (!isLive) return;
-      try {
-        const lastTx = await supabaseService.getLastTransaction(updatedStudent.id);
-        console.log('📝 Last transaction:', lastTx);
-        if (lastTx && typeof lastTx.amount === 'number') {
-          addBubble(updatedStudent.id, lastTx.amount, updatedStudent.fullName, lastTx.description || 'Points updated');
-        }
-      } catch (err) {
-        console.warn('Failed to process points update:', err);
-      }
     });
     const unsubNotif = supabaseService.on('notification', async (e: any) => {
       if (!isLive) return;
-      if (e.type === 'POINTS' && typeof e.amount === 'number') {
-        addBubble(e.studentId || e.id || 'x', e.amount, e.studentName || 'Athlete', e.message);
-      }
+      // POINTS popups are owned by the Leaderboard (points_broadcast/pointFlash).
       if (e.type === 'RANK_UP') {
         playLevelUpOnce();
         try {
@@ -138,16 +113,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             achievement: rankName
           });
         }
-      }
-    });
-    const unsubTx = supabaseService.on('transaction', async (t: { studentId: string; amount: number; description: string }) => {
-      if (!isLive) return;
-      try {
-        const stu = allStudents.find(s => s.id === t.studentId) || (await supabaseService.getStudents()).find(s => s.id === t.studentId);
-        const name = stu?.fullName || 'Athlete';
-        addBubble(t.studentId, t.amount, name, t.description || 'Points updated');
-      } catch (err) {
-        console.warn('Transaction processing failed:', err);
       }
     });
     const unsubBroadcast = supabaseService.on('rank_up_broadcast', (cele: Celebration) => {
@@ -208,7 +173,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       unsubPoints();
       unsubNotif();
       unsubBroadcast();
-      unsubTx();
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       window.removeEventListener('rank-up', onLocalRankUp as any);
       window.removeEventListener('storage', onStorage);
@@ -346,41 +310,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <CelebrationOverlay celebration={globalCelebration} onDismiss={() => setGlobalCelebration(null)} />
         )}
 
-        {isLive && pointBubbles.length > 0 && (
-          <div className="fixed inset-0 z-[800] pointer-events-none overflow-hidden pz-scope">
-            {pointBubbles.map((b, index) => (
-              <div
-                key={b.id}
-                className={`absolute ${b.amount >= 0 ? 'animate-points-float-up' : 'animate-points-break-fall'}`}
-                style={{
-                  top: b.amount >= 0 ? '60%' : '20%',
-                  left: `${50 + (index - 2) * 15}%`,
-                  transform: 'translateX(-50%)',
-                  filter: b.amount >= 0
-                    ? 'drop-shadow(0 0 18px rgba(16, 185, 129, 0.45))'
-                    : 'drop-shadow(0 0 18px rgba(239, 68, 68, 0.45))'
-                }}
-              >
-                <div
-                  className="pz-card relative px-6 py-4"
-                  style={{ borderColor: b.amount >= 0 ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.7)' }}
-                >
-                  <span
-                    className="absolute left-0 top-0 bottom-0 w-1.5"
-                    style={{ background: b.amount >= 0 ? '#10b981' : '#ef4444' }}
-                  />
-                  <div className="flex items-center gap-4 relative">
-                    <div className="pz-display text-white text-lg tracking-wider">{b.name}</div>
-                    <div className={`pz-display text-2xl ${b.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {b.amount >= 0 ? '+' : ''}{b.amount} pts
-                    </div>
-                  </div>
-                  <div className="text-sm font-bold mt-1.5 text-center" style={{ color: 'var(--pz-text)' }}>{b.message}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </main>
     </div>
   );

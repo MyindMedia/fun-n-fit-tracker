@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { logActivity } from "./helpers";
 
 // Season reset: zero out player progress in tiers, guarded by a REAL
@@ -87,20 +87,22 @@ export const execute = mutation({
       .query("appSettings")
       .withIndex("by_key", (q) => q.eq("key", ARM_KEY))
       .unique();
-    if (!row) throw new Error("No reset is armed. Start again from step 1.");
+    // ConvexError (not plain Error) so the reason reaches the client — Convex
+    // redacts plain thrown Errors to a generic "Server Error" in production.
+    if (!row) throw new ConvexError("No reset is armed. Start again from step 1.");
     let data: { code: string; tier: Tier; expiresAt: number };
     try {
       data = JSON.parse(row.value);
     } catch {
       await ctx.db.delete(row._id);
-      throw new Error("The armed reset was unreadable. Start again.");
+      throw new ConvexError("The armed reset was unreadable. Start again.");
     }
     if (data.expiresAt < Date.now()) {
       await ctx.db.delete(row._id);
-      throw new Error("The confirmation code expired. Start again from step 1.");
+      throw new ConvexError("The confirmation code expired. Start again from step 1.");
     }
     if (data.code !== code.trim()) {
-      throw new Error("That code does not match. Check it and try again.");
+      throw new ConvexError("That code does not match. Check it and try again.");
     }
     // Consume the code before doing anything — single use.
     await ctx.db.delete(row._id);

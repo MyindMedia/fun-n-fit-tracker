@@ -90,7 +90,12 @@ const SeasonReset: React.FC<{ adminName: string; onRefresh: () => void }> = ({ a
       setCodeInput('');
       onRefresh();
     } catch (e: any) {
-      setError((e?.message || 'Reset failed').replace(/^.*Uncaught Error:\s*/, '').split(' at ')[0]);
+      // ConvexError carries the human message in `.data`; fall back to parsing
+      // the raw message for any other (redacted) error.
+      const msg = typeof e?.data === 'string'
+        ? e.data
+        : (e?.message || 'Reset failed').replace(/^.*Uncaught (Convex)?Error:\s*/, '').split(' at ')[0];
+      setError(msg);
     } finally {
       setBusy(false);
     }
