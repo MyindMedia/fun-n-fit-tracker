@@ -20,6 +20,7 @@ import ParentNews from './Parent/ParentNews';
 import EarnAroundTown from './Parent/EarnAroundTown';
 import PerksHistory from './Parent/PerksHistory';
 import StudentDetailExtras from './Parent/StudentDetailExtras';
+import AthleteStatsReport from './AthleteStatsReport';
 import KidPassSheet from './Parent/KidPassSheet';
 import PendingCelebrations from './PendingCelebrations';
 import TrophyCase from './TrophyCase';
@@ -963,6 +964,11 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
 
             {/* Game-center activity: check-ins, business visits, redemptions */}
             <StudentDetailExtras studentId={student.id} />
+
+            {/* Full stats report — same view kids see, including Volt level progress */}
+            <div style={{ marginTop: '1.25rem' }}>
+                <AthleteStatsReport student={student} />
+            </div>
         </div>
     );
 };
