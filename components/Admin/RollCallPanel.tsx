@@ -86,6 +86,22 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
     }
   };
 
+  // End-of-session: check out EVERY athlete on the floor (ignores the house
+  // filter/search), stamping proper check-out times. Points/XP/board are kept —
+  // this just ends the session. "Reset For New Day" is the separate morning step.
+  const checkOutEveryone = async () => {
+    if (isBusy) return;
+    if (totalPresent === 0) return;
+    if (!window.confirm(`Check out all ${totalPresent} athlete${totalPresent === 1 ? '' : 's'} on the floor?\n\nEnds today's session and records their check-out time. Points, XP and the board are all kept.`)) return;
+    setIsBusy(true);
+    try {
+      await gameCenter.checkOutAll(adminName);
+      onRefresh();
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
   const resetDay = async () => {
     if (isBusy) return;
     if (!window.confirm("Start a new day?\n\nThis clears today's points board and marks everyone inactive. Season totals, XP, medals and gear are all kept.")) return;
@@ -267,6 +283,19 @@ const RollCallPanel: React.FC<RollCallPanelProps> = ({ students, adminName, onRe
           </div>
         )}
       </div>
+
+      {/* End-of-session: check out everyone on the floor (points/board kept) */}
+      <button
+        onClick={checkOutEveryone}
+        disabled={isBusy || totalPresent === 0}
+        className={`touch-btn w-full min-h-[52px] px-6 py-4 text-xs font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${
+          isBusy || totalPresent === 0
+            ? 'bg-white/5 text-white/30 border-transparent'
+            : 'bg-amber-500/15 text-amber-300 border-amber-500/40 active:bg-amber-500/25'
+        }`}
+      >
+        <Ic.Wave size={16} /> Check Out All{totalPresent > 0 ? ` (${totalPresent})` : ''}
+      </button>
 
       {/* Reset Button */}
       <button

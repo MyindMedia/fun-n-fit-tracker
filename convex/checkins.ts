@@ -254,6 +254,39 @@ export const checkOut = mutation({
   },
 });
 
+// End-of-session bulk check-out: marks every present athlete checked out at
+// once — stamps checkedOutAt on today's check-in row (so the board shows the
+// time) then flips isPresent off — and logs ONE summary instead of a line per
+// kid. Does NOT touch points/XP/season board; that's markDayReset.
+export const checkOutAll = mutation({
+  args: { localDate: v.optional(v.string()), adminName: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const actorName = args.adminName ?? "Front Desk";
+    const date = resolveLocalDate(args.localDate);
+    const now = Date.now();
+    const students = await ctx.db.query("students").collect();
+    let count = 0;
+    for (const s of students) {
+      if (!s.isPresent) continue;
+      const row = await ctx.db
+        .query("checkIns")
+        .withIndex("by_student_date", (q) =>
+          q.eq("studentId", s._id).eq("date", date)
+        )
+        .unique();
+      if (row && !row.checkedOutAt) await ctx.db.patch(row._id, { checkedOutAt: now });
+      await ctx.db.patch(s._id, { isPresent: false });
+      count++;
+    }
+    await logActivity(ctx, {
+      type: "CHECKOUT",
+      message: `End of session — checked out ${count} athlete${count === 1 ? "" : "s"}. 👋`,
+      adminName: actorName,
+    });
+    return { count };
+  },
+});
+
 // ── Board & history queries ──────────────────────────────────────────────────
 
 // Today's board: every check-in for the date joined with its student doc.

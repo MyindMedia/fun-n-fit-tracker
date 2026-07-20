@@ -107,6 +107,14 @@ class GameCenterService {
     });
   }
 
+  /** End-of-session: check out every athlete currently on the floor at once. */
+  public async checkOutAll(adminName?: string): Promise<{ count: number }> {
+    return await this.client.mutation(api.checkins.checkOutAll, {
+      localDate: localDate(),
+      adminName,
+    });
+  }
+
   /** Live subscription to today's check-in board. Returns unsubscribe. */
   public subscribeBoard(cb: (entries: BoardEntry[]) => void): () => void {
     return this.client.onUpdate(api.checkins.board, { date: localDate() }, (rows) => {
