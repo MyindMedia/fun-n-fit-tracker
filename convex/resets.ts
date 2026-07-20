@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { logActivity } from "./helpers";
 
@@ -111,6 +111,19 @@ export const execute = mutation({
     const students = await ctx.db.query("students").collect();
     const now = Date.now();
 
+    // Board boundary: earnedBetween ignores everything earned before this, so
+    // every standings range (Today/Week/Season) + Hall of Fame drop to zero
+    // immediately — without deleting the ledger. POINTS + FULL clear the points
+    // board; XP-only leaves it alone.
+    if (tier === "POINTS" || tier === "FULL") {
+      const marker = await ctx.db
+        .query("appSettings")
+        .withIndex("by_key", (q) => q.eq("key", "season_reset_at"))
+        .unique();
+      if (marker) await ctx.db.patch(marker._id, { value: String(now), updatedAt: now });
+      else await ctx.db.insert("appSettings", { key: "season_reset_at", value: String(now), updatedAt: now });
+    }
+
     for (const s of students) {
       if (tier === "POINTS" || tier === "FULL") {
         await ctx.db.patch(s._id, { points: 0, rankId: "r_noob" });
@@ -159,5 +172,23 @@ export const execute = mutation({
       adminName,
     });
     return { ok: true, tier, players: students.length };
+  },
+});
+
+// Admin/CLI-only: stamp the board boundary to now WITHOUT running a full reset.
+// Used to retro-apply the boundary after a reset ran before the boundary logic
+// existed (points already zeroed, but the standings ledger still summed old
+// earnings). Not client-callable.
+export const stampSeasonBoundaryNow = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const marker = await ctx.db
+      .query("appSettings")
+      .withIndex("by_key", (q) => q.eq("key", "season_reset_at"))
+      .unique();
+    if (marker) await ctx.db.patch(marker._id, { value: String(now), updatedAt: now });
+    else await ctx.db.insert("appSettings", { key: "season_reset_at", value: String(now), updatedAt: now });
+    return { stampedAt: now };
   },
 });

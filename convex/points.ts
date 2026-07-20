@@ -256,6 +256,18 @@ export const earnedBetween = query({
       const marker = row ? Number(row.value) : NaN;
       if (!Number.isNaN(marker) && marker > effectiveStart) effectiveStart = marker;
     }
+    // Season/full reset boundary: a POINTS or FULL reset (resets.execute) stamps
+    // this, and NO range (Today/Week/Season) counts anything earned before it —
+    // so standings + Hall of Fame drop to zero on reset. Applied to every range,
+    // not just Today, and without deleting the ledger history.
+    {
+      const seasonRow = await ctx.db
+        .query("appSettings")
+        .withIndex("by_key", (q) => q.eq("key", "season_reset_at"))
+        .unique();
+      const seasonMarker = seasonRow ? Number(seasonRow.value) : NaN;
+      if (!Number.isNaN(seasonMarker) && seasonMarker > effectiveStart) effectiveStart = seasonMarker;
+    }
     const txs = await ctx.db
       .query("transactions")
       .withIndex("by_createdAt", (q) =>
