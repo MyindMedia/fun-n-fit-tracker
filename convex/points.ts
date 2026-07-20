@@ -282,7 +282,10 @@ export const earnedBetween = query({
     for (const [studentId, agg] of byStudent) {
       const s = await ctx.db.get(studentId);
       if (!s) continue;
+      // Archived (departed) athletes STILL count toward the house season total,
+      // so the team keeps their points, but they drop off the individual board.
       houseTotals[s.houseId] = (houseTotals[s.houseId] ?? 0) + agg.earned;
+      if (s.archived) continue;
       students.push({
         studentId,
         fullName: s.fullName,

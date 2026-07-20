@@ -25,6 +25,7 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
   const [gender, setGender] = useState<'Male' | 'Female'>(student.gender);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
   const [reasonChip, setReasonChip] = useState<string | null>(null);
   const [reasonText, setReasonText] = useState('');
   const [nfcWriting, setNfcWriting] = useState(false);
@@ -135,6 +136,25 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
     } catch {}
   };
 
+  // Preferred path for a departing/ejected athlete: soft-archive. Keeps their
+  // whole point ledger so the house KEEPS the points they earned this season;
+  // just hides them from active rosters and boards. Reversible via restore.
+  const handleArchive = async () => {
+    setIsSaving(true);
+    try {
+      await supabaseService.archiveStudent(student.id, adminName);
+      onRefresh();
+      onClose();
+    } catch (err) {
+      console.error('Failed to archive athlete:', err);
+      alert('Failed to archive athlete. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Hard delete: only for test/duplicate records. This WIPES the ledger, so the
+  // house loses those points. For a real departing athlete, archive instead.
   const handleDelete = async () => {
     setIsSaving(true);
     try {
@@ -271,12 +291,20 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
                    </div>
 
                    <div className="pt-10 border-t border-white/10 flex justify-between gap-4 items-center">
-                      <button
-                        onClick={() => setShowDeleteConfirm(true)}
-                        className="px-6 py-4 font-black uppercase text-[10px] tracking-widest bg-red-500/10 text-red-400 border border-red-500/40 hover:bg-red-500 hover:text-white transition-all"
-                      >
-                        Delete Athlete
-                      </button>
+                      <div className="flex flex-col items-start gap-2">
+                        <button
+                          onClick={() => setShowArchiveConfirm(true)}
+                          className="px-6 py-4 font-black uppercase text-[10px] tracking-widest bg-amber-500/10 text-amber-300 border border-amber-500/40 hover:bg-amber-500 hover:text-[#0B0E13] transition-all"
+                        >
+                          Archive Athlete
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteConfirm(true)}
+                          className="text-[9px] font-black uppercase tracking-widest text-white/25 hover:text-red-400 transition-all"
+                        >
+                          Permanently delete instead
+                        </button>
+                      </div>
                       <button onClick={onClose} className="px-8 py-4 font-black uppercase text-[10px] tracking-widest text-white/40 hover:text-white transition-all">Discard</button>
                       <button
                         onClick={handleSaveInfo}
@@ -346,17 +374,34 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
            </div>
         </div>
       </div>
+      {showArchiveConfirm && (
+        <div className="fixed inset-0 z-[400] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="pz-card max-w-md w-full p-8">
+            <div className="text-center mb-6">
+              <Ic.Warning size={56} className="mx-auto mb-4 text-amber-300" />
+              <h3 className="text-2xl text-white mb-2">Archive Athlete</h3>
+              <p className="text-sm" style={{ color: 'var(--pz-text)' }}>
+                Move {student.fullName} off the active roster. The house <span className="text-amber-300 font-black">keeps every point</span> they earned this season, and you can restore them anytime.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setShowArchiveConfirm(false)} className="pz-btn-ghost flex-1 px-6 py-3 text-xs" disabled={isSaving}>Cancel</button>
+              <button onClick={handleArchive} disabled={isSaving} className="flex-1 px-6 py-3 bg-amber-500 text-[#0B0E13] font-black uppercase text-xs tracking-widest hover:bg-amber-400 transition-all disabled:opacity-50">{isSaving ? 'Archiving…' : 'Archive'}</button>
+            </div>
+          </div>
+        </div>
+      )}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-[400] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
           <div className="pz-card max-w-md w-full p-8">
             <div className="text-center mb-6">
               <Ic.Warning size={56} className="mx-auto mb-4 text-red-400" />
-              <h3 className="text-2xl text-white mb-2">Delete Athlete</h3>
-              <p className="text-sm" style={{ color: 'var(--pz-text)' }}>This cannot be undone. Remove {student.fullName} from the roster?</p>
+              <h3 className="text-2xl text-white mb-2">Permanently Delete</h3>
+              <p className="text-sm" style={{ color: 'var(--pz-text)' }}>This wipes {student.fullName}’s whole record and point history, and the house <span className="text-red-400 font-black">loses those points</span>. Only do this for test or duplicate records. This cannot be undone.</p>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(false)} className="pz-btn-ghost flex-1 px-6 py-3 text-xs">Cancel</button>
-              <button onClick={handleDelete} className="flex-1 px-6 py-3 bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500 transition-all">Permanently Delete</button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="pz-btn-ghost flex-1 px-6 py-3 text-xs" disabled={isSaving}>Cancel</button>
+              <button onClick={handleDelete} disabled={isSaving} className="flex-1 px-6 py-3 bg-red-600 text-white font-black uppercase text-xs tracking-widest hover:bg-red-500 transition-all disabled:opacity-50">{isSaving ? 'Deleting…' : 'Permanently Delete'}</button>
             </div>
           </div>
         </div>

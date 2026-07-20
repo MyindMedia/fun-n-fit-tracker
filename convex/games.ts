@@ -411,8 +411,11 @@ export const drillLeaderboard = query({
       if (!roster.has(t.studentId)) continue;
       const student = await ctx.db.get(t.studentId);
       if (!student) continue;
-      studentScores[t.studentId] = (studentScores[t.studentId] || 0) + t.amount;
+      // Archived (departed) athletes keep contributing to the house score but
+      // drop off the individual top-scorers list.
       houseScores[student.houseId] += t.amount;
+      if ((student as { archived?: boolean }).archived) continue;
+      studentScores[t.studentId] = (studentScores[t.studentId] || 0) + t.amount;
       studentDocs[t.studentId] = student;
     }
 

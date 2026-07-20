@@ -6,10 +6,24 @@ import { BADGES } from "../constants";
 import { voltEffects } from "../voltCatalog";
 
 export const list = query({
+  // Active roster by default. Archived (departed/ejected) athletes are hidden
+  // unless includeArchived is set (the archive-management view passes it).
+  args: { includeArchived: v.optional(v.boolean()) },
+  handler: async (ctx, { includeArchived }) => {
+    const students = await ctx.db.query("students").collect();
+    const visible = includeArchived ? students : students.filter((s) => !s.archived);
+    return visible.sort((a, b) => a.fullName.localeCompare(b.fullName));
+  },
+});
+
+// Just the archived athletes, for the admin archive-management view.
+export const archivedList = query({
   args: {},
   handler: async (ctx) => {
     const students = await ctx.db.query("students").collect();
-    return students.sort((a, b) => a.fullName.localeCompare(b.fullName));
+    return students
+      .filter((s) => s.archived)
+      .sort((a, b) => (b.archivedAt ?? 0) - (a.archivedAt ?? 0));
   },
 });
 
@@ -70,6 +84,41 @@ export const update = mutation({
   },
 });
 
+// Archive a departed/ejected athlete. Soft: keeps the record and the whole
+// transaction ledger, so the house KEEPS the points the kid earned this season
+// (house totals sum the ledger by houseId). Just hides them from active rosters
+// and boards and marks them not-present. Reversible with restore.
+export const archive = mutation({
+  args: { id: v.id("students"), adminName: v.string() },
+  handler: async (ctx, { id, adminName }) => {
+    const student = await ctx.db.get(id);
+    if (!student) return;
+    await ctx.db.patch(id, { archived: true, archivedAt: Date.now(), isPresent: false });
+    await logActivity(ctx, {
+      type: "ACCOUNT_DELETE",
+      message: `Archived ${student.fullName || "Athlete"} (points kept for the team)`,
+      adminName,
+    });
+  },
+});
+
+// Bring an archived athlete back onto the active roster.
+export const restore = mutation({
+  args: { id: v.id("students"), adminName: v.string() },
+  handler: async (ctx, { id, adminName }) => {
+    const student = await ctx.db.get(id);
+    if (!student) return;
+    await ctx.db.patch(id, { archived: false, archivedAt: null });
+    await logActivity(ctx, {
+      type: "POINTS",
+      message: `Restored ${student.fullName || "Athlete"} to the active roster`,
+      adminName,
+    });
+  },
+});
+
+// Permanent hard delete (test/duplicate records). This DOES remove the ledger,
+// so the house loses those points. For a departing real athlete use `archive`.
 export const remove = mutation({
   args: { id: v.id("students"), adminName: v.string() },
   handler: async (ctx, { id, adminName }) => {

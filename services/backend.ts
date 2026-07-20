@@ -69,6 +69,8 @@ type StudentDoc = {
   avatarLook?: Student["avatarLook"];
   gearEquipped?: string | null;
   fitTokens?: number;
+  archived?: boolean;
+  archivedAt?: number | null;
 };
 
 export const mapStudent = (s: StudentDoc): Student => ({
@@ -93,6 +95,8 @@ export const mapStudent = (s: StudentDoc): Student => ({
   avatarLook: s.avatarLook,
   gearEquipped: s.gearEquipped,
   fitTokens: s.fitTokens ?? 0,
+  archived: s.archived ?? false,
+  archivedAt: s.archivedAt ?? null,
 });
 
 type SessionDoc = {
@@ -672,6 +676,42 @@ class ConvexBackendService {
       });
     } catch (e) {
       this.handleError("deleteStudent", e);
+    }
+  }
+
+  // Archive a departing/ejected athlete (soft): keeps their points on the team.
+  public async archiveStudent(id: string, adminName: string) {
+    try {
+      await this.client.mutation(api.students.archive, {
+        id: id as Id<"students">,
+        adminName,
+      });
+    } catch (e) {
+      this.handleError("archiveStudent", e);
+    }
+  }
+
+  public async restoreStudent(id: string, adminName: string) {
+    try {
+      await this.client.mutation(api.students.restore, {
+        id: id as Id<"students">,
+        adminName,
+      });
+    } catch (e) {
+      this.handleError("restoreStudent", e);
+    }
+  }
+
+  public async getArchivedStudents(): Promise<Student[]> {
+    try {
+      const docs = (await this.client.query(
+        api.students.archivedList,
+        {}
+      )) as unknown as StudentDoc[];
+      return docs.map(mapStudent);
+    } catch (e) {
+      this.handleError("getArchivedStudents", e);
+      return [];
     }
   }
 

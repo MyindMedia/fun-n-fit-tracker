@@ -51,6 +51,13 @@ export default defineSchema({
     bio: v.optional(v.string()),
     friendIds: v.optional(v.array(v.string())), // student _ids
     totalXp: v.optional(v.number()),
+    // Departed/ejected athletes are ARCHIVED, never hard-deleted, so their
+    // record + transaction ledger stay intact and their points keep counting
+    // toward the house's season total (house totals sum the ledger by the
+    // student's houseId). Archived students are hidden from active rosters and
+    // boards. Reversible via students.restore.
+    archived: v.optional(v.boolean()),
+    archivedAt: v.optional(v.union(v.number(), v.null())),
     // Layered avatar (components/avatar/AvatarRig): photo vs avatar choice +
     // the equipped look, denormalized here so boards render without joins.
     avatarMode: v.optional(v.union(v.literal("PHOTO"), v.literal("AVATAR"))),

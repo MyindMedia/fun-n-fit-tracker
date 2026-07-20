@@ -247,6 +247,11 @@ export interface Student {
   bio?: string;
   friendIds?: string[];
   totalXp?: number;
+  // Departed/ejected athletes are soft-archived (never hard-deleted) so their
+  // points keep counting toward the house season total. Hidden from active
+  // rosters/boards; reversible via supabaseService.restoreStudent.
+  archived?: boolean;
+  archivedAt?: number | null;
   // Layered avatar (components/avatar): photo vs avatar + equipped look
   avatarMode?: 'PHOTO' | 'AVATAR';
   gearEquipped?: string | null;

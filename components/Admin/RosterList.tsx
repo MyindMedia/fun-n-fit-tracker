@@ -13,10 +13,12 @@ interface RosterListProps {
 }
 
 const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit, onRefresh }) => {
-  const [viewMode, setViewMode] = useState<'INDIVIDUAL' | 'TEAM'>('INDIVIDUAL');
+  const [viewMode, setViewMode] = useState<'INDIVIDUAL' | 'TEAM' | 'ARCHIVED'>('INDIVIDUAL');
   const [ranks, setRanks] = useState<Rank[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [list, setList] = useState<Student[]>(students);
+  const [archived, setArchived] = useState<Student[]>([]);
+  const [archivedLoading, setArchivedLoading] = useState(false);
 
   useEffect(() => {
     supabaseService.getRanks().then(setRanks);
@@ -25,6 +27,32 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
   useEffect(() => {
     setList(students);
   }, [students]);
+
+  const loadArchived = async () => {
+    setArchivedLoading(true);
+    try {
+      setArchived(await supabaseService.getArchivedStudents());
+    } finally {
+      setArchivedLoading(false);
+    }
+  };
+
+  // Pull the archived roster whenever the admin switches to that tab.
+  useEffect(() => {
+    if (viewMode === 'ARCHIVED') loadArchived();
+  }, [viewMode]);
+
+  const handleRestore = async (s: Student) => {
+    if (busyId) return;
+    setBusyId(s.id);
+    try {
+      await supabaseService.restoreStudent(s.id, adminName);
+      setArchived(prev => prev.filter(p => p.id !== s.id));
+      onRefresh && onRefresh();
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   const groupedStudents = useMemo(() => {
     const groups: Record<HouseId, Student[]> = {
@@ -66,6 +94,13 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
           >
             Houses
             {viewMode === 'TEAM' && <span className="absolute left-2 right-2 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
+          </button>
+          <button
+            onClick={() => setViewMode('ARCHIVED')}
+            className={`relative px-5 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'ARCHIVED' ? 'bg-white/5 text-[#CBFE1C]' : 'text-white/40'}`}
+          >
+            Archived
+            {viewMode === 'ARCHIVED' && <span className="absolute left-2 right-2 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
           </button>
         </div>
       </div>
@@ -145,7 +180,7 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
               })
             )}
           </div>
-        ) : (
+        ) : viewMode === 'TEAM' ? (
           <div className="space-y-12 pb-10">
             {houseStats.map(house => (
               <div key={house.id} className="space-y-6">
@@ -199,6 +234,58 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
                 </div>
               </div>
             ))}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-xs font-medium mb-4" style={{ color: 'var(--pz-text)' }}>
+              Departed or ejected athletes. Their points still count toward the house season total; restore anytime to bring them back onto the active roster.
+            </p>
+            {archivedLoading ? (
+              <div className="text-center py-20 italic font-medium" style={{ color: 'var(--pz-text)' }}>Loading archived athletes…</div>
+            ) : archived.length === 0 ? (
+              <div className="text-center py-20 italic font-medium" style={{ color: 'var(--pz-text)' }}>No archived athletes.</div>
+            ) : (
+              archived.map(s => {
+                const studentRank = ranks.find(r => r.id === s.rankId);
+                return (
+                  <div key={s.id} className="pz-card-sm p-4 flex flex-col md:flex-row justify-between items-center gap-4 opacity-80 hover:opacity-100 transition-all" style={{ background: 'var(--pz-panel-2)' }}>
+                    <div className="flex items-center gap-6 flex-grow min-w-0">
+                      <StudentAvatar student={s} rank={studentRank} size="md" />
+                      <div className="truncate">
+                        <div className="pz-display text-white text-lg leading-tight truncate">{s.fullName}</div>
+                        {s.gamerTag && (
+                          <div className="text-xs truncate" style={{ color: 'var(--pz-text)' }}>@{s.gamerTag}</div>
+                        )}
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md text-white shadow-sm" style={{ backgroundColor: HOUSES[s.houseId].colorHex }}>
+                            {HOUSES[s.houseId].name}
+                          </span>
+                          {s.archivedAt ? (
+                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>
+                              Archived {new Date(s.archivedAt).toLocaleDateString()}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 shrink-0">
+                      <div className="text-right mr-2">
+                        <div className="text-[8px] font-black uppercase" style={{ color: 'var(--pz-text)' }}>Points kept</div>
+                        <div className="pz-display text-xl text-[#CBFE1C] leading-none">{s.points.toLocaleString()}</div>
+                      </div>
+                      <button
+                        onClick={() => handleRestore(s)}
+                        disabled={busyId === s.id}
+                        className={`px-6 py-3 text-[10px] font-black uppercase tracking-widest transition-all border bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:border-emerald-500 hover:bg-emerald-500/25 ${busyId === s.id ? 'opacity-60 cursor-wait' : ''}`}
+                      >
+                        {busyId === s.id ? 'Restoring…' : 'Restore'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
       </div>
