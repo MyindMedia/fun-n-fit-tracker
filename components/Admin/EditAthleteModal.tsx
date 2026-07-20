@@ -130,10 +130,11 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
       if (amount > 0) AudioService.playRandomAward();
       else if (amount < 0) AudioService.playPointLost();
     } catch {}
-    try {
-      const msg = `${amount > 0 ? '+' + amount : amount} pts for ${student.fullName}`;
-      window.dispatchEvent(new CustomEvent('coach-toast', { detail: { message: msg, amount } }));
-    } catch {}
+    // NOTE: do NOT dispatch a 'coach-toast' here. addPoints already writes a
+    // POINTS activity row, and AdminDashboard's notification subscription turns
+    // that into the "+X pts for Name" toast. Dispatching coach-toast too showed
+    // the popup twice (see MedalsPanel/BoostControl — those keep coach-toast
+    // because their messages are NOT covered by the notification path).
   };
 
   // Preferred path for a departing/ejected athlete: soft-archive. Keeps their

@@ -303,12 +303,10 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
     } catch (err) {
       console.warn('Audio playback failed:', err);
     }
-    try {
-      const msg = `${amount > 0 ? '+' + amount : amount} pts for ${student.fullName}`;
-      window.dispatchEvent(new CustomEvent('coach-toast', { detail: { message: msg, amount } }));
-    } catch (err) {
-      console.warn('Failed to dispatch toast event:', err);
-    }
+    // NOTE: do NOT dispatch a 'coach-toast' here. addPoints already writes a
+    // POINTS activity row that AdminDashboard's notification subscription turns
+    // into the "+X pts for Name" toast; dispatching coach-toast too showed the
+    // popup twice.
   };
 
   const handleRankChange = (newRankId: string) => {
