@@ -115,11 +115,14 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
     setNews(newsData);
   };
 
+  // Rank rides LIFETIME XP now (thresholds are XP), so all rank-progress math
+  // reads totalXp, not the spendable points wallet.
+  const rankXp = student.totalXp ?? 0;
   const currentRankIndex = ranks.findIndex(r => r.id === student.rankId);
   const currentRank = ranks[currentRankIndex] || ranks[0];
   const nextRank = ranks[currentRankIndex + 1] || null;
   const progressPercent = (nextRank && currentRank)
-    ? Math.min(100, Math.max(0, ((student.points - currentRank.threshold) / (nextRank.threshold - currentRank.threshold)) * 100))
+    ? Math.min(100, Math.max(0, ((rankXp - currentRank.threshold) / (nextRank.threshold - currentRank.threshold)) * 100))
     : 100;
 
   // Live preview of how the name will read on the leaderboard —
@@ -459,14 +462,14 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ student, onClose, onRefre
               />
             </div>
             <div className="text-center text-xs font-bold" style={{ color: 'var(--pz-text)' }}>
-              {nextRank.threshold - student.points} pts to level up
+              {Math.max(0, nextRank.threshold - rankXp).toLocaleString()} XP to level up
             </div>
           </div>
         )}
       </div>
 
       {/* The whole level ladder — see every rank ahead */}
-      <LevelPath points={student.points} rankId={student.rankId} ranks={ranks} />
+      <LevelPath points={rankXp} rankId={student.rankId} ranks={ranks} />
       </div>
 
       <div className="space-y-5 min-w-0">

@@ -417,7 +417,7 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
             <div className="flex-grow min-w-0">
               <div className="font-black text-sm text-white">{rank.name}</div>
               <div className="text-[10px] text-[#ABABAB]">
-                {rank.threshold.toLocaleString()} pts threshold
+                {rank.threshold.toLocaleString()} XP threshold
                 {rank.xpReward ? ` • ${rank.xpReward} XP` : ''}
               </div>
             </div>
@@ -605,7 +605,7 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
             {isRank && (
               <div>
                 <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
-                  Points Threshold
+                  XP Threshold
                 </label>
                 <input
                   type="number"
@@ -614,7 +614,7 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
                   placeholder="0"
                   className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
-                <p className="text-[10px] text-[#ABABAB] mt-1">Points needed to reach this rank</p>
+                <p className="text-[10px] text-[#ABABAB] mt-1">Lifetime XP needed to reach this rank. XP is earned alongside points and never decreases, so rank never drops when kids spend.</p>
               </div>
             )}
 
@@ -909,16 +909,20 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
         ))}
       </div>
 
-      {/* Tab Content */}
+      {/* Tab Content — these are rendered as function CALLS, not <Component/>
+          elements. Defined inline they are a new function identity on every
+          keystroke, so as elements React would remount them each render and any
+          focused input would lose focus after one character. Calling them inlines
+          their JSX into this tree so inputs keep their identity. */}
       <div className="min-h-[300px]">
-        {activeTab === 'logo' && <LogoTab />}
-        {activeTab === 'sounds' && <SoundsTab />}
-        {activeTab === 'ranks' && <RanksTab />}
-        {activeTab === 'trophies' && <TrophiesTab />}
+        {activeTab === 'logo' && LogoTab()}
+        {activeTab === 'sounds' && SoundsTab()}
+        {activeTab === 'ranks' && RanksTab()}
+        {activeTab === 'trophies' && TrophiesTab()}
       </div>
 
       {/* Form Modal */}
-      <FormModal />
+      {FormModal()}
     </section>
   );
 };

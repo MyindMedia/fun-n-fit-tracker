@@ -7,7 +7,7 @@ import { Ic } from './icons';
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
 
 interface LevelPathProps {
-  points: number;
+  points: number; // the rank-progress value = LIFETIME XP (rank thresholds are XP)
   rankId?: string;
   ranks?: Rank[]; // defaults to the bundled ladder
 }
@@ -34,7 +34,7 @@ const LevelPath: React.FC<LevelPathProps> = ({ points, rankId, ranks }) => {
         </div>
         <div className="text-right">
           <div className="pz-display text-xl" style={{ color: 'var(--pz-volt)' }}>{points.toLocaleString()}</div>
-          <div className="text-[9px] font-bold uppercase" style={{ color: 'var(--pz-text)' }}>Points</div>
+          <div className="text-[9px] font-bold uppercase" style={{ color: 'var(--pz-text)' }}>XP</div>
         </div>
       </div>
 
@@ -94,11 +94,11 @@ const LevelPath: React.FC<LevelPathProps> = ({ points, rankId, ranks }) => {
                     </span>
                   ) : isNext ? (
                     <span className="text-[8px] font-black uppercase text-center" style={{ color: 'var(--pz-volt)' }}>
-                      {ptsToGo.toLocaleString()} pts to go
+                      {ptsToGo.toLocaleString()} XP to go
                     </span>
                   ) : (
                     <span className="text-[8px] font-bold" style={{ color: 'var(--pz-text)' }}>
-                      {rank.threshold.toLocaleString()} pts
+                      {rank.threshold.toLocaleString()} XP
                     </span>
                   )}
                 </div>

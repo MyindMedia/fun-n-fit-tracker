@@ -92,7 +92,7 @@ const AthleteStatsReport: React.FC<Props> = ({ student }) => {
       {/* Rank ladder: the same "Road to Apex" path shown across every stats view */}
       <div>
         <SectionHead>Ranking</SectionHead>
-        <LevelPath points={student.points} rankId={student.rankId} ranks={ranks.length > 0 ? ranks : undefined} />
+        <LevelPath points={student.totalXp ?? 0} rankId={student.rankId} ranks={ranks.length > 0 ? ranks : undefined} />
       </div>
 
       {/* Volt level bar: the same COD-style card shown in the player portal */}

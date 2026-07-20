@@ -407,9 +407,11 @@ const ParentDashboard: React.FC = () => {
 /* -------------------------------------------------------------------------- */
 const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({ student, onBack }) => {
     const house = HOUSES[student.houseId];
+    // Rank rides LIFETIME XP now (thresholds are XP), not the spendable wallet.
+    const rankXp = student.totalXp ?? 0;
     const rank = RANKS.find(r => r.id === student.rankId) || RANKS[0];
-    const nextRank = RANKS.find(r => r.threshold > student.points);
-    const progress = nextRank ? Math.min((student.points / nextRank.threshold) * 100, 100) : 100;
+    const nextRank = RANKS.find(r => r.threshold > rankXp);
+    const progress = nextRank ? Math.min((rankXp / nextRank.threshold) * 100, 100) : 100;
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -879,7 +881,7 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                 Progress to <span style={{ color: PZ.volt }}>{nextRank.name}</span>
                             </span>
                             <span style={{ color: PZ.volt, fontSize: '0.8125rem', fontWeight: 700 }}>
-                                {nextRank.threshold - student.points} pts to go · {Math.round(progress)}%
+                                {Math.max(0, nextRank.threshold - rankXp).toLocaleString()} XP to go · {Math.round(progress)}%
                             </span>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.08)', height: '10px', overflow: 'hidden', clipPath: 'polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px)' }}>
@@ -909,7 +911,7 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
 
             {/* The whole level ladder — what's next, all the way to Apex */}
             <div style={{ marginBottom: '1.25rem' }}>
-                <LevelPath points={student.points} rankId={student.rankId} />
+                <LevelPath points={rankXp} rankId={student.rankId} />
             </div>
 
             {/* Coach medals — superlatives, all in one place */}

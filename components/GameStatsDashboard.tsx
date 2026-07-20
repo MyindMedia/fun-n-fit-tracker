@@ -130,10 +130,12 @@ const GameStatsDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const stats: Record<string, PlayerStats> = {};
 
     students.forEach(student => {
+      // Rank rides lifetime XP now (thresholds are XP), not the spendable wallet.
+      const rankXp = student.totalXp ?? 0;
       const currentRank = ranks.find(r => r.id === student.rankId);
       const nextRank = ranks.find(r => r.threshold > (currentRank?.threshold || 0));
       const progress = nextRank
-        ? ((student.points - (currentRank?.threshold || 0)) / (nextRank.threshold - (currentRank?.threshold || 0))) * 100
+        ? ((rankXp - (currentRank?.threshold || 0)) / (nextRank.threshold - (currentRank?.threshold || 0))) * 100
         : 100;
 
       stats[student.id] = {

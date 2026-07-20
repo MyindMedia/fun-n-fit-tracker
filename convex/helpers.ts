@@ -2,7 +2,7 @@ import { MutationCtx, QueryCtx } from "./_generated/server";
 import { Id, Doc } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { queueCelebration } from "./celebrations";
-import { RANKS, DEMOTION_PENALTY_POINTS } from "../constants";
+import { RANKS } from "../constants";
 import { voltEffects, voltLevelForXp, XP_SOURCES, XP_FACTOR_MAX, applyVoltConfig, resetVoltConfig } from "../voltCatalog";
 import { gearItem } from "../gearCatalog";
 import { gearDelta, GEAR_FACTOR_MAX, GEAR_FACTOR_MIN, GearSource } from "../gearCatalog";
@@ -343,61 +343,66 @@ export async function applyPoints(
   }
 
   const ranks = await getRankList(ctx);
-  const basePoints = student.points + amount;
+
+  // ── Volt XP gain (computed up front so it can DRIVE rank) ───────────────────
+  // XP mirrors positive earnings and NEVER decreases; spends, refunds, and
+  // system credits grant none. Multipliers: Volt perk xpPct, live XP tokens
+  // (gearCatalog xpBoost), and the admin xp_multiplier event, capped at
+  // XP_FACTOR_MAX. The ledger row, new total, and level-up land in the XP mirror
+  // block below; here we only need the projected new total for rank math.
+  let xpFactor = 1;
+  let xpGain = 0;
+  if (amount > 0 && XP_SOURCES.includes(sourceType)) {
+    xpFactor = 1 + volt.xpPct / 100;
+    for (const activation of liveActivations) {
+      xpFactor += gearItem(activation.gearKey)?.xpBoost ?? 0;
+    }
+    const xpMultRow = await ctx.db
+      .query("appSettings")
+      .withIndex("by_key", (q) => q.eq("key", "xp_multiplier"))
+      .unique();
+    const xpMult = xpMultRow ? parseFloat(xpMultRow.value) : 1;
+    if (Number.isFinite(xpMult) && xpMult > 1) xpFactor += xpMult - 1;
+    xpFactor = Math.min(XP_FACTOR_MAX, Math.max(1, xpFactor));
+    xpGain = Math.max(1, Math.round(amount * xpFactor));
+  }
+  const oldXp = student.totalXp ?? 0;
+  const newXp = oldXp + xpGain;
+
+  // Spendable wallet: powers item/powerup purchases and feeds the team score.
+  // Clamped at 0. Spending reduces this but NEVER touches rank — rank rides XP.
+  const finalPoints = Math.max(0, student.points + amount);
 
   const oldRank = ranks.find((r) => r.id === student.rankId) ?? ranks[0];
 
-  // Rank-criteria inputs, loaded ONCE and cheaply. On ANY read failure we set
-  // `activity = null`, which makes resolveRank fall back to points-only so
-  // promotion NEVER breaks. XP here is the PRE-award total (the XP mirror below
-  // grants XP after rank math); an xp-only criterion therefore promotes on the
-  // NEXT event, which is acceptable and never blocks a points/medal promotion.
+  // Rank-criteria inputs, loaded ONCE against the NEW lifetime XP. On ANY read
+  // failure `activity = null`, so resolveRank falls back to XP-threshold-only and
+  // promotion never breaks. Extra criteria (check-in days, medals, tasks) still
+  // gate the ranks that set them.
   let activity: RankActivity | null = null;
   try {
-    activity = await loadRankActivity(ctx, studentId, student.totalXp ?? 0);
+    activity = await loadRankActivity(ctx, studentId, newXp);
   } catch (err) {
-    console.warn("applyPoints: rank criteria unavailable, points-only", err);
+    console.warn("applyPoints: rank criteria unavailable, xp-only", err);
     activity = null;
   }
 
-  // Highest qualifying rank BEFORE any demotion penalty (only used to detect a
-  // points-driven demotion). resolveRank enforces criteria for real promotions
-  // but keeps legacy points-only behavior at/below the current rank.
-  const newRankInitial = resolveRank(ranks, student.rankId, basePoints, activity);
-
-  // Iron Will perk (Volt System): rank can still drop, but the penalty
-  // points never hit — big shop spends stop stinging twice.
-  const isDemotion =
-    amount < 0 &&
-    newRankInitial.threshold < oldRank.threshold &&
-    !volt.demotionShield;
-  const finalPoints = isDemotion
-    ? Math.max(0, basePoints - DEMOTION_PENALTY_POINTS)
-    : basePoints;
-  const newRankFinal = resolveRank(ranks, student.rankId, finalPoints, activity);
-
+  // Rank = the highest rank whose XP threshold (plus any extra criteria) is met
+  // at the new lifetime XP. XP only climbs, so rank is MONOTONIC: no demotion, no
+  // penalty. resolveRank compares its numeric arg to each threshold — we pass XP
+  // because thresholds are lifetime-XP values now.
+  const newRankFinal = resolveRank(ranks, student.rankId, newXp, activity);
   const didRankUp =
     newRankFinal.id !== student.rankId && newRankFinal.threshold > oldRank.threshold;
 
-  if (newRankFinal.id !== student.rankId) {
-    if (newRankFinal.threshold > oldRank.threshold) {
-      await logActivity(ctx, {
-        type: "RANK_UP",
-        message: `Promoted to ${newRankFinal.name}!`,
-        adminName,
-        studentId,
-        studentName: student.fullName,
-      });
-    } else if (newRankFinal.threshold < oldRank.threshold) {
-      const penaltyNote = isDemotion ? ` (-${DEMOTION_PENALTY_POINTS} pts penalty)` : "";
-      await logActivity(ctx, {
-        type: "RANK_DOWN",
-        message: `Demoted to ${newRankFinal.name}${penaltyNote}`,
-        adminName,
-        studentId,
-        studentName: student.fullName,
-      });
-    }
+  if (didRankUp) {
+    await logActivity(ctx, {
+      type: "RANK_UP",
+      message: `Promoted to ${newRankFinal.name}!`,
+      adminName,
+      studentId,
+      studentName: student.fullName,
+    });
   }
 
   await ctx.db.patch(studentId, { points: finalPoints, rankId: newRankFinal.id });
@@ -411,25 +416,6 @@ export async function applyPoints(
     gameSessionId,
     createdAt: Date.now(),
   });
-
-  if (isDemotion) {
-    await ctx.db.insert("transactions", {
-      studentId,
-      amount: -DEMOTION_PENALTY_POINTS,
-      sourceType: "SYSTEM",
-      description: "Demotion penalty",
-      adminName,
-      createdAt: Date.now(),
-    });
-    await logActivity(ctx, {
-      type: "POINTS",
-      message: `-${DEMOTION_PENALTY_POINTS} pts: Demotion penalty`,
-      adminName,
-      studentId,
-      studentName: student.fullName,
-      amount: -DEMOTION_PENALTY_POINTS,
-    });
-  }
 
   if (amount > 0) {
     await logActivity(ctx, {
@@ -493,28 +479,10 @@ export async function applyPoints(
   }
 
   // ── Volt XP mirror ─────────────────────────────────────────────────────────
-  // Positive earnings grant XP alongside points. XP never decreases; spends,
-  // refunds, and system credits never grant it. Multipliers: Volt perk xpPct,
-  // live XP tokens (gearCatalog xpBoost), and the admin xp_multiplier event
-  // setting — capped at XP_FACTOR_MAX overall.
-  if (amount > 0 && XP_SOURCES.includes(sourceType)) {
-    let xpFactor = 1 + volt.xpPct / 100;
-    for (const activation of liveActivations) {
-      xpFactor += gearItem(activation.gearKey)?.xpBoost ?? 0;
-    }
-    const xpMultRow = await ctx.db
-      .query("appSettings")
-      .withIndex("by_key", (q) => q.eq("key", "xp_multiplier"))
-      .unique();
-    const xpMult = xpMultRow ? parseFloat(xpMultRow.value) : 1;
-    if (Number.isFinite(xpMult) && xpMult > 1) {
-      xpFactor += xpMult - 1;
-    }
-    xpFactor = Math.min(XP_FACTOR_MAX, Math.max(1, xpFactor));
-
-    const xpGain = Math.max(1, Math.round(amount * xpFactor));
-    const oldXp = student.totalXp ?? 0;
-    const newXp = oldXp + xpGain;
+  // Persist the XP gained (computed up front, where it also drove rank): the
+  // ledger row, the new total, and the Volt level-up celebration. Guard on
+  // xpGain so only XP-eligible positive earnings write here.
+  if (xpGain > 0) {
     await ctx.db.insert("xpTransactions", {
       studentId,
       amount: xpGain,
@@ -609,7 +577,7 @@ export async function reevaluateRank(
       return; // no signal to act on → leave rank untouched
     }
 
-    const newRank = resolveRank(ranks, student.rankId, student.points, activity);
+    const newRank = resolveRank(ranks, student.rankId, student.totalXp ?? 0, activity);
     // Promotion only: a criteria re-check must never pull a kid DOWN.
     if (newRank.id === student.rankId || newRank.threshold <= oldRank.threshold) {
       return;

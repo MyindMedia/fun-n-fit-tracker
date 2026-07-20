@@ -89,14 +89,16 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
     generateQR();
   }, [student.id, student.fullName]);
 
+  // Rank rides LIFETIME XP now (thresholds are XP), not the spendable wallet.
+  const rankXp = student.totalXp ?? 0;
   const currentRankIndex = ranks.findIndex(r => r.id === student.rankId);
   const currentRank = ranks[currentRankIndex] || ranks[0];
   const nextRank = ranks[currentRankIndex + 1] || null;
 
-  const pointsToNext = nextRank ? nextRank.threshold - student.points : 0;
+  const pointsToNext = nextRank ? Math.max(0, nextRank.threshold - rankXp) : 0;
   // Fallback to 0 if ranks not loaded yet
   const progressPercent = (nextRank && currentRank)
-    ? Math.min(100, Math.max(0, ((student.points - currentRank.threshold) / (nextRank.threshold - currentRank.threshold)) * 100))
+    ? Math.min(100, Math.max(0, ((rankXp - currentRank.threshold) / (nextRank.threshold - currentRank.threshold)) * 100))
     : 100;
 
   const earnedBadges = availableBadges.filter(b => student.badges?.includes(b.id));
@@ -221,7 +223,9 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
       if (selectedRankId !== student.rankId) {
         const newRank = ranks.find(r => r.id === selectedRankId);
         if (newRank) {
-          const pointsNeeded = Math.max(0, newRank.threshold - student.points);
+          // Rank rides lifetime XP: award enough points to close the XP gap
+          // (points grant XP 1:1), which lifts the kid to the rank's XP threshold.
+          const pointsNeeded = Math.max(0, newRank.threshold - (student.totalXp ?? 0));
           await supabaseService.addPoints(
             student.id,
             pointsNeeded,
@@ -326,7 +330,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
         return;
       }
 
-      const pointsNeeded = Math.max(0, newRank.threshold - student.points);
+      const pointsNeeded = Math.max(0, newRank.threshold - (student.totalXp ?? 0));
       await supabaseService.addPoints(
         student.id,
         pointsNeeded,
@@ -350,7 +354,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
   if (ranks.length === 0) return null; // Wait for ranks to load
 
   const pendingRank = ranks.find(r => r.id === pendingRankId);
-  const pointsToAward = pendingRank ? Math.max(0, pendingRank.threshold - student.points) : 0;
+  const pointsToAward = pendingRank ? Math.max(0, pendingRank.threshold - (student.totalXp ?? 0)) : 0;
 
   return (
     <>
@@ -369,17 +373,17 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
 
             <div className="pz-card-sm p-4 mb-6 space-y-2" style={{ background: 'var(--pz-panel-2)' }}>
               <div className="flex justify-between text-sm">
-                <span style={{ color: 'var(--pz-text)' }}>Current Points:</span>
-                <span className="font-black text-white">{student.points}</span>
+                <span style={{ color: 'var(--pz-text)' }}>Current XP:</span>
+                <span className="font-black text-white">{(student.totalXp ?? 0).toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span style={{ color: 'var(--pz-text)' }}>New Rank Threshold:</span>
-                <span className="font-black text-white">{pendingRank.threshold}</span>
+                <span className="font-black text-white">{pendingRank.threshold.toLocaleString()} XP</span>
               </div>
               {pointsToAward > 0 && (
                 <div className="flex justify-between text-sm pt-2" style={{ borderTop: '1px solid var(--pz-border)' }}>
-                  <span className="text-emerald-400 font-bold">Points to Award:</span>
-                  <span className="font-black text-emerald-400">+{pointsToAward}</span>
+                  <span className="text-emerald-400 font-bold">Points to Award (grants XP):</span>
+                  <span className="font-black text-emerald-400">+{pointsToAward.toLocaleString()}</span>
                 </div>
               )}
             </div>
@@ -503,7 +507,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                    <div className="h-4 bg-white/10 overflow-hidden" style={{ clipPath: NOTCH_SM }}>
                       <div className="h-full transition-all duration-1000" style={{ width: `${progressPercent}%`, background: 'var(--pz-volt)' }} />
                    </div>
-                   <div className="text-center text-[10px] font-bold" style={{ color: 'var(--pz-text)' }}>{pointsToNext} pts to level up</div>
+                   <div className="text-center text-[10px] font-bold" style={{ color: 'var(--pz-text)' }}>{pointsToNext.toLocaleString()} XP to level up</div>
                 </div>
              )}
           </div>
@@ -722,7 +726,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                          >
                             {ranks.map(r => (
                               <option key={r.id} value={r.id} className="text-slate-900">
-                                {r.name} ({r.threshold} pts)
+                                {r.name} ({r.threshold.toLocaleString()} XP)
                               </option>
                             ))}
                          </select>

@@ -98,6 +98,47 @@ export const catalog = mutation({
   },
 });
 
+// Push the bundled RANKS thresholds onto the live ranks table. The idempotent
+// `catalog` seed only INSERTS, so a threshold change in constants never reaches
+// existing rows — this UPDATES them by key. Only threshold + pointsRequired are
+// patched, so any admin-customized name/icon/color is preserved. Inserts any
+// rank that is missing. Run after editing RANKS: npx convex run seed:resyncRankThresholds
+export const resyncRankThresholds = mutation({
+  args: {},
+  handler: async (ctx) => {
+    let updated = 0;
+    let inserted = 0;
+    for (const rank of RANKS) {
+      const existing = await ctx.db
+        .query("ranks")
+        .withIndex("by_key", (q) => q.eq("key", rank.id))
+        .unique();
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          threshold: rank.threshold,
+          pointsRequired: rank.threshold,
+        });
+        updated++;
+      } else {
+        await ctx.db.insert("ranks", {
+          key: rank.id,
+          name: rank.name,
+          threshold: rank.threshold,
+          icon: rank.icon,
+          color: rank.color,
+          description: rank.description,
+          xpReward: rank.xpReward ?? 0,
+          pointsRequired: rank.pointsRequired ?? rank.threshold,
+          criteriaTasks: rank.criteriaTasks ?? [],
+          type: rank.type ?? "RANK",
+        });
+        inserted++;
+      }
+    }
+    return { updated, inserted };
+  },
+});
+
 // Upsert the game library from the bundled constants — unlike `catalog`,
 // existing games are UPDATED, so rule/scoring edits (e.g. NFC variants)
 // propagate. Run after changing GAME_LIBRARY: npx convex run seed:refreshGames

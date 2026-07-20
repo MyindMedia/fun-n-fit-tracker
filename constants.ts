@@ -143,18 +143,23 @@ export const GAME_LIBRARY: GameDefinition[] = [
   { gameKey: 'RELAY_RACE', displayName: 'Relay Race', category: 'Speed', houseTraitFocus: 'Mixed', minPlayers: 1, maxPlayers: 200, recommendedAgeBand: '5-18', durationDefaultSeconds: 600, equipmentChecklist: ['Cones', 'Baton (optional)'], setupSteps: ['Pick individual or team mode', 'Mark start/finish'], rules: ['Coach times each runner or team with the millisecond stopwatch', 'Best time counts across a player\'s attempts'], scoringRules: 'Time Trial ranks by best time (50/30/20 podium, 10 each finisher); Placements let the coach set 1st/2nd/3rd', penalties: 'None', tieBreaker: 'Fastest recorded time', safetyNotes: 'Clear running lanes', accessibilityVariants: 'Shorter legs, same handoff', coachScriptShort: 'Ready, set, GO!', dataCaptureFields: ['lap_time'], leaderboardMetric: 'time', templateId: 'TEMPLATE_RELAY' },
 ];
 
-// Rank thresholds based on XP system from documentation
+// Rank thresholds are LIFETIME XP (not spendable points). XP is earned alongside
+// points and never decreases, so rank is a permanent career ladder: spending in
+// the shop and seasonal POINTS resets never knock a kid's rank down. Tuned so a
+// committed athlete (4 sessions/week, ~45 XP/session) reaches Apex in ~3.5 years;
+// early ranks still come in the first weeks to hook new kids. All values are
+// admin-editable in the rank editor and fall back to these on any read failure.
 export const RANKS: Rank[] = [
-  { id: 'r_noob', name: 'Noob', threshold: 10, icon: `${LEVELS_URL}/Noob.jpg`, color: '#94a3b8', description: 'Just hatching!' },
-  { id: 'r_rookie', name: 'Rookie', threshold: 85, icon: `${LEVELS_URL}/Rookie.jpg`, color: '#4ade80', description: 'Growing strong.' },
-  { id: 'r_challenger', name: 'Challenger', threshold: 250, icon: `${LEVELS_URL}/Challenger.jpg`, color: '#fb923c', description: 'Stepping up!' },
-  { id: 'r_striker', name: 'Striker', threshold: 450, icon: `${LEVELS_URL}/Striker.jpg`, color: '#22d3ee', description: 'Fast as lightning.' },
-  { id: 'r_warrior', name: 'Warrior', threshold: 750, icon: `${LEVELS_URL}/Warrior.jpg`, color: '#f87171', description: 'Battle ready.' },
-  { id: 'r_captain', name: 'Captain', threshold: 1200, icon: `${LEVELS_URL}/Captain.jpg`, color: '#60a5fa', description: 'Leading the way.' },
-  { id: 'r_elite', name: 'Elite', threshold: 3500, icon: `${LEVELS_URL}/Elite.jpg`, color: '#818cf8', description: 'Top tier talent.' },
-  { id: 'r_champion', name: 'Champion', threshold: 5000, icon: `${LEVELS_URL}/Champion.jpg`, color: '#fbbf24', description: 'Victory is yours.' },
-  { id: 'r_legend', name: 'Legend', threshold: 8500, icon: `${LEVELS_URL}/Legend.jpg`, color: '#a78bfa', description: 'Simply legendary.' },
-  { id: 'r_apex', name: 'Apex', threshold: 15000, icon: `${LEVELS_URL}/Apex.jpg`, color: '#f43f5e', description: 'The pinnacle of fitness.' },
+  { id: 'r_noob', name: 'Noob', threshold: 0, icon: `${LEVELS_URL}/Noob.jpg`, color: '#94a3b8', description: 'Just hatching!' },
+  { id: 'r_rookie', name: 'Rookie', threshold: 300, icon: `${LEVELS_URL}/Rookie.jpg`, color: '#4ade80', description: 'Growing strong.' },
+  { id: 'r_challenger', name: 'Challenger', threshold: 800, icon: `${LEVELS_URL}/Challenger.jpg`, color: '#fb923c', description: 'Stepping up!' },
+  { id: 'r_striker', name: 'Striker', threshold: 1600, icon: `${LEVELS_URL}/Striker.jpg`, color: '#22d3ee', description: 'Fast as lightning.' },
+  { id: 'r_warrior', name: 'Warrior', threshold: 3000, icon: `${LEVELS_URL}/Warrior.jpg`, color: '#f87171', description: 'Battle ready.' },
+  { id: 'r_captain', name: 'Captain', threshold: 5500, icon: `${LEVELS_URL}/Captain.jpg`, color: '#60a5fa', description: 'Leading the way.' },
+  { id: 'r_elite', name: 'Elite', threshold: 8500, icon: `${LEVELS_URL}/Elite.jpg`, color: '#818cf8', description: 'Top tier talent.' },
+  { id: 'r_champion', name: 'Champion', threshold: 14000, icon: `${LEVELS_URL}/Champion.jpg`, color: '#fbbf24', description: 'Victory is yours.' },
+  { id: 'r_legend', name: 'Legend', threshold: 21000, icon: `${LEVELS_URL}/Legend.jpg`, color: '#a78bfa', description: 'Simply legendary.' },
+  { id: 'r_apex', name: 'Apex', threshold: 30000, icon: `${LEVELS_URL}/Apex.jpg`, color: '#f43f5e', description: 'The pinnacle of fitness.' },
 ];
 
 export const DEMOTION_PENALTY_POINTS = 10;
