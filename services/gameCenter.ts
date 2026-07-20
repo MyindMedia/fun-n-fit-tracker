@@ -577,6 +577,17 @@ class GameCenterService {
     })) as any[];
   }
 
+  /** Full XP earning ledger for one athlete, newest first (for the Daily XP report). */
+  public async xpHistoryForStudent(
+    studentId: string,
+    limit = 250
+  ): Promise<Array<{ id: string; amount: number; sourceType: string; description: string; createdAt: number }>> {
+    return (await this.client.query(api.xp.historyForStudent, {
+      studentId: studentId as Id<'students'>,
+      limit,
+    })) as Array<{ id: string; amount: number; sourceType: string; description: string; createdAt: number }>;
+  }
+
   public async recentMedals(limit?: number): Promise<any[]> {
     return (await this.client.query(api.medals.recent, { limit })) as any[];
   }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Student, Badge, Rank } from '../types';
 import { gameCenter } from '../services/gameCenter';
@@ -15,9 +15,25 @@ interface Props {
 type Medal = { _id?: string; id?: string; title: string; key: string; createdAt: number; note?: string | null };
 type GameStat = { gameSessionId: string; gameTitle: string; endTime: number; points: number; awards: string[] };
 type Challenge = { id: string; title: string; type: string | null; progress: number; requirement: number | null; isCompleted: boolean };
+type XpTxn = { id: string; amount: number; sourceType: string; description: string; createdAt: number };
 
 const fmtDate = (ts: number): string =>
   ts ? new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+const fmtTime = (ts: number): string =>
+  ts ? new Date(ts).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
+// Friendly fallback label when an XP row has no description (source is the raw
+// point-source enum from applyPoints).
+const SOURCE_LABEL: Record<string, string> = {
+  MANUAL: 'Coach award',
+  CHECKIN: 'Check-in',
+  GAME: 'Game',
+  FIT: 'Around town',
+  AROUND_TOWN: 'Around town',
+  TASK: 'Special task',
+  JACKPOT: 'Jackpot',
+  BONUS: 'Bonus',
+};
+const sourceLabel = (s: string): string => SOURCE_LABEL[s] ?? (s ? s.charAt(0) + s.slice(1).toLowerCase() : 'XP');
 
 /** Full stats report for one athlete: ranking, awards, games, challenges, achievements. */
 const AthleteStatsReport: React.FC<Props> = ({ student }) => {
@@ -26,6 +42,7 @@ const AthleteStatsReport: React.FC<Props> = ({ student }) => {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [ranks, setRanks] = useState<Rank[]>([]);
+  const [xpTxns, setXpTxns] = useState<XpTxn[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [showLoadout, setShowLoadout] = useState(false);
 
@@ -33,12 +50,13 @@ const AthleteStatsReport: React.FC<Props> = ({ student }) => {
     let cancelled = false;
     (async () => {
       try {
-        const [m, g, c, b, r] = await Promise.all([
+        const [m, g, c, b, r, xp] = await Promise.all([
           gameCenter.medalsForStudent(student.id),
           gameCenter.gameStatsForStudent(student.id, 20),
           gameCenter.challengesForStudent(student.id),
           supabaseService.getBadges(),
           supabaseService.getRanks(),
+          gameCenter.xpHistoryForStudent(student.id),
         ]);
         if (cancelled) return;
         setMedals(m as Medal[]);
@@ -46,6 +64,7 @@ const AthleteStatsReport: React.FC<Props> = ({ student }) => {
         setChallenges(c as Challenge[]);
         setBadges(b);
         setRanks(r);
+        setXpTxns(xp as XpTxn[]);
       } catch (e) {
         console.error('Stats report load failed:', e);
       } finally {
@@ -54,6 +73,24 @@ const AthleteStatsReport: React.FC<Props> = ({ student }) => {
     })();
     return () => { cancelled = true; };
   }, [student.id]);
+
+  // Group the XP ledger by local day (xpTxns is already newest-first, so a Map
+  // preserves newest-day-first order and newest-txn-first within each day).
+  const xpByDay = useMemo(() => {
+    const map = new Map<string, { label: string; total: number; txns: XpTxn[] }>();
+    for (const t of xpTxns) {
+      const d = new Date(t.createdAt);
+      const key = d.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' });
+      let g = map.get(key);
+      if (!g) {
+        g = { label: d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }), total: 0, txns: [] };
+        map.set(key, g);
+      }
+      g.total += t.amount;
+      g.txns.push(t);
+    }
+    return Array.from(map.entries()).map(([day, g]) => ({ day, ...g }));
+  }, [xpTxns]);
 
   const currentRankIndex = ranks.findIndex(r => r.id === student.rankId);
   const currentRank = ranks[currentRankIndex];
@@ -99,6 +136,44 @@ const AthleteStatsReport: React.FC<Props> = ({ student }) => {
       <div>
         <SectionHead>Volt Level &amp; Loadout</SectionHead>
         <VoltStatsCard student={student} onOpenLoadout={() => setShowLoadout(true)} />
+      </div>
+
+      {/* Daily XP history: how this athlete has earned XP, day by day, with each
+          earning event and a per-day total. Newest day first. */}
+      <div>
+        <SectionHead>Daily XP · {(student.totalXp ?? 0).toLocaleString()} lifetime</SectionHead>
+        {xpTxns.length === 0 ? (
+          <div className="text-sm italic" style={{ color: 'var(--pz-text)' }}>No XP earned yet.</div>
+        ) : (
+          <div className="space-y-3">
+            {xpByDay.map(day => (
+              <div key={day.day} className="pz-card-sm overflow-hidden" style={{ background: 'var(--pz-panel-2)' }}>
+                <div className="flex items-center justify-between px-3 py-2 border-b border-white/10">
+                  <span className="text-[11px] font-black uppercase tracking-widest text-white">{day.label}</span>
+                  <span className="pz-display text-base" style={{ color: 'var(--pz-volt)' }}>
+                    {day.total >= 0 ? '+' : ''}{day.total} XP
+                  </span>
+                </div>
+                <div className="divide-y divide-white/5">
+                  {day.txns.map(t => (
+                    <div key={t.id} className="flex items-center gap-3 px-3 py-2">
+                      <span className="text-[10px] tabular-nums w-14 shrink-0" style={{ color: 'var(--pz-text)' }}>{fmtTime(t.createdAt)}</span>
+                      <span className="flex-grow min-w-0 text-xs text-white truncate">{t.description || sourceLabel(t.sourceType)}</span>
+                      <span className="text-xs font-black shrink-0" style={{ color: t.amount >= 0 ? 'var(--pz-volt)' : '#ef4444' }}>
+                        {t.amount >= 0 ? '+' : ''}{t.amount}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {xpTxns.length >= 250 && (
+              <div className="text-[10px] text-center italic" style={{ color: 'var(--pz-text)' }}>
+                Showing the most recent 250 XP entries.
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div>
