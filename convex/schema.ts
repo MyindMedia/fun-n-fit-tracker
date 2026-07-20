@@ -115,6 +115,18 @@ export default defineSchema({
     .index("by_active", ["isActive"])
     .index("by_endTime", ["endTime"]),
 
+  // Stopwatch lap splits for a Time Trial, kept so the game can rank by fastest
+  // at end and the times survive a page reload (the on-screen list is local
+  // state only). studentId is a plain string to match the rest of the game
+  // write-path. One row per logged lap; best-per-student = min(ms).
+  lapTimes: defineTable({
+    sessionId: v.id("gameSessions"),
+    studentId: v.string(),
+    ms: v.number(),
+    gameTitle: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_session", ["sessionId"]),
+
   gameLibrary: defineTable({
     gameKey: v.string(),
     displayName: v.string(),

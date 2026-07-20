@@ -573,6 +573,9 @@ const GameOverlay: React.FC = () => {
           const startDiff = game.startTime - now;
           const remaining = Math.max(0, game.endTime - now);
           const remainingSec = Math.ceil(remaining / 1000);
+          // Relay Race has no whole-game timer: it runs on the stopwatch until the
+          // coach ends it. Skip the 30s/10s alerts and the auto-stop for it.
+          const untimed = game.gameKey === 'RELAY_RACE';
 
           // Game start countdown visuals (10..1) — audio triggered separately at 10
           if (startDiff > 0 && startDiff <= 10000) {
@@ -593,8 +596,8 @@ const GameOverlay: React.FC = () => {
              setShowThirtyAlert(false);
           }
 
-          // Only run end-game alerts AFTER game has started
-          if (startDiff <= 0 && remaining > 0) {
+          // Only run end-game alerts AFTER game has started (never for untimed games)
+          if (!untimed && startDiff <= 0 && remaining > 0) {
             // 30-second warning - wider detection window
             if (remaining <= 30000 && remaining > 28000) {
               console.log('🔶 30-second zone detected:', remaining, 'ms, hasPlayed30Warning:', state.hasPlayed30Warning);
@@ -638,8 +641,9 @@ const GameOverlay: React.FC = () => {
             }
           }
 
-          // Clear countdown when game ends
-          if (remaining <= 0) {
+          // Clear countdown when game ends + auto-stop at zero. Untimed games
+          // (Relay) never auto-stop — the coach ends them manually.
+          if (!untimed && remaining <= 0) {
             state.lastAnnouncedSecond = -1;
             state.hasPlayed30Warning = false;
             if (!state.hasStopped) {
@@ -855,6 +859,8 @@ const GameOverlay: React.FC = () => {
             {activeGames.map(game => {
                 const now = Date.now();
                 if (now < game.startTime) return null;
+                // Relay Race is untimed — no whole-game clock, just the stopwatch.
+                if (game.gameKey === 'RELAY_RACE') return null;
                 const remaining = Math.max(0, game.endTime - now);
                 const minutes = Math.floor(remaining / 60000);
                 const seconds = Math.floor((remaining % 60000) / 1000);

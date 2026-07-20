@@ -1376,6 +1376,14 @@ class ConvexBackendService {
         studentId,
         amount: 0,
       });
+      // Persist the raw split so the game can rank by fastest at end (the
+      // activity row above only carries a formatted string).
+      await this.client.mutation(api.games.recordLap, {
+        sessionId: sessionId as Id<"gameSessions">,
+        studentId,
+        ms: totalMs,
+        gameTitle,
+      });
       // Sub-30-second lap earns the speed badge (same threshold, now in ms).
       if (totalMs > 0 && totalMs <= 30000) {
         try {

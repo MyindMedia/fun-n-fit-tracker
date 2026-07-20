@@ -139,8 +139,11 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
       case 'TEMPLATE_TIME_TRIAL':
         return (
           <div className="space-y-3">
-            {/* Millisecond stopwatch: Start / Stop / Reset (Reset also clears laps) */}
-            <StopwatchBar sw={sw} label="Clock" onReset={() => setLaps({})} />
+            {/* Millisecond stopwatch: Start / Stop / Reset. Reset zeroes the CLOCK
+                only so you can time the next runner — recorded laps stay put. Every
+                lap is saved as it's logged, and the fastest of the set is chosen
+                when the game ends. */}
+            <StopwatchBar sw={sw} label="Clock" />
             {/* Player Rows */}
             <div className="space-y-0.5">
               {roster.map(s => {

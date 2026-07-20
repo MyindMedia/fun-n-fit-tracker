@@ -2,9 +2,74 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
-import { logActivity, publishEvent } from "./helpers";
+import { applyPoints, logActivity, publishEvent } from "./helpers";
 import { relayConfig } from "./schema";
 import { GAME_LIBRARY } from "../constants";
+
+const ordinal = (n: number): string =>
+  n === 1 ? "1st" : n === 2 ? "2nd" : n === 3 ? "3rd" : `${n}th`;
+
+// SS.mmm (adds M: prefix past a minute) — mirrors the stopwatch readout.
+const fmtMs = (ms: number): string => {
+  const t = Math.max(0, Math.floor(ms));
+  const m = Math.floor(t / 60000);
+  const s = Math.floor((t % 60000) / 1000);
+  const mm = (t % 1000).toString().padStart(3, "0");
+  const ss = s.toString().padStart(2, "0");
+  return m > 0 ? `${m}:${ss}.${mm}` : `${s}.${mm}`;
+};
+
+// Time Trial games rank by fastest recorded lap: at game end, each athlete's best
+// (min) lap is ranked ascending and awarded 50/30/20 for the podium + 10 to every
+// other finisher (the same scheme Relay's "Award By Time" uses). Non-time-trial
+// games, or games with no logged laps, are left untouched. Called once from stop().
+async function awardFastestForSession(
+  ctx: any,
+  session: any,
+  sessionId: Id<"gameSessions">
+): Promise<void> {
+  const def = GAME_LIBRARY.find((g) => g.gameKey === session.gameKey);
+  const isTimeTrial =
+    def?.templateId === "TEMPLATE_TIME_TRIAL" || session.gameKey === "CUSTOM_LAP";
+  if (!isTimeTrial) return;
+
+  const laps = await ctx.db
+    .query("lapTimes")
+    .withIndex("by_session", (q: any) => q.eq("sessionId", sessionId))
+    .collect();
+  if (laps.length === 0) return;
+
+  const roster = new Set(session.roster);
+  const best = new Map<string, number>();
+  for (const l of laps) {
+    if (!roster.has(l.studentId)) continue; // ignore laps for un-rostered ids
+    const cur = best.get(l.studentId);
+    if (cur == null || l.ms < cur) best.set(l.studentId, l.ms);
+  }
+  const ranked = [...best.entries()].sort((a, b) => a[1] - b[1]);
+
+  const RANK_POINTS = [50, 30, 20];
+  const FINISH_POINTS = 10;
+  for (let i = 0; i < ranked.length; i++) {
+    const [studentId, ms] = ranked[i];
+    const points = RANK_POINTS[i] ?? FINISH_POINTS;
+    const label = `${session.title} · ${ordinal(i + 1)} fastest (${fmtMs(ms)})`;
+    try {
+      await applyPoints(
+        ctx,
+        studentId as Id<"students">,
+        points,
+        "MANUAL",
+        label,
+        session.startedBy ?? "Coach",
+        undefined,
+        sessionId
+      );
+    } catch {
+      // Skip athletes that fail (e.g. deleted mid-game), mirroring batchAward.
+    }
+  }
+}
 
 // Per-game points + awards a student earned, newest game first. Feeds the
 // student portal so kids/staff can see what each game was worth.
@@ -280,6 +345,11 @@ export const stop = mutation({
   handler: async (ctx, { sessionId, clientId }) => {
     const session = await ctx.db.get(sessionId);
     if (!session) throw new Error("Session not found");
+    // Idempotency: the coach's End button and GameOverlay's auto-stop can race.
+    // If the game is already stopped, don't re-score or re-award the fastest.
+    if (!session.isActive) {
+      return { session, results: session.results ?? null };
+    }
 
     // Ending a PAUSED game folds the open pause into pausedMs. The game is
     // over, so endTime is NOT extended; the scoring window below still uses
@@ -289,11 +359,15 @@ export const stop = mutation({
       (session.pausedMs ?? 0) +
       (session.pausedAt != null ? Math.max(0, stoppedAt - session.pausedAt) : 0);
 
-    // Score the session from the points ledger recorded during the game window
+    // Score the session from the points ledger recorded during the game window.
+    // Upper bound is max(scheduledEnd, stoppedAt) so an untimed game (Relay) that
+    // ran past its scheduled end still counts the overtime awards; a normal game
+    // stopped at/before its end is unchanged.
+    const windowEnd = Math.max(session.endTime, stoppedAt);
     const txs = await ctx.db
       .query("transactions")
       .withIndex("by_createdAt", (q) =>
-        q.gte("createdAt", session.startTime).lte("createdAt", session.endTime)
+        q.gte("createdAt", session.startTime).lte("createdAt", windowEnd)
       )
       .collect();
 
@@ -335,6 +409,10 @@ export const stop = mutation({
       pausedMs: totalPausedMs,
     });
 
+    // Time Trial games: rank by fastest recorded lap and award the podium. No-op
+    // for every other game type or when no laps were logged.
+    await awardFastestForSession(ctx, session, sessionId);
+
     await logActivity(ctx, {
       type: "GAME_END",
       message: `${session.title} Over`,
@@ -350,6 +428,27 @@ export const stop = mutation({
 
     const updated = await ctx.db.get(sessionId);
     return { session: updated, results };
+  },
+});
+
+// Persist one stopwatch lap so a Time Trial can rank by fastest at game end and
+// the split survives a reload. Fire-and-forget from the scorer alongside the
+// existing activity-feed + speed-badge write.
+export const recordLap = mutation({
+  args: {
+    sessionId: v.id("gameSessions"),
+    studentId: v.string(),
+    ms: v.number(),
+    gameTitle: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("lapTimes", {
+      sessionId: args.sessionId,
+      studentId: args.studentId,
+      ms: Math.max(0, Math.floor(args.ms)),
+      gameTitle: args.gameTitle,
+      createdAt: Date.now(),
+    });
   },
 });
 
