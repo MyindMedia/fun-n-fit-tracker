@@ -5,6 +5,18 @@ import { BADGES, REWARDS, GAME_LIBRARY } from "../constants";
 
 // ── Ranks ────────────────────────────────────────────────────────────────────
 
+// Enforceable promotion requirements beyond points (see schema.ts / helpers.ts).
+// All fields optional; an empty object behaves as points-only (legacy).
+const rankCriteria = v.object({
+  points: v.optional(v.number()),
+  xp: v.optional(v.number()),
+  checkIns: v.optional(v.number()),
+  medals: v.optional(v.array(v.object({ title: v.string(), count: v.number() }))),
+  tasks: v.optional(
+    v.array(v.object({ taskId: v.string(), count: v.optional(v.number()) }))
+  ),
+});
+
 export const ranks = query({
   args: {},
   handler: async (ctx) => getRankList(ctx),
@@ -20,6 +32,7 @@ export const createRank = mutation({
     xpReward: v.optional(v.number()),
     pointsRequired: v.optional(v.number()),
     criteriaTasks: v.optional(v.array(v.string())),
+    criteria: v.optional(rankCriteria),
   },
   handler: async (ctx, args) => {
     const key = `r_${args.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_${Math.floor(
@@ -35,6 +48,7 @@ export const createRank = mutation({
       xpReward: args.xpReward ?? 0,
       pointsRequired: args.pointsRequired ?? args.threshold,
       criteriaTasks: args.criteriaTasks ?? [],
+      criteria: args.criteria,
     });
   },
 });
@@ -50,6 +64,9 @@ export const updateRank = mutation({
     xpReward: v.optional(v.number()),
     pointsRequired: v.optional(v.number()),
     criteriaTasks: v.optional(v.array(v.string())),
+    // Passing an object (incl. an empty one to clear) persists; omitting it
+    // leaves the rank's existing criteria untouched.
+    criteria: v.optional(rankCriteria),
   },
   handler: async (ctx, { key, ...updates }) => {
     const doc = await ctx.db

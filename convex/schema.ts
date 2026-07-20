@@ -202,6 +202,27 @@ export default defineSchema({
     xpReward: v.optional(v.number()),
     pointsRequired: v.optional(v.number()),
     criteriaTasks: v.optional(v.array(v.string())),
+    // Enforceable, coach-configured promotion requirements BEYOND points. A rank
+    // with no criteria (or an empty object) promotes on points alone — EXACTLY
+    // the legacy behavior. When present, EVERY set criterion must also be met:
+    //   points   — min points floor (defaults to `threshold` when unset)
+    //   xp       — min total XP
+    //   checkIns — min distinct check-in DAYS
+    //   medals   — required medal titles + counts (e.g. 3x "Session Legend")
+    //   tasks    — required special tasks + counts (approved taskSubmissions)
+    criteria: v.optional(
+      v.object({
+        points: v.optional(v.number()),
+        xp: v.optional(v.number()),
+        checkIns: v.optional(v.number()),
+        medals: v.optional(
+          v.array(v.object({ title: v.string(), count: v.number() }))
+        ),
+        tasks: v.optional(
+          v.array(v.object({ taskId: v.string(), count: v.optional(v.number()) }))
+        ),
+      })
+    ),
     type: v.optional(v.union(v.literal("RANK"), v.literal("TROPHY"))),
   })
     .index("by_key", ["key"])

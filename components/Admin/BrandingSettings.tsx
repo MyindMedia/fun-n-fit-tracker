@@ -2,7 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { supabaseService } from '../../services/supabaseService';
-import { AppSettings, Rank, Trophy } from '../../types';
+import { gameCenter } from '../../services/gameCenter';
+import { parseRankCriteria } from '../../services/geminiService';
+import { AppSettings, Rank, Trophy, SpecialTask } from '../../types';
 import { AudioService } from '../../utils/audio';
 import { Ic } from '../icons';
 
@@ -12,10 +14,14 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
   const [settings, setSettings] = useState<AppSettings>({});
   const [ranks, setRanks] = useState<Rank[]>([]);
   const [trophies, setTrophies] = useState<Trophy[]>([]);
+  const [tasks, setTasks] = useState<SpecialTask[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'logo' | 'sounds' | 'ranks' | 'trophies'>(initialTab ?? 'logo');
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<EditingItem>(null);
+  // Requirements editor (rank criteria): the free-text prompt + parse spinner.
+  const [reqPrompt, setReqPrompt] = useState('');
+  const [parsing, setParsing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -23,14 +29,16 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
   }, []);
 
   const loadData = async () => {
-    const [settingsData, ranksData, trophiesData] = await Promise.all([
+    const [settingsData, ranksData, trophiesData, tasksData] = await Promise.all([
       supabaseService.getSettings(),
       supabaseService.getRanks(),
-      supabaseService.getTrophies()
+      supabaseService.getTrophies(),
+      gameCenter.adminListTasks().catch(() => [] as SpecialTask[])
     ]);
     setSettings(settingsData);
     setRanks(ranksData);
     setTrophies(trophiesData);
+    setTasks(tasksData);
   };
 
   const handleUpload = async (file: File, key: string, rankId?: string) => {
@@ -56,6 +64,7 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
   };
 
   const openCreateForm = (type: 'RANK' | 'TROPHY') => {
+    setReqPrompt('');
     if (type === 'RANK') {
       setEditingItem({
         itemType: 'RANK',
@@ -67,7 +76,8 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
         description: '',
         xpReward: 0,
         pointsRequired: 0,
-        criteriaTasks: []
+        criteriaTasks: [],
+        criteria: {}
       });
     } else {
       setEditingItem({
@@ -87,6 +97,7 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
   };
 
   const openEditForm = (item: Rank | Trophy, type: 'RANK' | 'TROPHY') => {
+    setReqPrompt('');
     if (type === 'RANK') {
       setEditingItem({ ...item, itemType: 'RANK' } as Partial<Rank> & { itemType: 'RANK' });
     } else {
@@ -100,6 +111,7 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
     setLoading(true);
     try {
       if (editingItem.itemType === 'RANK') {
+        const builtCriteria = buildCriteria((editingItem as Partial<Rank>).criteria);
         const rankData = {
           name: editingItem.name || '',
           threshold: editingItem.threshold || 0,
@@ -108,10 +120,12 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
           description: editingItem.description || '',
           xpReward: editingItem.xpReward || 0,
           pointsRequired: editingItem.pointsRequired || editingItem.threshold || 0,
-          criteriaTasks: editingItem.criteriaTasks || []
+          criteriaTasks: editingItem.criteriaTasks || [],
+          criteria: builtCriteria
         };
         if (editingItem.id) {
-          await supabaseService.updateRank(editingItem.id, rankData);
+          // Send an empty object (not undefined) so clearing all fields persists.
+          await supabaseService.updateRank(editingItem.id, { ...rankData, criteria: builtCriteria ?? {} });
         } else {
           await supabaseService.createRank(rankData);
         }
@@ -205,6 +219,109 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
     const tasks = [...(editingItem.criteriaTasks || [])];
     tasks.splice(index, 1);
     setEditingItem({ ...editingItem, criteriaTasks: tasks });
+  };
+
+  // ── Rank criteria (Promotion Requirements) ─────────────────────────────────
+  // These edit the structured `criteria` object — the source of truth that gates
+  // promotion server-side. Everything is coach-editable after Configure parses
+  // the prompt. All access is cast to Rank since criteria only lives on ranks.
+
+  const currentCriteria = (): NonNullable<Rank['criteria']> =>
+    ((editingItem as Partial<Rank>)?.criteria) || {};
+
+  const applyCriteria = (next: NonNullable<Rank['criteria']>) => {
+    if (!editingItem) return;
+    setEditingItem({ ...(editingItem as Partial<Rank> & { itemType: 'RANK' }), criteria: next });
+  };
+
+  const setCritNumber = (field: 'points' | 'xp' | 'checkIns', raw: string) => {
+    const next = { ...currentCriteria() };
+    const n = parseInt(raw, 10);
+    if (Number.isFinite(n) && n > 0) next[field] = n;
+    else delete next[field];
+    applyCriteria(next);
+  };
+
+  const setMedalReq = (index: number, field: 'title' | 'count', value: string) => {
+    const medals = [...(currentCriteria().medals || [])];
+    if (!medals[index]) return;
+    if (field === 'title') {
+      medals[index] = { ...medals[index], title: value };
+    } else {
+      const n = parseInt(value, 10);
+      medals[index] = { ...medals[index], count: Number.isFinite(n) && n > 0 ? n : 1 };
+    }
+    applyCriteria({ ...currentCriteria(), medals });
+  };
+
+  const addMedalReq = () =>
+    applyCriteria({ ...currentCriteria(), medals: [...(currentCriteria().medals || []), { title: '', count: 1 }] });
+
+  const removeMedalReq = (index: number) => {
+    const medals = [...(currentCriteria().medals || [])];
+    medals.splice(index, 1);
+    applyCriteria({ ...currentCriteria(), medals });
+  };
+
+  const addTaskReq = (taskId: string) => {
+    if (!taskId) return;
+    const existing = currentCriteria().tasks || [];
+    if (existing.some((t) => t.taskId === taskId)) return; // no duplicates
+    applyCriteria({ ...currentCriteria(), tasks: [...existing, { taskId, count: 1 }] });
+  };
+
+  const setTaskCount = (index: number, value: string) => {
+    const list = [...(currentCriteria().tasks || [])];
+    if (!list[index]) return;
+    const n = parseInt(value, 10);
+    list[index] = { ...list[index], count: Number.isFinite(n) && n > 0 ? n : 1 };
+    applyCriteria({ ...currentCriteria(), tasks: list });
+  };
+
+  const removeTaskReq = (index: number) => {
+    const list = [...(currentCriteria().tasks || [])];
+    list.splice(index, 1);
+    applyCriteria({ ...currentCriteria(), tasks: list });
+  };
+
+  const handleConfigureRequirements = async () => {
+    if (!editingItem || editingItem.itemType !== 'RANK' || !reqPrompt.trim()) return;
+    setParsing(true);
+    try {
+      const known = tasks.map((t) => ({ id: t.id, title: t.title }));
+      const parsed = await parseRankCriteria(reqPrompt, known);
+      applyCriteria({
+        points: parsed.points,
+        xp: parsed.xp,
+        checkIns: parsed.checkIns,
+        medals: parsed.medals ?? [],
+        tasks: parsed.tasks ?? []
+      });
+    } catch (err) {
+      console.error('Configure requirements failed:', err);
+      alert('Could not parse the requirements — enter them manually below.');
+    } finally {
+      setParsing(false);
+    }
+  };
+
+  // Drop empty/invalid fields before saving; returns undefined when nothing set.
+  const buildCriteria = (c?: Rank['criteria']): NonNullable<Rank['criteria']> | undefined => {
+    if (!c) return undefined;
+    const out: NonNullable<Rank['criteria']> = {};
+    if (typeof c.points === 'number' && c.points > 0) out.points = Math.round(c.points);
+    if (typeof c.xp === 'number' && c.xp > 0) out.xp = Math.round(c.xp);
+    if (typeof c.checkIns === 'number' && c.checkIns > 0) out.checkIns = Math.round(c.checkIns);
+    const medals = (c.medals || [])
+      .map((m) => ({ title: (m.title || '').trim(), count: Math.round(m.count) || 1 }))
+      .filter((m) => m.title.length > 0 && m.count > 0);
+    if (medals.length) out.medals = medals;
+    const seen = new Set<string>();
+    const taskReqs = (c.tasks || [])
+      .filter((t) => t.taskId && !seen.has(t.taskId) && (seen.add(t.taskId), true))
+      .map((t) => ({ taskId: t.taskId, count: Math.round(t.count ?? 1) || 1 }));
+    if (taskReqs.length) out.tasks = taskReqs;
+    return Object.keys(out).length ? out : undefined;
   };
 
   // Tab content components
@@ -376,6 +493,13 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
     const isRank = editingItem.itemType === 'RANK';
     const isNew = !editingItem.id;
 
+    // Rank criteria (Promotion Requirements) view helpers.
+    const crit = (editingItem as Partial<Rank>).criteria || {};
+    const medalReqs = crit.medals || [];
+    const taskReqs = crit.tasks || [];
+    const taskTitleFor = (id: string) => tasks.find((t) => t.id === id)?.title || 'Removed task';
+    const availableTasks = tasks.filter((t) => !taskReqs.some((r) => r.taskId === t.id));
+
     return createPortal(
       <div className="fixed inset-0 z-[9999] flex flex-col bg-black/70 backdrop-blur-sm animate-fade-in pz-scope">
         <div className="flex flex-col w-full h-full" style={{ background: 'var(--pz-bg)' }}>
@@ -491,6 +615,168 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
                   className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
                 />
                 <p className="text-[10px] text-[#ABABAB] mt-1">Points needed to reach this rank</p>
+              </div>
+            )}
+
+            {/* Promotion Requirements (for Ranks) — enforceable criteria beyond points */}
+            {isRank && (
+              <div className="pz-card-sm p-4 space-y-4" style={{ background: 'var(--pz-panel-2)' }}>
+                <div className="flex items-center gap-2">
+                  <Ic.Target size={16} className="text-[#CBFE1C]" />
+                  <span className="text-[11px] font-black text-white uppercase tracking-widest">Promotion Requirements</span>
+                </div>
+                <p className="text-[10px] text-[#ABABAB] leading-relaxed">
+                  Beyond points, a kid must meet ALL of these before promoting to this rank. Leave everything empty for points-only (the default).
+                </p>
+
+                {/* Prompt + Configure */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest block">
+                    Describe the requirements
+                  </label>
+                  <textarea
+                    value={reqPrompt}
+                    onChange={(e) => setReqPrompt(e.target.value)}
+                    placeholder="e.g. 3 Session Legends and 15 check-ins and 500 points"
+                    rows={2}
+                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C] resize-none"
+                  />
+                  <button
+                    onClick={handleConfigureRequirements}
+                    disabled={parsing || !reqPrompt.trim()}
+                    className="touch-btn inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#CBFE1C] text-[#0B0E13] font-black text-[11px] uppercase tracking-wide disabled:opacity-30"
+                  >
+                    <Ic.Sparkle size={14} /> {parsing ? 'Configuring...' : 'Configure'}
+                  </button>
+                  <p className="text-[10px] text-[#ABABAB]">
+                    Configure fills the fields below — review and correct them before saving.
+                  </p>
+                </div>
+
+                {/* Numeric criteria */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-[9px] font-black text-[#ABABAB] uppercase tracking-widest mb-1 block">Min Points</label>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={crit.points ?? ''}
+                      onChange={(e) => setCritNumber('points', e.target.value)}
+                      placeholder="—"
+                      className="w-full min-h-[44px] px-3 py-2 rounded-lg border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black text-[#ABABAB] uppercase tracking-widest mb-1 block">Min XP</label>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={crit.xp ?? ''}
+                      onChange={(e) => setCritNumber('xp', e.target.value)}
+                      placeholder="—"
+                      className="w-full min-h-[44px] px-3 py-2 rounded-lg border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black text-[#ABABAB] uppercase tracking-widest mb-1 block">Check-ins</label>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={crit.checkIns ?? ''}
+                      onChange={(e) => setCritNumber('checkIns', e.target.value)}
+                      placeholder="—"
+                      className="w-full min-h-[44px] px-3 py-2 rounded-lg border border-white/10 bg-[#171C27] text-sm font-bold text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-[#ABABAB] -mt-2">Min points overrides the plain threshold above when set. Check-ins count distinct days.</p>
+
+                {/* Medal requirements */}
+                <div>
+                  <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <Ic.Medal size={14} /> Medal Requirements
+                  </label>
+                  <div className="space-y-2">
+                    {medalReqs.map((m, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={m.title}
+                          onChange={(e) => setMedalReq(idx, 'title', e.target.value)}
+                          placeholder="e.g. Session Legend"
+                          className="flex-grow min-h-[44px] px-3 py-2 rounded-lg border border-white/10 bg-[#171C27] text-sm font-medium text-white placeholder:text-white/30 outline-none focus:border-[#CBFE1C]"
+                        />
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          value={m.count}
+                          onChange={(e) => setMedalReq(idx, 'count', e.target.value)}
+                          aria-label="Medal count"
+                          className="w-16 min-h-[44px] px-2 py-2 rounded-lg border border-white/10 bg-[#171C27] text-sm font-bold text-center text-white outline-none focus:border-[#CBFE1C]"
+                        />
+                        <button
+                          onClick={() => removeMedalReq(idx)}
+                          aria-label="Remove medal requirement"
+                          className="touch-btn w-11 h-11 rounded-lg bg-red-500/15 text-red-400 flex items-center justify-center flex-shrink-0"
+                        >
+                          <Ic.XMark size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={addMedalReq} className="touch-btn mt-2 inline-flex items-center gap-1 text-xs font-black text-[#CBFE1C] uppercase">
+                    <Ic.Plus size={14} /> Add Medal
+                  </button>
+                  <p className="text-[10px] text-[#ABABAB] mt-1">Title must match the medal exactly (e.g. "Session Legend").</p>
+                </div>
+
+                {/* Special task requirements */}
+                <div>
+                  <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <Ic.ClipboardCheck size={14} /> Special Task Requirements
+                  </label>
+                  <div className="space-y-2">
+                    {taskReqs.map((t, idx) => (
+                      <div key={t.taskId} className="flex items-center gap-2">
+                        <span className="flex-grow min-h-[44px] px-3 py-2 rounded-lg border border-white/10 bg-[#171C27] text-sm font-medium text-white flex items-center truncate">
+                          {taskTitleFor(t.taskId)}
+                        </span>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          value={t.count ?? 1}
+                          onChange={(e) => setTaskCount(idx, e.target.value)}
+                          aria-label="Task count"
+                          className="w-16 min-h-[44px] px-2 py-2 rounded-lg border border-white/10 bg-[#171C27] text-sm font-bold text-center text-white outline-none focus:border-[#CBFE1C]"
+                        />
+                        <button
+                          onClick={() => removeTaskReq(idx)}
+                          aria-label="Remove task requirement"
+                          className="touch-btn w-11 h-11 rounded-lg bg-red-500/15 text-red-400 flex items-center justify-center flex-shrink-0"
+                        >
+                          <Ic.XMark size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  {tasks.length > 0 ? (
+                    <select
+                      value=""
+                      onChange={(e) => addTaskReq(e.target.value)}
+                      disabled={availableTasks.length === 0}
+                      className="mt-2 w-full min-h-[44px] px-3 py-2 rounded-lg border border-white/10 bg-[#171C27] text-sm font-medium text-white outline-none focus:border-[#CBFE1C] disabled:opacity-40"
+                    >
+                      <option value="">
+                        {availableTasks.length === 0 ? 'All tasks added' : '+ Add task requirement...'}
+                      </option>
+                      {availableTasks.map((t) => (
+                        <option key={t.id} value={t.id}>{t.title}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-[10px] text-[#ABABAB] mt-1">No special tasks created yet — add them in the Tasks manager first.</p>
+                  )}
+                </div>
               </div>
             )}
 

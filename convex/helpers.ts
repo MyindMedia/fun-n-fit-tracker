@@ -7,6 +7,16 @@ import { voltEffects, voltLevelForXp, XP_SOURCES, XP_FACTOR_MAX, applyVoltConfig
 import { gearItem } from "../gearCatalog";
 import { gearDelta, GEAR_FACTOR_MAX, GEAR_FACTOR_MIN, GearSource } from "../gearCatalog";
 
+// Structured, enforceable promotion requirements for a rank (beyond points).
+// A rank with NO criteria (undefined) promotes on points alone. See schema.ts.
+export interface RankCriteria {
+  points?: number; // min points floor (defaults to the rank's threshold)
+  xp?: number; // min total XP
+  checkIns?: number; // min distinct check-in days
+  medals?: Array<{ title: string; count: number }>; // required medal titles + counts
+  tasks?: Array<{ taskId: string; count?: number }>; // required special tasks + counts
+}
+
 export interface RankInfo {
   id: string;
   name: string;
@@ -17,7 +27,17 @@ export interface RankInfo {
   xpReward?: number;
   pointsRequired?: number;
   criteriaTasks?: string[];
+  criteria?: RankCriteria;
   type?: "RANK" | "TROPHY";
+}
+
+// A student's cheap activity snapshot used to test rank criteria. Points are
+// passed separately (they change within a single applyPoints call).
+export interface RankActivity {
+  xp: number; // total XP
+  checkIns: number; // distinct check-in days
+  medalCounts: Record<string, number>; // medal title -> count
+  taskCounts: Record<string, number>; // special task id -> approved submission count
 }
 
 // Ranks sorted by threshold; falls back to the bundled defaults when the table is empty
@@ -36,8 +56,112 @@ export async function getRankList(ctx: QueryCtx): Promise<RankInfo[]> {
     xpReward: r.xpReward,
     pointsRequired: r.pointsRequired,
     criteriaTasks: r.criteriaTasks,
+    criteria: r.criteria,
     type: r.type,
   }));
+}
+
+// ── Rank criteria enforcement ────────────────────────────────────────────────
+// Ranks can gate promotion on more than points (achievements + activity). These
+// helpers are additive and fully backward compatible: a rank with NO `criteria`
+// qualifies on its points threshold EXACTLY as before.
+
+// Load the cheap activity signals a rank's criteria can test — distinct check-in
+// DAYS, a medal-title -> count map, and a special-task-id -> approved-count map.
+// Two-to-three index reads, no joins. Kept out of any try/catch here so callers
+// can decide the fallback: on ANY read failure they treat criteria as
+// unenforceable and fall back to points-only promotion (promotion never breaks).
+export async function loadRankActivity(
+  ctx: QueryCtx,
+  studentId: Id<"students">,
+  xp: number
+): Promise<RankActivity> {
+  const checkinRows = await ctx.db
+    .query("checkIns")
+    .withIndex("by_student", (q) => q.eq("studentId", studentId))
+    .collect();
+  const distinctDays = new Set(checkinRows.map((r) => r.date));
+
+  const medalRows = await ctx.db
+    .query("medals")
+    .withIndex("by_student", (q) => q.eq("studentId", studentId))
+    .collect();
+  const medalCounts: Record<string, number> = {};
+  for (const m of medalRows) {
+    medalCounts[m.title] = (medalCounts[m.title] ?? 0) + 1;
+  }
+
+  // Special task "completion" = an APPROVED taskSubmissions row (see
+  // convex/specialTasks.ts review()). Count approved submissions per task id.
+  const submissionRows = await ctx.db
+    .query("taskSubmissions")
+    .withIndex("by_student", (q) => q.eq("studentId", studentId))
+    .collect();
+  const taskCounts: Record<string, number> = {};
+  for (const s of submissionRows) {
+    if (s.status === "APPROVED") {
+      taskCounts[s.taskId] = (taskCounts[s.taskId] ?? 0) + 1;
+    }
+  }
+
+  return { xp, checkIns: distinctDays.size, medalCounts, taskCounts };
+}
+
+// True only when the student meets a rank's FULL requirements: points at/above
+// the rank's points floor (criteria.points, else the rank threshold) AND — when
+// a `criteria` object is present — every criterion that is set (xp, distinct
+// check-in days, each required medal title, each required special task). A rank
+// with no criteria qualifies on points alone, IDENTICAL to the legacy
+// `points >= threshold` test.
+export function rankQualifies(
+  rank: RankInfo,
+  s: { points: number } & RankActivity
+): boolean {
+  const c = rank.criteria;
+  const pointsFloor = c?.points ?? rank.threshold;
+  if (s.points < pointsFloor) return false;
+  if (!c) return true;
+  if (c.xp !== undefined && s.xp < c.xp) return false;
+  if (c.checkIns !== undefined && s.checkIns < c.checkIns) return false;
+  if (c.medals) {
+    for (const req of c.medals) {
+      if ((s.medalCounts[req.title] ?? 0) < req.count) return false;
+    }
+  }
+  if (c.tasks) {
+    for (const req of c.tasks) {
+      const need = req.count ?? 1;
+      if ((s.taskCounts[req.taskId] ?? 0) < need) return false;
+    }
+  }
+  return true;
+}
+
+// Resolve the rank a student should hold. Ranks are threshold-ascending, so the
+// LAST qualifying rank is the highest one earned — the same shape as the old
+// `ranks.filter(...).at(-1)` logic, just with a richer predicate.
+//
+// Backward-compat + safety rules baked in here:
+//  - `activity === null` (criteria unreadable): pure points-only, EXACTLY legacy.
+//  - A rank at or BELOW the student's current rank only needs its points
+//    threshold. This means configuring new criteria never RETROACTIVELY demotes
+//    a kid who was already at that rank; points-only demotion is unchanged.
+//  - A rank ABOVE the current rank (a real promotion) must meet the FULL
+//    criteria — this is the coach's "not promoted until met" requirement.
+export function resolveRank(
+  ranks: RankInfo[],
+  currentRankId: string,
+  points: number,
+  activity: RankActivity | null
+): RankInfo {
+  const currentThreshold =
+    ranks.find((r) => r.id === currentRankId)?.threshold ?? -Infinity;
+  const qualified = ranks.filter((r) => {
+    if (!activity) return points >= r.threshold; // legacy points-only fallback
+    if (r.threshold <= currentThreshold) return points >= r.threshold; // no retro-demotion
+    return rankQualifies(r, { points, ...activity }); // promotion needs full criteria
+  });
+  return qualified[qualified.length - 1] ?? ranks[0];
 }
 
 // Load the admin Volt override (appSettings "volt_config") and apply it to the
@@ -222,8 +346,24 @@ export async function applyPoints(
   const basePoints = student.points + amount;
 
   const oldRank = ranks.find((r) => r.id === student.rankId) ?? ranks[0];
-  const qualifiedInitial = ranks.filter((r) => basePoints >= r.threshold);
-  const newRankInitial = qualifiedInitial[qualifiedInitial.length - 1] ?? ranks[0];
+
+  // Rank-criteria inputs, loaded ONCE and cheaply. On ANY read failure we set
+  // `activity = null`, which makes resolveRank fall back to points-only so
+  // promotion NEVER breaks. XP here is the PRE-award total (the XP mirror below
+  // grants XP after rank math); an xp-only criterion therefore promotes on the
+  // NEXT event, which is acceptable and never blocks a points/medal promotion.
+  let activity: RankActivity | null = null;
+  try {
+    activity = await loadRankActivity(ctx, studentId, student.totalXp ?? 0);
+  } catch (err) {
+    console.warn("applyPoints: rank criteria unavailable, points-only", err);
+    activity = null;
+  }
+
+  // Highest qualifying rank BEFORE any demotion penalty (only used to detect a
+  // points-driven demotion). resolveRank enforces criteria for real promotions
+  // but keeps legacy points-only behavior at/below the current rank.
+  const newRankInitial = resolveRank(ranks, student.rankId, basePoints, activity);
 
   // Iron Will perk (Volt System): rank can still drop, but the penalty
   // points never hit — big shop spends stop stinging twice.
@@ -234,8 +374,7 @@ export async function applyPoints(
   const finalPoints = isDemotion
     ? Math.max(0, basePoints - DEMOTION_PENALTY_POINTS)
     : basePoints;
-  const qualifiedFinal = ranks.filter((r) => finalPoints >= r.threshold);
-  const newRankFinal = qualifiedFinal[qualifiedFinal.length - 1] ?? ranks[0];
+  const newRankFinal = resolveRank(ranks, student.rankId, finalPoints, activity);
 
   const didRankUp =
     newRankFinal.id !== student.rankId && newRankFinal.threshold > oldRank.threshold;
@@ -440,6 +579,89 @@ export async function applyPoints(
     didRankUp,
     newRank: newRankFinal,
   };
+}
+
+// Re-evaluate a student's rank against the criteria WITHOUT a points change. A
+// newly-earned medal, a fresh check-in, or an approved special task can complete
+// a rank's requirements, so those non-points paths call this at the end to
+// promote when the last requirement lands. Promotion ONLY — it never demotes —
+// and it fires the same rank-up celebration path used in applyPoints (activity
+// log + broadcast) plus a queued congrats + targeted family push. Fully guarded:
+// any failure is swallowed so the triggering action still succeeds, and if the
+// activity signals can't be read it simply does nothing (points-only stays).
+export async function reevaluateRank(
+  ctx: MutationCtx,
+  studentId: Id<"students">,
+  clientId?: string
+): Promise<void> {
+  try {
+    const student = await ctx.db.get(studentId);
+    if (!student) return;
+
+    const ranks = await getRankList(ctx);
+    const oldRank = ranks.find((r) => r.id === student.rankId) ?? ranks[0];
+
+    let activity: RankActivity | null = null;
+    try {
+      activity = await loadRankActivity(ctx, studentId, student.totalXp ?? 0);
+    } catch (err) {
+      console.warn("reevaluateRank: rank criteria unavailable", err);
+      return; // no signal to act on → leave rank untouched
+    }
+
+    const newRank = resolveRank(ranks, student.rankId, student.points, activity);
+    // Promotion only: a criteria re-check must never pull a kid DOWN.
+    if (newRank.id === student.rankId || newRank.threshold <= oldRank.threshold) {
+      return;
+    }
+
+    await ctx.db.patch(studentId, { rankId: newRank.id });
+
+    await logActivity(ctx, {
+      type: "RANK_UP",
+      message: `Promoted to ${newRank.name}!`,
+      studentId,
+      studentName: student.fullName,
+    });
+    await publishEvent(
+      ctx,
+      "rank_up",
+      {
+        type: "RANK_UP",
+        studentName: student.fullName,
+        achievement: newRank.name,
+        studentAvatar: student.avatarUrl,
+        rankIcon: newRank.icon,
+        ts: Date.now(),
+      },
+      clientId
+    );
+
+    // Queue the congrats pop-up for the kid/family portals and ping ONLY this
+    // kid's linked families (mirrors the applyPoints level-up notification).
+    await queueCelebration(ctx, {
+      studentId,
+      kind: "LEVEL_UP",
+      title: `RANK UP: ${newRank.name}`,
+      message: `${student.fullName} reached ${newRank.name}!`,
+      icon: student.avatarUrl,
+    });
+    const links = await ctx.db
+      .query("parentStudentLinks")
+      .withIndex("by_student", (q) => q.eq("studentId", studentId))
+      .collect();
+    if (links.length > 0) {
+      await ctx.scheduler.runAfter(0, internal.pushNode.deliver, {
+        title: "Rank Up!",
+        body: `${student.fullName} reached ${newRank.name}! Open the app for the celebration.`,
+        url: "/#/parent-dashboard",
+        tag: "fnf-rankup",
+        parentIds: links.map((l) => l.parentId as string),
+      });
+    }
+  } catch (err) {
+    console.warn("reevaluateRank failed", err);
+  }
 }
 
 export function studentDefaults(fullName: string) {

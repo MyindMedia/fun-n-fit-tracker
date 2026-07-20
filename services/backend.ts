@@ -455,6 +455,7 @@ class ConvexBackendService {
         xpReward: rankData.xpReward ?? 0,
         pointsRequired: rankData.pointsRequired ?? rankData.threshold,
         criteriaTasks: rankData.criteriaTasks ?? [],
+        criteria: rankData.criteria,
       });
       this.ranksCache = null;
     } catch (e) {
@@ -474,6 +475,7 @@ class ConvexBackendService {
         xpReward: rankData.xpReward,
         pointsRequired: rankData.pointsRequired,
         criteriaTasks: rankData.criteriaTasks,
+        criteria: rankData.criteria,
       });
       this.ranksCache = null;
     } catch (e) {

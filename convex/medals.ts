@@ -1,7 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { applyPoints, logActivity, publishEvent, resolveLocalDate } from "./helpers";
+import { applyPoints, logActivity, publishEvent, resolveLocalDate, reevaluateRank } from "./helpers";
 import { queueCelebration } from "./celebrations";
 
 // Coach-awarded accolades. "Session Legends" is the flagship flow: at the end
@@ -91,6 +91,11 @@ export const award = mutation({
           parentIds: links.map((l) => l.parentId as string),
         });
       }
+
+      // This new medal may have completed a rank's medal requirement — promote
+      // if so (no-op when nothing changed; a bonus applyPoints above already
+      // sees the medal, so this only matters for the zero-bonus case). Guarded.
+      await reevaluateRank(ctx, studentId);
 
       results.push({ studentId, fullName: student.fullName });
     }

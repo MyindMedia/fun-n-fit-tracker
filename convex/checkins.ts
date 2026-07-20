@@ -5,6 +5,7 @@ import {
   logActivity,
   publishEvent,
   randomToken,
+  reevaluateRank,
   requireParent,
   requireParentLink,
   resolveLocalDate,
@@ -155,6 +156,10 @@ export async function checkInStudent(
       actorName
     );
   }
+  // A fresh check-in day can complete a rank's check-in requirement — promote
+  // if so. (The first-of-day applyPoints above already re-evaluates; this also
+  // covers same-day returns and check-in-only criteria.) Guarded no-op.
+  await reevaluateRank(ctx, studentId);
   return { studentId, fullName: student.fullName, status: "OK" as const };
 }
 

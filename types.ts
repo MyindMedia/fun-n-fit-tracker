@@ -121,6 +121,16 @@ export interface House {
   customIcon?: string;
 }
 
+// Enforceable promotion requirements beyond points. Any field left unset is not
+// enforced; an absent/empty object means points-only (legacy behavior).
+export interface RankCriteria {
+  points?: number; // min points floor (defaults to the rank's threshold)
+  xp?: number; // min total XP
+  checkIns?: number; // min distinct check-in days
+  medals?: Array<{ title: string; count: number }>; // required medal titles + counts
+  tasks?: Array<{ taskId: string; count?: number }>; // required special tasks + counts
+}
+
 export interface Rank {
   id: string;
   name: string;
@@ -133,6 +143,7 @@ export interface Rank {
   xpReward?: number;
   pointsRequired?: number;
   criteriaTasks?: string[];
+  criteria?: RankCriteria;
   type?: 'RANK' | 'TROPHY';
 }
 

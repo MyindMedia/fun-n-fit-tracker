@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { applyPoints, logActivity, requireParent, requireParentLink } from "./helpers";
+import { applyPoints, logActivity, reevaluateRank, requireParent, requireParentLink } from "./helpers";
 
 // ── Catalog ──────────────────────────────────────────────────────────────────
 
@@ -197,6 +197,10 @@ export const review = mutation({
           amount: task.points,
         });
       }
+      // This approval may have completed a rank's task requirement — promote if
+      // so. (applyPoints above already re-evaluates; this also covers zero-point
+      // tasks.) Guarded no-op when nothing changed.
+      await reevaluateRank(ctx, sub.studentId);
     }
     return await ctx.db.get(submissionId);
   },
