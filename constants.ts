@@ -1,10 +1,10 @@
 
 import { Rank, House, HouseId, GameDefinition, Badge, Reward } from './types';
 
-// NOTE: the old Supabase storage bucket is gone. Rank/house art now ships with the
-// app (public/assets/...). Audio still points at the dead bucket and fails silently —
-// replace with local files or Convex storage URLs when new sounds are available.
-const BASE_STORAGE_URL = 'https://odsyoxopcvtgxylmnapk.supabase.co/storage/v1/object/public/Assets';
+// NOTE: the old Supabase storage bucket is gone. Rank/house art and audio now ship with
+// the app under public/assets/ (recovered from the paused Supabase project's backup).
+// Sub-paths below are unchanged, so this base just points at the local /assets root.
+const BASE_STORAGE_URL = '/assets';
 const LEVELS_URL = '/assets/rankings';
 const TEAMS_URL = '/assets/team';
 
