@@ -141,6 +141,15 @@ class ParentAuthService {
       studentId: studentId as Id<"students">,
     });
   }
+
+  // Admin: permanently delete a parent account. Cascades their login/sessions,
+  // athlete links, invites, and message history. Athletes are NOT deleted.
+  public async removeAccount(parentId: string, adminName: string): Promise<void> {
+    await this.client.mutation(api.parents.removeAccount, {
+      parentId: parentId as Id<"parents">,
+      adminName,
+    });
+  }
 }
 
 export const parentAuth = new ParentAuthService();

@@ -34,6 +34,7 @@ const ParentManager: React.FC<{ students: Student[]; adminName?: string }> = ({ 
     const [linkStudentId, setLinkStudentId] = useState('');
     const [linking, setLinking] = useState(false);
     const [linkMsg, setLinkMsg] = useState<{ ok: boolean; text: string } | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => { loadParents(); }, []);
 
@@ -76,6 +77,20 @@ const ParentManager: React.FC<{ students: Student[]; adminName?: string }> = ({ 
         if (!confirm('Remove this student from the parent account?')) return;
         await parentAuth.unlinkStudent(parentId, studentId);
         await loadParents();
+    };
+
+    const handleDeleteAccount = async (parent: ParentRecord) => {
+        if (!confirm(`Delete ${parent.fullName}'s account?\n\nThis removes their login, athlete links, invites and message history. The athletes themselves are NOT deleted. This cannot be undone.`)) return;
+        setDeleting(true);
+        try {
+            await parentAuth.removeAccount(parent.id, adminName);
+            setSelectedParent(null);
+            await loadParents();
+        } catch (err: any) {
+            alert(err?.message || 'Failed to delete the account.');
+        } finally {
+            setDeleting(false);
+        }
     };
 
     // ─── Detail view ────────────────────────────────────────────────────────
@@ -156,6 +171,17 @@ const ParentManager: React.FC<{ students: Student[]; adminName?: string }> = ({ 
                             {linkMsg.ok ? <Ic.CheckCircle size={14} /> : <Ic.XCircle size={14} />} {linkMsg.text}
                         </p>
                     )}
+
+                    {/* Danger zone: delete the whole parent account (athletes are kept) */}
+                    <div className="mt-6 pt-4 border-t border-white/10">
+                        <button onClick={() => handleDeleteAccount(parent)} disabled={deleting}
+                            className="touch-btn w-full min-h-[48px] px-4 py-3 text-xs font-black uppercase tracking-widest border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                            <Ic.Trash size={16} /> {deleting ? 'Deleting…' : 'Delete Parent Account'}
+                        </button>
+                        <p className="text-[10px] text-center mt-2" style={{ color: 'var(--pz-text)' }}>
+                            Removes login, athlete links, invites &amp; messages. The athletes themselves are kept.
+                        </p>
+                    </div>
                 </div>
             </div>
         );
