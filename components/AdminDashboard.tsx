@@ -532,6 +532,17 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
+            onClick={() => openSubPage('PARENTS')}
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+          >
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Family size={24} /></span>
+            <div className="text-left">
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">Parent Accounts</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Invite parents, link athletes & manage accounts</div>
+            </div>
+          </button>
+
+          <button
             onClick={() => openSubPage('NFC')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
@@ -726,17 +737,6 @@ const AdminDashboard: React.FC = () => {
             <div className="text-left">
               <div className="font-black text-white uppercase tracking-wide text-[15px]">How It Works</div>
               <div className="text-xs" style={{ color: 'var(--pz-text)' }}>New-coach guide to Points, XP, Ranks &amp; Volt Levels</div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => openSubPage('PARENTS')}
-            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
-          >
-            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Family size={24} /></span>
-            <div className="text-left">
-              <div className="font-black text-white uppercase tracking-wide text-[15px]">Parent Accounts</div>
-              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>Invite parents, link athletes & manage accounts</div>
             </div>
           </button>
 
