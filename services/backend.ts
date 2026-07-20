@@ -28,6 +28,7 @@ import {
   TournamentMatch,
   TournamentType,
   BlogPost,
+  RelayConfig,
 } from "../types";
 import type { Celebration } from "../components/CelebrationOverlay";
 
@@ -112,6 +113,7 @@ type SessionDoc = {
     mvpStudentScore?: number;
     outs?: Record<string, boolean>;
   };
+  relay?: RelayConfig;
 };
 
 const mapSession = (s: SessionDoc): GameSession => ({
@@ -134,6 +136,7 @@ const mapSession = (s: SessionDoc): GameSession => ({
         outs: s.results.outs || {},
       }
     : undefined,
+  relay: s.relay,
 });
 
 type NotificationDoc = {
@@ -906,7 +909,8 @@ class ConvexBackendService {
     roster: string[],
     durationSeconds: number,
     customTitle?: string,
-    captureMode?: "MANUAL" | "NFC"
+    captureMode?: "MANUAL" | "NFC",
+    relay?: RelayConfig
   ) {
     try {
       const doc = await this.client.mutation(api.games.start, {
@@ -916,6 +920,7 @@ class ConvexBackendService {
         durationSeconds,
         customTitle,
         captureMode,
+        relay,
         clientId: this.clientId,
       });
       const session = mapSession(doc as unknown as SessionDoc);
@@ -1290,29 +1295,39 @@ class ConvexBackendService {
     }
   }
 
+  // Lap splits are recorded in milliseconds (high-resolution stopwatch). The
+  // activity feed shows a friendly SS.mmm / MM:SS.mmm label.
   public async recordLapTime(
     sessionId: string,
     studentId: string,
-    seconds: number,
+    ms: number,
     gameTitle: string,
     adminName: string
   ) {
     try {
+      const totalMs = Math.max(0, Math.floor(ms));
+      const minutes = Math.floor(totalMs / 60000);
+      const secs = Math.floor((totalMs % 60000) / 1000);
+      const millis = totalMs % 1000;
+      const label =
+        (minutes > 0 ? `${minutes}:${secs.toString().padStart(2, "0")}` : `${secs}`) +
+        `.${millis.toString().padStart(3, "0")}s`;
       await this.client.mutation(api.activity.log, {
         type: "LAP_TIME",
-        message: `Lap: ${seconds}s — ${gameTitle}`,
+        message: `Lap: ${label} · ${gameTitle}`,
         adminName,
         studentId,
         amount: 0,
       });
-      if (seconds <= 30) {
+      // Sub-30-second lap earns the speed badge (same threshold, now in ms).
+      if (totalMs > 0 && totalMs <= 30000) {
         try {
           await this.awardBadge(studentId, "speed_demon", adminName);
         } catch (err) {
           console.warn("Failed to award speed badge:", err);
         }
       }
-      this.emit("lap_time", { sessionId, studentId, seconds, gameTitle, ts: Date.now() });
+      this.emit("lap_time", { sessionId, studentId, ms: totalMs, gameTitle, ts: Date.now() });
     } catch (e) {
       console.warn("recordLapTime failed", e);
     }

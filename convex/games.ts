@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { logActivity, publishEvent } from "./helpers";
+import { relayConfig } from "./schema";
 import { GAME_LIBRARY } from "../constants";
 
 // Per-game points + awards a student earned, newest game first. Feeds the
@@ -121,6 +122,7 @@ export const start = mutation({
     durationSeconds: v.number(),
     customTitle: v.optional(v.string()),
     captureMode: v.optional(v.union(v.literal("MANUAL"), v.literal("NFC"))),
+    relay: v.optional(relayConfig),
     clientId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -151,6 +153,7 @@ export const start = mutation({
       startedBy: args.adminName,
       roster: args.roster,
       captureMode: args.captureMode ?? "MANUAL",
+      relay: args.relay,
       createdAt: Date.now(),
     });
 

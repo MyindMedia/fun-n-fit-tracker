@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { GameSession, GameResult, Student, Rank } from '../types';
 import { supabaseService } from '../services/supabaseService';
 import { HOUSES } from '../constants';
@@ -36,6 +36,9 @@ const GameOverlay: React.FC = () => {
   // Queue for level-ups that happen during games - shown after winner modal
   const [queuedLevelUps, setQueuedLevelUps] = useState<QueuedLevelUp[]>([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  // Mirror so the winner dismissal can read the freshest queue without re-binding.
+  const queuedLevelUpsRef = useRef<QueuedLevelUp[]>([]);
+  useEffect(() => { queuedLevelUpsRef.current = queuedLevelUps; }, [queuedLevelUps]);
   // End-of-game reveal steps: 0 = Winning Team, 1 = Points, 2 = MVP (one at a time)
   const [winnerStep, setWinnerStep] = useState(0);
 
@@ -367,6 +370,17 @@ const GameOverlay: React.FC = () => {
     };
   }, []);
 
+  // Dismiss a winner wrap (timer end OR tap-to-skip): drop that game's result,
+  // clear confetti, and still fire any level-ups queued to show after it.
+  const dismissWinner = useCallback((gameId: string) => {
+    setGameResults(prev => prev.filter(r => r.game.id !== gameId));
+    setConfettiPieces([]);
+    if (queuedLevelUpsRef.current.length > 0) {
+      setShowLevelUpModal(true);
+      try { AudioService.playLevelUp(); } catch (e) { /* audio optional */ }
+    }
+  }, []);
+
   // Trigger winner modal with confetti, and play winner audio ONLY when modal appears
   useEffect(() => {
     if (gameResults.length === 0) return;
@@ -415,18 +429,9 @@ const GameOverlay: React.FC = () => {
     setWinnerStep(0);
     const step1 = setTimeout(() => setWinnerStep(1), 3500);
     const step2 = setTimeout(() => setWinnerStep(2), 7000);
-    const ttl = setTimeout(() => {
-      setGameResults(prev => prev.filter(r => r.game.id !== latest.game.id));
-      setConfettiPieces([]);
-      // After winner modal closes, show any queued level-ups
-      if (queuedLevelUps.length > 0) {
-        console.log('🎖️ Showing queued level-ups after winner screen:', queuedLevelUps.length);
-        setShowLevelUpModal(true);
-        AudioService.playLevelUp();
-      }
-    }, 12000);
+    const ttl = setTimeout(() => dismissWinner(latest.game.id), 12000);
     return () => { clearTimeout(ttl); clearTimeout(step1); clearTimeout(step2); };
-  }, [gameResults, queuedLevelUps]);
+  }, [gameResults, queuedLevelUps, dismissWinner]);
 
   useEffect(() => {
     const onGameStartEvent = (e: any) => {
@@ -692,7 +697,13 @@ const GameOverlay: React.FC = () => {
              const winnerAccent = winnerHouse?.colorHex || '#CBFE1C';
 
              return (
-             <div key={res.game.id} className="fixed inset-0 z-[660] pz-scope flex items-center justify-center bg-black/60 backdrop-blur-lg p-4 animate-fade-in">
+             <div
+               key={res.game.id}
+               onClick={() => dismissWinner(res.game.id)}
+               role="button"
+               aria-label="Skip winner celebration"
+               className="fixed inset-0 z-[660] pz-scope flex items-center justify-center bg-black/60 backdrop-blur-lg p-4 animate-fade-in cursor-pointer"
+             >
                 <div className="max-w-3xl w-full animate-bounce-in" style={{ filter: `drop-shadow(0 0 40px ${winnerAccent}59)` }}>
                 <div
                   className="relative p-10 text-center overflow-hidden"
@@ -756,6 +767,7 @@ const GameOverlay: React.FC = () => {
                         <span key={s} className="w-2 h-2 rounded-full transition-all" style={{ background: s <= winnerStep ? winnerAccent : 'rgba(255,255,255,0.2)' }} />
                       ))}
                     </div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mt-4">Tap anywhere to skip</div>
                   </div>
                   {confettiPieces.map(p => (
                     <div

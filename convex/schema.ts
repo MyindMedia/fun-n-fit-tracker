@@ -9,6 +9,17 @@ export const houseId = v.union(
   v.literal("VALOR")
 );
 
+// Relay Race launch config, stored on the session so the scorer knows the mode
+export const relayConfig = v.object({
+  mode: v.union(v.literal("INDIVIDUAL"), v.literal("TEAM")),
+  scoring: v.union(v.literal("TIME_TRIAL"), v.literal("PLACEMENTS")),
+  headToHead: v.boolean(),
+  attempts: v.number(),
+  teams: v.optional(
+    v.array(v.object({ name: v.string(), memberIds: v.array(v.string()) }))
+  ),
+});
+
 // Results blob stored on a finished game session
 export const gameResults = v.object({
   winningHouseId: v.optional(v.union(houseId, v.null())),
@@ -90,6 +101,8 @@ export default defineSchema({
     pausedAt: v.optional(v.union(v.number(), v.null())),
     pausedMs: v.optional(v.number()),
     results: v.optional(gameResults),
+    // Relay Race: coach's launch config (mode, scoring, head-to-head, teams)
+    relay: v.optional(relayConfig),
     createdAt: v.number(),
   })
     .index("by_active", ["isActive"])
