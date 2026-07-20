@@ -28,6 +28,33 @@ export const award = mutation({
   },
 });
 
+// Reset ONE athlete's spendable points to exactly 0 without touching lifetime XP
+// or rank — the engine only grants XP on positive amounts, so a full drain can
+// never demote. The delta is computed server-side (read-then-apply) to avoid a
+// stale-balance race, and it flows through applyPoints so it's ledgered and
+// reversible (undoLast, or just re-award). No-op when already at 0.
+export const zeroOut = mutation({
+  args: {
+    studentId: v.id("students"),
+    adminName: v.string(),
+    clientId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const student = await ctx.db.get(args.studentId);
+    if (!student) throw new Error("Student not found");
+    if (student.points <= 0) return null;
+    return await applyPoints(
+      ctx,
+      args.studentId,
+      -student.points,
+      "MANUAL",
+      "Points reset to 0 (coach)",
+      args.adminName,
+      args.clientId
+    );
+  },
+});
+
 export const batchAward = mutation({
   args: {
     studentIds: v.array(v.id("students")),

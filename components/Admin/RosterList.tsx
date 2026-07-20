@@ -4,6 +4,7 @@ import { Student, HouseId, Rank } from '../../types';
 import { HOUSES } from '../../constants';
 import { supabaseService } from '../../services/supabaseService';
 import StudentAvatar from '../StudentAvatar';
+import PointsAdjuster from './PointsAdjuster';
 
 interface RosterListProps {
   students: Student[];
@@ -19,6 +20,9 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
   const [list, setList] = useState<Student[]>(students);
   const [archived, setArchived] = useState<Student[]>([]);
   const [archivedLoading, setArchivedLoading] = useState(false);
+  // Quick per-athlete points popover (deduct / custom / zero out) without opening
+  // the full editor.
+  const [adjustStudent, setAdjustStudent] = useState<Student | null>(null);
 
   useEffect(() => {
     supabaseService.getRanks().then(setRanks);
@@ -105,6 +109,31 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
         </div>
       </div>
 
+      {adjustStudent && (
+        <div
+          className="fixed inset-0 z-[400] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4"
+          onClick={() => setAdjustStudent(null)}
+        >
+          <div className="pz-card max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4 gap-4">
+              <div className="min-w-0">
+                <div className="pz-display text-white text-lg truncate">{adjustStudent.fullName}</div>
+                <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--pz-text)' }}>Adjust Points</div>
+              </div>
+              <button onClick={() => setAdjustStudent(null)} className="pz-btn-ghost px-4 py-2 text-[10px] shrink-0">Close</button>
+            </div>
+            <PointsAdjuster
+              studentId={adjustStudent.id}
+              displayName={adjustStudent.fullName}
+              initialPoints={adjustStudent.points}
+              adminName={adminName}
+              onAdjusted={() => onRefresh && onRefresh()}
+              compact
+            />
+          </div>
+        </div>
+      )}
+
       <div className="pr-2">
         {viewMode === 'INDIVIDUAL' ? (
           <div className="space-y-3">
@@ -145,6 +174,14 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
                         <div className="text-[8px] font-black uppercase" style={{ color: 'var(--pz-text)' }}>Points</div>
                         <div className="pz-display text-xl text-[#CBFE1C] leading-none">{s.points.toLocaleString()}</div>
                       </div>
+
+                      <button
+                        onClick={() => setAdjustStudent(s)}
+                        title="Adjust or zero out points"
+                        className="px-4 py-3 text-[10px] font-black uppercase tracking-widest border border-white/10 bg-white/5 text-[#CBFE1C] hover:border-[#CBFE1C]/50 transition-all"
+                      >
+                        Points
+                      </button>
 
                       <button
                         onClick={() => onOpenEdit(s)}

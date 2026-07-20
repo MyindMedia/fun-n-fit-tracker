@@ -11,6 +11,7 @@ import { getStudentDisplayName } from '../utils/studentDisplay';
 import { Ic, DataIcon } from './icons';
 import { VoltTag } from './StudentAvatar';
 import AthleteStatsReport from './AthleteStatsReport';
+import PointsAdjuster from './Admin/PointsAdjuster';
 
 interface StudentProfileModalProps {
   student: Student;
@@ -49,7 +50,6 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [currentCelebration, setCurrentCelebration] = useState<Celebration | null>(null);
-  const [customPoints, setCustomPoints] = useState<string>('');
 
   // Dynamic Data State
   const [availableBadges, setAvailableBadges] = useState<Badge[]>([]);
@@ -290,23 +290,6 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
       console.error('Failed to delete athlete:', err);
       alert('Failed to delete athlete. Please try again.');
     }
-  };
-
-  const handleAdjustPoints = async (amount: number) => {
-    if (!adminName) return;
-    const desc = amount > 0 ? "Manual Coach Award" : "Manual Adjustment";
-    await supabaseService.addPoints(student.id, amount, 'MANUAL', desc, adminName);
-    if (onRefresh) onRefresh();
-    try {
-      if (amount > 0) AudioService.playRandomAward();
-      else if (amount < 0) AudioService.playPointLost();
-    } catch (err) {
-      console.warn('Audio playback failed:', err);
-    }
-    // NOTE: do NOT dispatch a 'coach-toast' here. addPoints already writes a
-    // POINTS activity row that AdminDashboard's notification subscription turns
-    // into the "+X pts for Name" toast; dispatching coach-toast too showed the
-    // popup twice.
   };
 
   const handleRankChange = (newRankId: string) => {
@@ -763,54 +746,14 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                       <p className="text-xs font-medium" style={{ color: 'var(--pz-text)' }}>Use these presets to quickly adjust the athlete's point total outside of regular sessions.</p>
                    </div>
 
-                  <div className="grid grid-cols-2 gap-8">
-                      <div className="space-y-4">
-                         <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Add Points</div>
-                         <div className="grid grid-cols-2 gap-4">
-                            {[10, 50, 100, 500].map(val => (
-                              <button key={val} onClick={() => handleAdjustPoints(val)} className="py-6 bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 font-black text-lg hover:border-emerald-400 hover:bg-emerald-500/20 transition-all" style={{ clipPath: NOTCH_SM }}>+{val}</button>
-                            ))}
-                         </div>
-                      </div>
-                      <div className="space-y-4">
-                         <div className="text-[10px] font-black text-red-400 uppercase tracking-widest">Deduct Points</div>
-                         <div className="grid grid-cols-2 gap-4">
-                            {[10, 50, 100, 500].map(val => (
-                              <button key={val} onClick={() => handleAdjustPoints(-val)} className="py-6 bg-red-500/10 border border-red-500/40 text-red-400 font-black text-lg hover:border-red-400 hover:bg-red-500/20 transition-all" style={{ clipPath: NOTCH_SM }}>-{val}</button>
-                            ))}
-                         </div>
-                     </div>
-                  </div>
-                  <div className="pz-card p-6">
-                    <div className="pz-eyebrow mb-3">Custom Amount</div>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={customPoints}
-                        onChange={(e) => setCustomPoints(e.target.value.replace(/[^0-9]/g, ''))}
-                        placeholder="Points"
-                        className="w-28 px-3 py-2 bg-white/5 border border-white/10 text-white font-black placeholder-white/40 focus:border-[#CBFE1C] outline-none"
-                        style={{ clipPath: NOTCH_SM }}
-                      />
-                      <button
-                        onClick={() => { const v = parseInt(customPoints || '0', 10); if (v > 0) { handleAdjustPoints(v); setCustomPoints(''); } }}
-                        disabled={!parseInt(customPoints || '0', 10)}
-                        className="px-4 py-2 bg-emerald-500 text-emerald-950 font-black disabled:opacity-50"
-                        style={{ clipPath: NOTCH_SM }}
-                      >
-                        Apply +
-                      </button>
-                      <button
-                        onClick={() => { const v = parseInt(customPoints || '0', 10); if (v > 0) { handleAdjustPoints(-v); setCustomPoints(''); } }}
-                        disabled={!parseInt(customPoints || '0', 10)}
-                        className="px-4 py-2 bg-red-600 text-white font-black disabled:opacity-50"
-                        style={{ clipPath: NOTCH_SM }}
-                      >
-                        Apply −
-                      </button>
-                    </div>
-                  </div>
+                  <PointsAdjuster
+                    studentId={student.id}
+                    displayName={student.fullName}
+                    initialPoints={student.points}
+                    adminName={adminName ?? ''}
+                    descFor={(amt) => (amt > 0 ? 'Manual Coach Award' : 'Manual Adjustment')}
+                    onAdjusted={() => onRefresh && onRefresh()}
+                  />
                 </div>
               )}
            </div>

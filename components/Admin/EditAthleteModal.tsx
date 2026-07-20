@@ -6,6 +6,7 @@ import { supabaseService } from '../../services/supabaseService';
 import { AudioService } from '../../utils/audio';
 import { Ic } from '../icons';
 import { writeNfcBand, canWriteNfc } from '../useNfcWedge';
+import PointsAdjuster from './PointsAdjuster';
 
 interface EditAthleteModalProps {
   student: Student;
@@ -117,24 +118,6 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleAdjustPoints = async (amount: number) => {
-    // Untouched reason falls back to the default so a fast coach is never blocked.
-    const reason = reasonText.trim() || reasonChip || '';
-    const prefix = amount > 0 ? 'Coach award' : 'Coach deduction';
-    const desc = reason ? `${prefix}: ${reason}` : prefix;
-    await supabaseService.addPoints(student.id, amount, 'MANUAL', desc, adminName);
-    onRefresh();
-    try {
-      if (amount > 0) AudioService.playRandomAward();
-      else if (amount < 0) AudioService.playPointLost();
-    } catch {}
-    // NOTE: do NOT dispatch a 'coach-toast' here. addPoints already writes a
-    // POINTS activity row, and AdminDashboard's notification subscription turns
-    // that into the "+X pts for Name" toast. Dispatching coach-toast too showed
-    // the popup twice (see MedalsPanel/BoostControl — those keep coach-toast
-    // because their messages are NOT covered by the notification path).
   };
 
   // Preferred path for a departing/ejected athlete: soft-archive. Keeps their
@@ -352,24 +335,18 @@ const EditAthleteModal: React.FC<EditAthleteModalProps> = ({ student, adminName,
                       />
                    </div>
 
-                   <div className="grid grid-cols-2 gap-8">
-                      <div className="space-y-4">
-                         <div className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Add Points</div>
-                         <div className="grid grid-cols-2 gap-4">
-                            {[10, 50, 100, 500].map(val => (
-                              <button key={val} onClick={() => handleAdjustPoints(val)} className="py-6 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-black text-lg hover:border-emerald-500 hover:bg-emerald-500/20 transition-all">+{val}</button>
-                            ))}
-                         </div>
-                      </div>
-                      <div className="space-y-4">
-                         <div className="text-[10px] font-black text-red-400 uppercase tracking-widest">Deduct Points</div>
-                         <div className="grid grid-cols-2 gap-4">
-                            {[10, 50, 100, 500].map(val => (
-                              <button key={val} onClick={() => handleAdjustPoints(-val)} className="py-6 bg-red-500/10 border border-red-500/30 text-red-400 font-black text-lg hover:border-red-500 hover:bg-red-500/20 transition-all">-{val}</button>
-                            ))}
-                         </div>
-                      </div>
-                   </div>
+                   <PointsAdjuster
+                     studentId={student.id}
+                     displayName={student.fullName}
+                     initialPoints={student.points}
+                     adminName={adminName}
+                     descFor={(amt) => {
+                       const reason = reasonText.trim() || reasonChip || '';
+                       const prefix = amt > 0 ? 'Coach award' : 'Coach deduction';
+                       return reason ? `${prefix}: ${reason}` : prefix;
+                     }}
+                     onAdjusted={onRefresh}
+                   />
                 </div>
               )}
            </div>

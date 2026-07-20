@@ -1185,6 +1185,21 @@ class ConvexBackendService {
     }
   }
 
+  // Reset one athlete's spendable points to 0 (rank/XP untouched). Server reads
+  // the current balance and applies the drain, so the client never needs it.
+  public async zeroOutPoints(studentId: string, adminName: string) {
+    try {
+      const result = (await this.client.mutation(api.points.zeroOut, {
+        studentId: studentId as Id<"students">,
+        adminName,
+        clientId: this.clientId,
+      })) as AwardResult | null;
+      await this.handleAwardResult(result);
+    } catch (e) {
+      this.handleError("zeroOutPoints", e);
+    }
+  }
+
   public async recordScoreEvent(
     sessionId: string,
     studentId: string | undefined,
