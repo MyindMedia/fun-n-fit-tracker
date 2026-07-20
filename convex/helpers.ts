@@ -3,7 +3,7 @@ import { Id, Doc } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { queueCelebration } from "./celebrations";
 import { RANKS, DEMOTION_PENALTY_POINTS } from "../constants";
-import { voltEffects, voltLevelForXp, XP_SOURCES, XP_FACTOR_MAX } from "../voltCatalog";
+import { voltEffects, voltLevelForXp, XP_SOURCES, XP_FACTOR_MAX, applyVoltConfig, resetVoltConfig } from "../voltCatalog";
 import { gearItem } from "../gearCatalog";
 import { gearDelta, GEAR_FACTOR_MAX, GEAR_FACTOR_MIN, GearSource } from "../gearCatalog";
 
@@ -38,6 +38,24 @@ export async function getRankList(ctx: QueryCtx): Promise<RankInfo[]> {
     criteriaTasks: r.criteriaTasks,
     type: r.type,
   }));
+}
+
+// Load the admin Volt override (appSettings "volt_config") and apply it to the
+// shared voltCatalog state for THIS request. Fully guarded: a missing row, an
+// unreadable value, or an invalid config resets to the code-formula defaults,
+// so voltLevelForXp / voltXpForLevel and every level-up check stay sane. Call
+// this before any code that reads Volt thresholds or perk unlock levels.
+export async function loadVoltConfig(ctx: QueryCtx): Promise<void> {
+  try {
+    const row = await ctx.db
+      .query("appSettings")
+      .withIndex("by_key", (q) => q.eq("key", "volt_config"))
+      .unique();
+    if (row) applyVoltConfig(row.value);
+    else resetVoltConfig();
+  } catch {
+    resetVoltConfig();
+  }
 }
 
 export async function logActivity(
@@ -108,6 +126,11 @@ export async function applyPoints(
 ): Promise<AwardResult> {
   const student = await ctx.db.get(studentId);
   if (!student) throw new Error("Student not found");
+
+  // Apply the admin-editable Volt thresholds for this request BEFORE any
+  // level math runs, so level-up detection below uses the edited ladder.
+  // Guarded: falls back to the code formula on any problem.
+  await loadVoltConfig(ctx);
 
   // Volt System (voltCatalog.ts): the kid's merged perk/wildcard bonuses.
   const volt = voltEffects(student.voltLoadout);

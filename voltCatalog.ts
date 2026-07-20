@@ -188,23 +188,121 @@ export const VOLT_WILDCARDS: VoltWildcardDef[] = [
 // ── Volt Levels ───────────────────────────────────────────────────────────────
 // Cumulative XP needed to REACH level n (level 1 = 0). threshold(n) grows
 // quadratically so early levels come fast and late ones are a season grind.
+//
+// Both the 40 thresholds AND each perk's unlock level are admin-editable
+// (appSettings key "volt_config"; editor in components/Admin/VoltLevelsEditor).
+// Everything below is engineered so a MISSING or INVALID override always falls
+// back to the code formula — this powers the live XP/level system for real kids,
+// so it must never break.
 export const VOLT_MAX_LEVEL = 40;
 
-export const VOLT_LEVELS: number[] = Array.from({ length: VOLT_MAX_LEVEL }, (_, i) => {
-  const n = i + 1;
-  return (n - 1) * (25 * n + 50);
+// Code-formula defaults. Frozen and ALWAYS available as the fallback: if an
+// override is absent or fails validation, the ladder returns to exactly these.
+const voltLevelFormula = (n: number): number => (n - 1) * (25 * n + 50);
+export const VOLT_LEVELS_DEFAULT: readonly number[] = Object.freeze(
+  Array.from({ length: VOLT_MAX_LEVEL }, (_, i) => voltLevelFormula(i + 1))
+);
+
+// Live thresholds. A mutable COPY of the defaults; applyVoltConfig replaces the
+// contents in place (never the binding) so every reader — server + client and
+// this module's own lookups — sees an admin edit immediately, and a bad config
+// can always be restored to the defaults.
+export const VOLT_LEVELS: number[] = [...VOLT_LEVELS_DEFAULT];
+
+// Default perk unlock levels, captured once at load so resetVoltConfig can
+// always put every perk back where the code formula placed it.
+const DEFAULT_PERK_UNLOCKS: Readonly<Record<string, number>> = Object.freeze(
+  Object.fromEntries(VOLT_PERKS.map((p) => [p.key, p.unlockLevel]))
+);
+
+// Admin override shape stored (as JSON) in appSettings["volt_config"].
+export interface VoltConfig {
+  levels?: number[];
+  perkUnlocks?: Record<string, number>;
+}
+
+// A levels override is valid ONLY as exactly VOLT_MAX_LEVEL finite, non-negative
+// numbers in strictly ascending order. Anything else is rejected wholesale so
+// the level math stays monotonic.
+export const isValidVoltLevels = (levels: unknown): levels is number[] => {
+  if (!Array.isArray(levels) || levels.length !== VOLT_MAX_LEVEL) return false;
+  let prev = -Infinity;
+  for (const v of levels) {
+    if (typeof v !== "number" || !Number.isFinite(v) || v < 0) return false;
+    if (v <= prev) return false; // strictly ascending
+    prev = v;
+  }
+  return true;
+};
+
+// Restore every threshold and perk unlock to the code-formula defaults.
+export const resetVoltConfig = (): void => {
+  for (let i = 0; i < VOLT_MAX_LEVEL; i++) VOLT_LEVELS[i] = VOLT_LEVELS_DEFAULT[i];
+  for (const p of VOLT_PERKS) p.unlockLevel = DEFAULT_PERK_UNLOCKS[p.key];
+};
+
+// Apply an admin override (object OR JSON string) onto the shared catalog.
+// Fully guarded: a missing/malformed config, or an invalid levels array, falls
+// back to the defaults for that part — it can never corrupt the ladder. Returns
+// true when a valid levels override was applied, false when levels fell back.
+export const applyVoltConfig = (cfg: unknown): boolean => {
+  let config: VoltConfig | null = null;
+  try {
+    config = typeof cfg === "string" ? JSON.parse(cfg) : (cfg as VoltConfig | null);
+  } catch {
+    config = null;
+  }
+  if (!config || typeof config !== "object") {
+    resetVoltConfig();
+    return false;
+  }
+
+  const levelsOk = isValidVoltLevels(config.levels);
+  for (let i = 0; i < VOLT_MAX_LEVEL; i++) {
+    VOLT_LEVELS[i] = levelsOk ? (config.levels as number[])[i] : VOLT_LEVELS_DEFAULT[i];
+  }
+
+  // Perk unlocks: default first, then apply only entries that pass a range
+  // check. A bad single entry is skipped, never fatal.
+  const overrides = config.perkUnlocks;
+  for (const p of VOLT_PERKS) {
+    const o = overrides ? overrides[p.key] : undefined;
+    p.unlockLevel =
+      typeof o === "number" && Number.isFinite(o) && o >= 1 && o <= VOLT_MAX_LEVEL
+        ? Math.round(o)
+        : DEFAULT_PERK_UNLOCKS[p.key];
+  }
+
+  return levelsOk;
+};
+
+// Pristine code-formula config — for editors' initial state and a reliable
+// "reset to defaults", independent of whatever override is currently live.
+export const voltDefaultConfig = (): { levels: number[]; perkUnlocks: Record<string, number> } => ({
+  levels: [...VOLT_LEVELS_DEFAULT],
+  perkUnlocks: { ...DEFAULT_PERK_UNLOCKS },
 });
 
+// Safe threshold read for a level: falls back to the default array if the live
+// array is somehow corrupt, so the lookups below can never return NaN.
+const levelThreshold = (n: number): number => {
+  const v = VOLT_LEVELS[n - 1];
+  return Number.isFinite(v) ? v : VOLT_LEVELS_DEFAULT[n - 1];
+};
+
 export const voltLevelForXp = (xp: number): number => {
+  const x = Number.isFinite(xp) ? xp : 0;
   let level = 1;
   for (let n = VOLT_MAX_LEVEL; n >= 1; n--) {
-    if (xp >= VOLT_LEVELS[n - 1]) { level = n; break; }
+    if (x >= levelThreshold(n)) { level = n; break; }
   }
   return level;
 };
 
-export const voltXpForLevel = (level: number): number =>
-  VOLT_LEVELS[Math.min(Math.max(level, 1), VOLT_MAX_LEVEL) - 1];
+export const voltXpForLevel = (level: number): number => {
+  const n = Math.min(Math.max(Math.floor(level) || 1, 1), VOLT_MAX_LEVEL);
+  return levelThreshold(n);
+};
 
 export const voltNextLevelXp = (xp: number): { nextLevel: number; needed: number; span: number } | null => {
   const level = voltLevelForXp(xp);

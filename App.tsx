@@ -12,6 +12,8 @@ import PortalGate from './components/PortalGate';
 import ParentDashboard from './components/ParentDashboard';
 import ErrorBoundary from './components/ErrorBoundary';
 import { isAdminUser } from './services/adminAccess';
+import { gameCenter } from './services/gameCenter';
+import { applyVoltConfig, resetVoltConfig } from './voltCatalog';
 
 // /admin is only for signed-in Clerk users with the admin role; everyone else
 // is sent to the Portal sign-in.
@@ -32,6 +34,27 @@ const AdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const App: React.FC = () => {
+  // Load the admin-editable Volt config once at bootstrap and apply it to the
+  // shared voltCatalog so client-side level/perk math (StudentAvatar VoltTag,
+  // stats report, loadout screen) matches the server. Guarded: any failure
+  // keeps the code-formula defaults.
+  React.useEffect(() => {
+    let cancelled = false;
+    gameCenter
+      .getVoltConfig()
+      .then((cfg) => {
+        if (cancelled) return;
+        if (cfg) applyVoltConfig(cfg);
+        else resetVoltConfig();
+      })
+      .catch(() => {
+        if (!cancelled) resetVoltConfig();
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <ErrorBoundary>
       <HashRouter>
