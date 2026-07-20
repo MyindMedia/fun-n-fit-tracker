@@ -35,13 +35,14 @@ import MarketplaceManager from './Admin/MarketplaceManager';
 import SeasonReset from './Admin/SeasonReset';
 import HouseDraft from './Admin/HouseDraft';
 import VoltLevelsEditor from './Admin/VoltLevelsEditor';
+import EcosystemGuide from './Admin/EcosystemGuide';
 import { Ic } from './icons';
 import { gameCenter } from '../services/gameCenter';
 import { useNfcWedge, useWebNfc, WedgeScan } from './useNfcWedge';
 import { haptic } from '../utils/haptics';
 
 // Sub-pages that swap the tab switcher for a back button + page title
-const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'RANKS', 'VOLT', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF', 'NFC', 'SCANLOG', 'MEDALS', 'TOKENS', 'JACKPOT', 'MARKET', 'RESET', 'HOUSEDRAFT'];
+const SUB_PAGES: string[] = ['INSIGHTS', 'BRANDING', 'RANKS', 'VOLT', 'GUIDE', 'SEASONS', 'TOURNAMENTS', 'BLOG', 'PARENTS', 'CHECKIN', 'MESSAGES', 'PARTNERS', 'TASKS', 'REDEMPTIONS', 'STAFF', 'NFC', 'SCANLOG', 'MEDALS', 'TOKENS', 'JACKPOT', 'MARKET', 'RESET', 'HOUSEDRAFT'];
 
 // Pubzi theme: small notched cut-corner shape for inline elements
 const NOTCH_SM = 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)';
@@ -143,7 +144,7 @@ const QuickActionButton: React.FC<{
 const AdminDashboard: React.FC = () => {
   const [adminName, setAdminName] = useState<string>('');
   const [showLoginModal, setShowLoginModal] = useState(true);
-  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS' | 'STAFF' | 'NFC' | 'SCANLOG' | 'MEDALS' | 'TOKENS' | 'JACKPOT' | 'MARKET' | 'RESET' | 'HOUSEDRAFT' | 'RANKS' | 'VOLT'>('GAMES');
+  const [activeTab, setActiveTab] = useState<'GAMES' | 'ATHLETES' | 'INSIGHTS' | 'BRANDING' | 'SEASONS' | 'TOURNAMENTS' | 'BLOG' | 'PARENTS' | 'CHECKIN' | 'MESSAGES' | 'PARTNERS' | 'TASKS' | 'REDEMPTIONS' | 'STAFF' | 'NFC' | 'SCANLOG' | 'MEDALS' | 'TOKENS' | 'JACKPOT' | 'MARKET' | 'RESET' | 'HOUSEDRAFT' | 'RANKS' | 'VOLT' | 'GUIDE'>('GAMES');
   const [students, setStudents] = useState<Student[]>([]);
   const [gameHistory, setGameHistory] = useState<GameSession[]>([]);
   const [globalActivity, setGlobalActivity] = useState<NotificationEvent[]>([]);
@@ -718,6 +719,17 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
+            onClick={() => openSubPage('GUIDE')}
+            className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
+          >
+            <span className="flex-shrink-0 text-[#CBFE1C]"><Ic.Info size={24} /></span>
+            <div className="text-left">
+              <div className="font-black text-white uppercase tracking-wide text-[15px]">How It Works</div>
+              <div className="text-xs" style={{ color: 'var(--pz-text)' }}>New-coach guide to Points, XP, Ranks &amp; Volt Levels</div>
+            </div>
+          </button>
+
+          <button
             onClick={() => openSubPage('PARENTS')}
             className="pz-card-sm w-full min-h-[64px] flex items-center gap-4 p-4 active:scale-[0.98] transition-transform"
           >
@@ -846,6 +858,7 @@ const AdminDashboard: React.FC = () => {
                 {activeTab === 'BRANDING' && <><Ic.Sparkle size={20} /><span className="text-white">Branding</span></>}
                 {activeTab === 'RANKS' && <><Ic.Medal size={20} /><span className="text-white">Ranks &amp; Levels</span></>}
                 {activeTab === 'VOLT' && <><Ic.Bolt size={20} /><span className="text-white">Volt Levels</span></>}
+                {activeTab === 'GUIDE' && <><Ic.Info size={20} /><span className="text-white">How It Works</span></>}
                 {activeTab === 'SEASONS' && <><Ic.Calendar size={20} /><span className="text-white">Seasons</span></>}
                 {activeTab === 'TOURNAMENTS' && <><Ic.Trophy size={20} /><span className="text-white">Tournaments</span></>}
                 {activeTab === 'BLOG' && <><Ic.Note size={20} /><span className="text-white">Blog & Alerts</span></>}
@@ -977,6 +990,9 @@ const AdminDashboard: React.FC = () => {
           )}
           {activeTab === 'VOLT' && (
             <VoltLevelsEditor />
+          )}
+          {activeTab === 'GUIDE' && (
+            <EcosystemGuide />
           )}
 
           {activeTab === 'SEASONS' && (
