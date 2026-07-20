@@ -330,7 +330,7 @@ const BrandingSettings: React.FC<{ initialTab?: 'logo' | 'sounds' | 'ranks' | 't
       <div className="pz-card-sm flex flex-col sm:flex-row items-center gap-6 p-6" style={{ background: 'var(--pz-panel-2)' }}>
         <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex items-center justify-center p-4 border border-white/10 overflow-hidden flex-shrink-0" style={{ background: 'var(--pz-bg)' }}>
           <img
-            src={settings.app_logo || 'https://odsyoxopcvtgxylmnapk.supabase.co/storage/v1/object/public/Assets/FNFLogo.png'}
+            src={settings.app_logo || '/fnfa-logo.png'}
             className="w-full h-full object-contain"
             alt="Academy Logo"
           />
