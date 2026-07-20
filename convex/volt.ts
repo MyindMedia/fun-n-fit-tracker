@@ -1,6 +1,6 @@
 import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
-import { logActivity } from "./helpers";
+import { logActivity, loadVoltConfig } from "./helpers";
 import {
   VOLT_PERKS,
   VOLT_WILDCARDS,
@@ -32,6 +32,9 @@ const emptyLoadout = (): VoltLoadout => ({
 export const profile = query({
   args: { studentId: v.id("students") },
   handler: async (ctx, { studentId }) => {
+    // Reflect the admin-edited levels + perk unlocks (guarded fallback).
+    await loadVoltConfig(ctx);
+
     const student = await ctx.db.get(studentId);
     if (!student) throw new Error("Student not found");
 
@@ -94,6 +97,9 @@ export const equip = mutation({
     key: v.union(v.string(), v.null()),
   },
   handler: async (ctx, { studentId, slot, key }) => {
+    // Unlock checks below must honor the admin-edited thresholds + unlock levels.
+    await loadVoltConfig(ctx);
+
     const student = await ctx.db.get(studentId);
     if (!student) throw new Error("Student not found");
     const level = voltLevelForXp(student.totalXp ?? 0);

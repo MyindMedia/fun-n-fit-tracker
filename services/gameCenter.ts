@@ -601,6 +601,24 @@ class GameCenterService {
     });
   }
 
+  // ── Volt config (admin-editable levels + perk unlock requirements) ──────────
+
+  /** Raw JSON override string (or null when using code-formula defaults). */
+  public async getVoltConfig(): Promise<string | null> {
+    return (await this.client.query(api.voltConfig.get, {})) as string | null;
+  }
+
+  /** Save the 40 level thresholds + per-perk unlock levels. Server validates. */
+  public async setVoltConfig(
+    levels: number[],
+    perkUnlocks: Record<string, number>
+  ): Promise<{ ok: boolean }> {
+    return (await this.client.mutation(api.voltConfig.set, {
+      levels,
+      perkUnlocks,
+    })) as { ok: boolean };
+  }
+
   // Smart tap: live NFC-mode game decides (splits or points), else check-in.
   public async nfcAutoScan(tagUid: string, adminName: string, studentId?: string): Promise<any> {
     return await this.client.mutation(api.nfc.autoScan, {
