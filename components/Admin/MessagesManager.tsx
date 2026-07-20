@@ -136,10 +136,10 @@ const MessagesManager: React.FC<MessagesManagerProps> = ({ adminName }) => {
   const totalUnread = inbox.reduce((sum, e) => sum + e.conversation.unreadForStaff, 0);
 
   return (
-    <div className="pz-scope flex flex-col md:flex-row gap-3 md:h-[calc(100vh-180px)] md:min-h-[420px]">
+    <div className="pz-scope flex flex-col md:flex-row gap-3 h-full min-h-0">
       {/* Conversation list */}
       <section
-        className={`${selected ? 'hidden md:flex' : 'flex'} flex-col md:w-80 md:flex-shrink-0 pz-card overflow-hidden`}
+        className={`${selected ? 'hidden md:flex' : 'flex'} flex-col flex-grow md:flex-grow-0 md:w-80 md:flex-shrink-0 pz-card overflow-hidden min-h-0`}
       >
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <h2 className="text-lg text-white tracking-tight inline-flex items-center gap-2">
@@ -158,7 +158,7 @@ const MessagesManager: React.FC<MessagesManagerProps> = ({ adminName }) => {
           </button>
         </div>
 
-        <div className="flex-grow overflow-y-auto custom-scrollbar max-h-[45vh] md:max-h-none">
+        <div className="flex-grow overflow-y-auto custom-scrollbar min-h-0">
           {inbox.length === 0 ? (
             <div className="text-center py-12 text-[#ABABAB] px-4">
               <Ic.Mail size={40} className="mx-auto mb-2 opacity-40" />
@@ -213,7 +213,7 @@ const MessagesManager: React.FC<MessagesManagerProps> = ({ adminName }) => {
 
       {/* Thread */}
       <section
-        className={`${selected ? 'flex' : 'hidden md:flex'} flex-col flex-grow pz-card overflow-hidden md:min-h-0 min-h-[60vh]`}
+        className={`${selected ? 'flex' : 'hidden md:flex'} flex-col flex-grow pz-card overflow-hidden min-h-0`}
       >
         {!selected ? (
           <div className="flex-grow flex flex-col items-center justify-center text-[#ABABAB] p-6">

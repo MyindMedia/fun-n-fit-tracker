@@ -924,7 +924,10 @@ const AdminDashboard: React.FC = () => {
 
       {/* Main Content Area - Mobile optimized with proper bottom padding */}
       <main className="flex-grow min-h-0 overflow-y-auto custom-scrollbar" style={{ paddingBottom: '1rem' }}>
-        <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+        {/* The Messages tab is a fixed-height app (list scrolls, composer pinned
+            above the nav) so its wrapper fills the main area instead of flowing;
+            every other tab keeps the normal padded, stacked layout. */}
+        <div className={activeTab === 'MESSAGES' ? 'h-full min-h-0 p-3 sm:p-4' : 'p-3 sm:p-4 space-y-3 sm:space-y-4'}>
           {activeTab === 'GAMES' && (
             <DrillLauncher adminName={adminName} students={students} />
           )}
