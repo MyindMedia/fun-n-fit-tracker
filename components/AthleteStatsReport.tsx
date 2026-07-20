@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Student, Badge, Rank } from '../types';
 import { gameCenter } from '../services/gameCenter';
 import { supabaseService } from '../services/supabaseService';
@@ -71,11 +72,14 @@ const AthleteStatsReport: React.FC<Props> = ({ student }) => {
 
   return (
     <div className="space-y-8 pz-scope">
-      {/* Full-screen loadout editor, shared with the player portal */}
-      {showLoadout && (
-        <div className="fixed inset-0 z-[250] animate-fade-in" style={{ background: 'var(--pz-bg)' }}>
+      {/* Full-screen loadout editor, shared with the player portal. Portaled to
+          <body> so it escapes the profile modal's backdrop-blur containing block
+          and overflow-hidden clip (otherwise it renders cut off inside the card). */}
+      {showLoadout && createPortal(
+        <div className="fixed inset-0 z-[500] animate-fade-in" style={{ background: 'var(--pz-bg)' }}>
           <VoltLoadout student={student} onClose={() => setShowLoadout(false)} />
-        </div>
+        </div>,
+        document.body
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
