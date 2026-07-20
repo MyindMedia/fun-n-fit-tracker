@@ -6,6 +6,8 @@ import { HOUSES } from '../../constants';
 import { AudioService } from '../../utils/audio';
 import { AdminNotifications } from '../../utils/notifications';
 import { getStudentDisplayName } from '../../utils/studentDisplay';
+import { useStopwatch, StopwatchBar, fmtStopwatch } from './stopwatch';
+import RelayRaceScorer from './RelayRaceScorer';
 
 interface OneHandScorerProps {
   session: GameSession;
@@ -19,9 +21,10 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
   const game = gameLibrary.find(g => g.gameKey === session.gameKey);
   const roster = students.filter(s => session.roster.includes(s.id));
   const [lastEvents, setLastEvents] = useState<any[]>([]);
-  const [sessionStopwatch, setSessionStopwatch] = useState(0);
-  const [isClockRunning, setIsClockRunning] = useState(false);
-  const timerRef = useRef<number | null>(null);
+  // High-resolution stopwatch (milliseconds) shared by every timing template.
+  const sw = useStopwatch();
+  // Per-player lap splits (elapsed ms captured at each Lap press), newest last.
+  const [laps, setLaps] = useState<Record<string, number[]>>({});
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
   const [outs, setOuts] = useState<Record<string, boolean>>(() => (session.results?.outs || {}));
 
@@ -40,16 +43,14 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
     return () => unsub();
   }, [session.id]);
 
-  useEffect(() => {
-    if (isClockRunning) {
-      timerRef.current = window.setInterval(() => {
-        setSessionStopwatch(prev => prev + 1);
-      }, 1000);
-    } else if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [isClockRunning]);
+  // Record a lap for one player: capture the live elapsed ms, keep it in local
+  // state (shown next to the player) and persist through the existing lap path.
+  const recordLap = (studentId: string) => {
+    const ms = sw.lap();
+    setLaps(prev => ({ ...prev, [studentId]: [...(prev[studentId] ?? []), ms] }));
+    supabaseService.recordLapTime(session.id, studentId, ms, game?.displayName || session.title, adminName);
+    AudioService.playWarningBeep();
+  };
 
   const handleScore = async (studentId: string | undefined, houseId: any, amount: number, desc: string) => {
     if (amount === 0) return;
@@ -124,92 +125,115 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
     const template = game?.templateId || 'TEMPLATE_REP_COUNTER';
 
     switch (template) {
+      case 'TEMPLATE_RELAY':
+        return (
+          <RelayRaceScorer
+            session={session}
+            students={students}
+            adminName={adminName}
+            game={game}
+            sw={sw}
+          />
+        );
+
       case 'TEMPLATE_TIME_TRIAL':
         return (
           <div className="space-y-3">
-            {/* Compact Clock Header */}
-            <div className="rounded-xl p-3 text-center text-white flex items-center justify-between border border-white/10" style={{ background: 'var(--pz-panel-2)' }}>
-              <div className="text-[9px] font-black uppercase tracking-widest text-[#CBFE1C]">Clock</div>
-              <div className="text-2xl font-mono font-black text-[#CBFE1C]">{sessionStopwatch}s</div>
-              <button
-                onClick={() => setIsClockRunning(!isClockRunning)}
-                className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-wider active:scale-95 ${isClockRunning ? 'bg-red-500 text-white' : 'bg-[#CBFE1C] text-[#0B0E13]'}`}
-              >
-                {isClockRunning ? 'Pause' : 'Start'}
-              </button>
-            </div>
+            {/* Millisecond stopwatch: Start / Stop / Reset (Reset also clears laps) */}
+            <StopwatchBar sw={sw} label="Clock" onReset={() => setLaps({})} />
             {/* Player Rows */}
             <div className="space-y-0.5">
               {roster.map(s => {
                 const isOut = outs[s.id];
                 const firstName = s.fullName?.split(' ')[0] || s.gamerTag || 'Player';
+                const myLaps = laps[s.id] ?? [];
                 return (
                   <div
                     key={s.id}
-                    className={`flex items-center gap-1.5 py-1 px-1.5 rounded-lg ${isOut ? 'bg-red-500/10 opacity-40' : 'bg-white/5'}`}
+                    className={`rounded-lg ${isOut ? 'bg-red-500/10 opacity-40' : 'bg-white/5'}`}
                   >
-                    {/* Avatar + Name */}
-                    <img src={s.avatarUrl} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
-                    <div className="w-14 min-w-0">
-                      <div className="font-bold text-[10px] text-white truncate leading-tight">{firstName}</div>
-                      <div className="text-[8px] font-semibold leading-tight" style={{ color: HOUSES[s.houseId].colorHex }}>{s.points}</div>
+                    <div className="flex items-center gap-1.5 py-1 px-1.5">
+                      {/* Avatar + Name */}
+                      <img src={s.avatarUrl} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                      <div className="w-14 min-w-0">
+                        <div className="font-bold text-[10px] text-white truncate leading-tight">{firstName}</div>
+                        <div className="text-[8px] font-semibold leading-tight" style={{ color: HOUSES[s.houseId].colorHex }}>{s.points}</div>
+                      </div>
+
+                      {/* Point Buttons - 1, 3, 5, 10, custom + LAP */}
+                      {!isOut ? (
+                        <div className="flex items-center gap-0.5 flex-1">
+                          {[1, 3, 5, 10].map(val => (
+                            <button
+                              key={val}
+                              onClick={() => handleScore(s.id, undefined, val, `${game?.displayName || 'Time Trial'} Points`)}
+                              className="flex-1 h-7 bg-white/10 border border-white/10 text-white rounded font-bold text-[9px] active:scale-95"
+                            >
+                              +{val}
+                            </button>
+                          ))}
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={customValues[s.id] ?? ''}
+                            onChange={(e) => setCustomValues(v => ({ ...v, [s.id]: e.target.value.replace(/[^0-9]/g, '') }))}
+                            onKeyDown={(e) => {
+                              const num = parseInt(customValues[s.id] || '0', 10);
+                              if (e.key === 'Enter' && num > 0) {
+                                handleScore(s.id, undefined, num, `Custom`);
+                                setCustomValues(v => ({ ...v, [s.id]: '' }));
+                              }
+                            }}
+                            className="w-7 h-7 border border-white/10 rounded text-center font-bold text-[10px] bg-[#171C27] text-white placeholder-white/30"
+                            placeholder="#"
+                          />
+                          <button
+                            onClick={() => {
+                              const v = parseInt(customValues[s.id] || '0', 10);
+                              if (v > 0) {
+                                handleScore(s.id, undefined, v, `Custom`);
+                                setCustomValues(cv => ({ ...cv, [s.id]: '' }));
+                              }
+                            }}
+                            className="w-6 h-7 bg-[#CBFE1C] text-[#0B0E13] rounded font-black text-[10px] active:scale-95"
+                          >
+                            +
+                          </button>
+                          <button
+                            onClick={() => recordLap(s.id)}
+                            className="px-2 h-7 bg-brand-blue text-white rounded font-black text-[8px] uppercase active:scale-95"
+                          >
+                            LAP
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex-1" />
+                      )}
+                      <button
+                        onClick={() => supabaseService.togglePlayerStatus(session.id, s.id, !isOut, adminName)}
+                        className={`w-8 h-7 rounded font-bold text-[8px] active:scale-95 ${isOut ? 'bg-emerald-500 text-white' : 'bg-red-500/15 text-red-400'}`}
+                      >
+                        {isOut ? 'IN' : 'OUT'}
+                      </button>
                     </div>
 
-                    {/* Point Buttons - 1, 3, 5, 10, custom + LAP */}
-                    {!isOut ? (
-                      <div className="flex items-center gap-0.5 flex-1">
-                        {[1, 3, 5, 10].map(val => (
-                          <button
-                            key={val}
-                            onClick={() => handleScore(s.id, undefined, val, `${game?.displayName || 'Time Trial'} Points`)}
-                            className="flex-1 h-7 bg-white/10 border border-white/10 text-white rounded font-bold text-[9px] active:scale-95"
+                    {/* Recorded laps for this player (most recent 3) */}
+                    {myLaps.length > 0 && (
+                      <div className="flex items-center gap-1 px-1.5 pb-1 flex-wrap">
+                        <span className="text-[8px] font-black uppercase tracking-widest text-white/40">Laps</span>
+                        {myLaps.slice(-3).map((ms, i) => (
+                          <span
+                            key={i}
+                            className="text-[9px] font-mono font-bold text-[#CBFE1C] bg-[#CBFE1C]/10 border border-[#CBFE1C]/30 rounded px-1.5 py-0.5"
                           >
-                            +{val}
-                          </button>
+                            {fmtStopwatch(ms)}
+                          </span>
                         ))}
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={customValues[s.id] ?? ''}
-                          onChange={(e) => setCustomValues(v => ({ ...v, [s.id]: e.target.value.replace(/[^0-9]/g, '') }))}
-                          onKeyDown={(e) => {
-                            const num = parseInt(customValues[s.id] || '0', 10);
-                            if (e.key === 'Enter' && num > 0) {
-                              handleScore(s.id, undefined, num, `Custom`);
-                              setCustomValues(v => ({ ...v, [s.id]: '' }));
-                            }
-                          }}
-                          className="w-7 h-7 border border-white/10 rounded text-center font-bold text-[10px] bg-[#171C27] text-white placeholder-white/30"
-                          placeholder="#"
-                        />
-                        <button
-                          onClick={() => {
-                            const v = parseInt(customValues[s.id] || '0', 10);
-                            if (v > 0) {
-                              handleScore(s.id, undefined, v, `Custom`);
-                              setCustomValues(cv => ({ ...cv, [s.id]: '' }));
-                            }
-                          }}
-                          className="w-6 h-7 bg-[#CBFE1C] text-[#0B0E13] rounded font-black text-[10px] active:scale-95"
-                        >
-                          +
-                        </button>
-                        <button
-                          onClick={() => { supabaseService.recordLapTime(session.id, s.id, sessionStopwatch, game?.displayName || session.title, adminName); }}
-                          className="px-2 h-7 bg-brand-blue text-white rounded font-black text-[8px] uppercase active:scale-95"
-                        >
-                          LAP
-                        </button>
+                        {myLaps.length > 3 && (
+                          <span className="text-[8px] font-bold text-white/40">+{myLaps.length - 3} more</span>
+                        )}
                       </div>
-                    ) : (
-                      <div className="flex-1" />
                     )}
-                    <button
-                      onClick={() => supabaseService.togglePlayerStatus(session.id, s.id, !isOut, adminName)}
-                      className={`w-8 h-7 rounded font-bold text-[8px] active:scale-95 ${isOut ? 'bg-emerald-500 text-white' : 'bg-red-500/15 text-red-400'}`}
-                    >
-                      {isOut ? 'IN' : 'OUT'}
-                    </button>
                   </div>
                 );
               })}

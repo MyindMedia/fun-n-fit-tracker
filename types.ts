@@ -11,7 +11,8 @@ export type ScoringTemplateId =
   | 'TEMPLATE_H2H_ROUNDS'
   | 'TEMPLATE_REP_COUNTER'
   | 'TEMPLATE_ACCURACY'
-  | 'TEMPLATE_QUIZ';
+  | 'TEMPLATE_QUIZ'
+  | 'TEMPLATE_RELAY';
 
 export interface Badge {
   id: string;
@@ -79,6 +80,21 @@ export interface StudentNote {
   createdAt: string;
 }
 
+// Relay Race launch configuration (chosen by the coach in the launcher). Stored
+// on the session so the scorer knows the mode after launch / on refresh.
+export interface RelayTeam {
+  name: string;
+  memberIds: string[]; // student ids
+}
+
+export interface RelayConfig {
+  mode: 'INDIVIDUAL' | 'TEAM';
+  scoring: 'TIME_TRIAL' | 'PLACEMENTS';
+  headToHead: boolean;
+  attempts: number; // individual: attempts per player, best time counts
+  teams?: RelayTeam[]; // team mode only
+}
+
 export interface GameSession {
   id: string;
   gameKey: string;
@@ -92,6 +108,8 @@ export interface GameSession {
   pausedAt?: number | null;
   pausedMs?: number;
   results?: GameResult;
+  // Relay Race config (only set for TEMPLATE_RELAY sessions)
+  relay?: RelayConfig;
 }
 
 export interface House {
