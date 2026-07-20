@@ -26,6 +26,7 @@ import PendingCelebrations from './PendingCelebrations';
 import TrophyCase from './TrophyCase';
 import LevelPath from './LevelPath';
 import AvatarRig from './avatar/AvatarRig';
+import AvatarStudio from './avatar/AvatarStudio';
 import { VoltTag } from './StudentAvatar';
 import { pushClient, PushStatus } from '../services/pushClient';
 import { PZ, PzPortalCss, pStyles } from './Parent/shared';
@@ -417,6 +418,9 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const [currentAvatarUrl, setCurrentAvatarUrl] = useState(student.avatarUrl);
     const [avatarMode, setAvatarMode] = useState<'PHOTO' | 'AVATAR'>(student.avatarMode ?? 'PHOTO');
+    // Direct access to the full Avatar Studio (character-select customization) for
+    // this athlete, same studio the kid uses in their own portal.
+    const [showStudio, setShowStudio] = useState(false);
 
     const handleModeSwitch = async (mode: 'PHOTO' | 'AVATAR') => {
         setAvatarMode(mode);
@@ -510,6 +514,19 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
             setIsSavingProfile(false);
         }
     };
+
+    // Full-screen Avatar Studio takes over when opened (same pattern as the kid
+    // portal). Saves persist server-side; going Back refreshes the roster.
+    if (showStudio) {
+        return (
+            <div className="pz-scope fixed inset-0 z-[250] animate-fade-in" style={{ background: 'var(--pz-bg)' }}>
+                <AvatarStudio
+                    student={student}
+                    onClose={() => setShowStudio(false)}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="pz-scope" style={{ ...styles.page, maxWidth: '1280px' }}>
@@ -698,7 +715,7 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                             {house.name} House
                                         </div>
                                     </div>
-                                    <div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                                         <button
                                             onClick={() => setIsEditingProfile(true)}
                                             className="pz-btn-ghost"
@@ -709,6 +726,17 @@ const StudentDetailView: React.FC<{ student: Student; onBack: () => void }> = ({
                                             }}
                                         >
                                             <Ic.Edit size={16} /> Edit Profile
+                                        </button>
+                                        <button
+                                            onClick={() => setShowStudio(true)}
+                                            className="pz-btn"
+                                            style={{
+                                                ...pStyles.btnPrimary,
+                                                padding: '0.6rem 1rem', minHeight: '44px',
+                                                display: 'inline-flex', alignItems: 'center', gap: '0.5rem'
+                                            }}
+                                        >
+                                            <Ic.Sparkle size={16} /> Avatar Studio
                                         </button>
                                     </div>
                                     {student.bio && <p style={{ margin: '0.5rem 0 0', color: PZ.muted, fontSize: '0.9375rem' }}>{student.bio}</p>}

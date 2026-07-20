@@ -26,6 +26,9 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
   // Per-player lap splits (elapsed ms captured at each Lap press), newest last.
   const [laps, setLaps] = useState<Record<string, number[]>>({});
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
+  // Custom amount for the "award everyone still in" one-tap action (e.g. per round
+  // in Zone Master).
+  const [bulkCustom, setBulkCustom] = useState('');
   const [outs, setOuts] = useState<Record<string, boolean>>(() => (session.results?.outs || {}));
 
   useEffect(() => {
@@ -408,7 +411,7 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
         </div>
       )}
       {stillInIds.length > 0 && (
-        <div className="shrink-0 bg-white/5 border border-white/10 rounded-lg p-2">
+        <div className="shrink-0 bg-white/5 border border-white/10 rounded-lg p-2 space-y-2">
           <div className="flex items-center justify-between gap-2">
             <div className="text-[9px] font-black uppercase tracking-widest text-[#CBFE1C] whitespace-nowrap">
               All still in · {stillInIds.length}
@@ -425,6 +428,28 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                 </button>
               ))}
             </div>
+          </div>
+          {/* Custom amount to EVERY still-in player in one tap (e.g. Zone Master rounds). */}
+          <div className="flex items-center gap-1.5">
+            <input
+              type="text"
+              inputMode="numeric"
+              value={bulkCustom}
+              onChange={(e) => setBulkCustom(e.target.value.replace(/[^0-9]/g, ''))}
+              onKeyDown={(e) => {
+                const v = parseInt(bulkCustom || '0', 10);
+                if (e.key === 'Enter' && v > 0 && session.pausedAt == null) { bulkAwardStillIn(v); setBulkCustom(''); }
+              }}
+              placeholder="Custom amount to all still in"
+              className="flex-1 h-9 px-3 bg-[#171C27] border border-white/10 rounded-lg text-white font-bold text-xs placeholder-white/30 focus:border-[#CBFE1C] outline-none"
+            />
+            <button
+              onClick={() => { const v = parseInt(bulkCustom || '0', 10); if (v > 0) { bulkAwardStillIn(v); setBulkCustom(''); } }}
+              disabled={session.pausedAt != null || !parseInt(bulkCustom || '0', 10)}
+              className="h-9 px-4 bg-[#CBFE1C] text-[#0B0E13] font-black rounded-lg text-xs active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              Award All
+            </button>
           </div>
         </div>
       )}
