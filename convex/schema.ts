@@ -594,7 +594,8 @@ export default defineSchema({
   specialTasks: defineTable({
     title: v.string(),
     description: v.string(),
-    points: v.number(),
+    points: v.number(), // spendable points reward (0 = XP-only task)
+    xp: v.optional(v.number()), // lifetime XP reward (0/undefined = points-only)
     isActive: v.boolean(),
     requiresProof: v.boolean(),
     createdAt: v.number(),

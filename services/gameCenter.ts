@@ -376,6 +376,7 @@ class GameCenterService {
     title: string;
     description: string;
     points: number;
+    xp?: number;
     requiresProof?: boolean;
   }): Promise<SpecialTask> {
     const row = await this.client.mutation(api.specialTasks.create, args);
@@ -384,7 +385,7 @@ class GameCenterService {
 
   public async updateTask(
     id: string,
-    patch: Partial<Pick<SpecialTask, "title" | "description" | "points" | "isActive" | "requiresProof">>
+    patch: Partial<Pick<SpecialTask, "title" | "description" | "points" | "xp" | "isActive" | "requiresProof">>
   ): Promise<void> {
     await this.client.mutation(api.specialTasks.update, {
       id: id as Id<"specialTasks">,

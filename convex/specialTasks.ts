@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { applyPoints, logActivity, reevaluateRank, requireParent, requireParentLink } from "./helpers";
 
@@ -25,7 +25,8 @@ export const create = mutation({
   args: {
     title: v.string(),
     description: v.string(),
-    points: v.number(),
+    points: v.number(), // 0 for an XP-only task
+    xp: v.optional(v.number()), // 0/omitted for a points-only task
     requiresProof: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -33,6 +34,7 @@ export const create = mutation({
       title: args.title,
       description: args.description,
       points: args.points,
+      xp: args.xp ?? 0,
       isActive: true,
       requiresProof: args.requiresProof ?? false,
       createdAt: Date.now(),
@@ -47,6 +49,7 @@ export const update = mutation({
     title: v.optional(v.string()),
     description: v.optional(v.string()),
     points: v.optional(v.number()),
+    xp: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
     requiresProof: v.optional(v.boolean()),
   },
@@ -126,6 +129,7 @@ export const submissionsForParent = query({
         submission: sub,
         taskTitle: task?.title ?? "(removed)",
         points: task?.points ?? 0,
+        xp: task?.xp ?? 0,
         studentName: student?.fullName ?? "(removed)",
       });
     }
@@ -151,6 +155,7 @@ export const pending = query({
         submission: sub,
         taskTitle: task?.title ?? "(removed)",
         points: task?.points ?? 0,
+        xp: task?.xp ?? 0,
         studentName: student?.fullName ?? "(removed)",
         parentName: parent?.fullName ?? "(removed)",
       });
@@ -179,29 +184,66 @@ export const review = mutation({
 
     if (approve && task) {
       const student = await ctx.db.get(sub.studentId);
-      await applyPoints(
-        ctx,
-        sub.studentId,
-        task.points,
-        "SPECIAL_TASK",
-        `Task complete: ${task.title}`,
-        adminName
-      );
+      const pts = task.points ?? 0;
+      const xp = task.xp ?? 0;
+      const desc = `Task complete: ${task.title}`;
+
+      // Points reward (skipXp: true so it does NOT auto-mirror XP — XP is granted
+      // separately below, exactly the amount the coach configured).
+      if (pts > 0) {
+        await applyPoints(ctx, sub.studentId, pts, "SPECIAL_TASK", desc, adminName, undefined, undefined, true);
+      }
+
+      // XP reward (flat, the configured amount) — ledger it, lift lifetime XP,
+      // then re-evaluate rank against the new total.
+      if (xp > 0) {
+        await ctx.db.insert("xpTransactions", {
+          studentId: sub.studentId,
+          amount: xp,
+          sourceType: "SPECIAL_TASK",
+          description: desc,
+          createdAt: Date.now(),
+        });
+        const s2 = await ctx.db.get(sub.studentId);
+        if (s2) await ctx.db.patch(sub.studentId, { totalXp: (s2.totalXp ?? 0) + xp });
+      }
+
       if (student) {
+        const parts: string[] = [];
+        if (pts > 0) parts.push(`+${pts} pts`);
+        if (xp > 0) parts.push(`+${xp} XP`);
         await logActivity(ctx, {
           type: "SPECIAL_TASK",
-          message: `${student.fullName} completed "${task.title}" (+${task.points} pts) ⭐`,
+          message: `${student.fullName} completed "${task.title}" (${parts.join(" · ") || "no reward"}) ⭐`,
           adminName,
           studentId: sub.studentId,
           studentName: student.fullName,
-          amount: task.points,
+          amount: pts,
         });
       }
-      // This approval may have completed a rank's task requirement — promote if
-      // so. (applyPoints above already re-evaluates; this also covers zero-point
-      // tasks.) Guarded no-op when nothing changed.
+      // This approval may have completed a rank's task requirement, and/or the XP
+      // above may have crossed a threshold — promote if so. Guarded no-op when
+      // nothing changed.
       await reevaluateRank(ctx, sub.studentId);
     }
     return await ctx.db.get(submissionId);
+  },
+});
+
+// One-off: tasks created before the points/XP split gave points AND a coupled
+// XP mirror. Backfill xp = points on those so they keep rewarding both under the
+// new decoupled model (instead of silently dropping to points-only).
+export const backfillXpFromPoints = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const tasks = await ctx.db.query("specialTasks").collect();
+    let patched = 0;
+    for (const t of tasks) {
+      if (t.xp === undefined) {
+        await ctx.db.patch(t._id, { xp: t.points });
+        patched++;
+      }
+    }
+    return { patched };
   },
 });

@@ -19,8 +19,16 @@ interface EarnAroundTownProps {
 
 type VisitPreview = { secret: string; name: string; description?: string; pointsReward: number };
 type VisitOutcome = { businessName: string; results: Array<CheckInResult & { points?: number }> };
-type SubmissionRow = { submission: TaskSubmission; taskTitle: string; points: number; studentName: string };
+type SubmissionRow = { submission: TaskSubmission; taskTitle: string; points: number; xp?: number; studentName: string };
 type VisitRow = { visit: any; studentName: string; businessName: string };
+
+// Reward summary for a task/submission: points, XP, or both.
+const rewardText = (points: number, xp: number): string => {
+    const parts: string[] = [];
+    if (points > 0) parts.push(`+${points} pts`);
+    if (xp > 0) parts.push(`+${xp} XP`);
+    return parts.join(' · ') || 'No reward';
+};
 
 const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
     students,
@@ -326,7 +334,7 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                                             </span>
                                         )}
                                     </div>
-                                    <span style={pStyles.pointsPill}>+{task.points} pts</span>
+                                    <span style={pStyles.pointsPill}>{rewardText(task.points, task.xp ?? 0)}</span>
                                 </div>
 
                                 {openTaskId === task.id ? (
@@ -385,7 +393,7 @@ const EarnAroundTown: React.FC<EarnAroundTownProps> = ({
                                         {row.taskTitle} <span style={{ color: PZ.faint, fontWeight: 600 }}>· {row.studentName}</span>
                                     </div>
                                     <div style={{ color: PZ.muted, fontSize: '0.75rem', fontWeight: 600 }}>
-                                        {fmtDateTime(row.submission.createdAt)} · <span style={{ color: PZ.volt }}>+{row.points} pts</span>
+                                        {fmtDateTime(row.submission.createdAt)} · <span style={{ color: PZ.volt }}>{rewardText(row.points, row.xp ?? 0)}</span>
                                     </div>
                                 </div>
                                 <StatusChip status={row.submission.status} />

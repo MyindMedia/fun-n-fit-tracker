@@ -433,6 +433,7 @@ export interface SpecialTask {
   title: string;
   description: string;
   points: number;
+  xp?: number;
   isActive: boolean;
   requiresProof: boolean;
 }

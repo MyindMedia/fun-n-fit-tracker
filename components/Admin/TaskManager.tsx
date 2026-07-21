@@ -7,23 +7,38 @@ interface PendingRow {
   submission: TaskSubmission;
   taskTitle: string;
   points: number;
+  xp: number;
   studentName: string;
   parentName: string;
 }
+
+type RewardKind = 'POINTS' | 'XP' | 'BOTH';
 
 interface TaskForm {
   id?: string;
   title: string;
   description: string;
+  rewardKind: RewardKind;
   points: number;
+  xp: number;
   requiresProof: boolean;
 }
 
 const EMPTY_FORM: TaskForm = {
   title: '',
   description: '',
+  rewardKind: 'POINTS',
   points: 25,
+  xp: 25,
   requiresProof: false,
+};
+
+// Compact reward label for the task list + pending queue (e.g. "+20 pts · +15 XP").
+const rewardLabel = (points: number, xp: number): string => {
+  const parts: string[] = [];
+  if (points > 0) parts.push(`+${points} pts`);
+  if (xp > 0) parts.push(`+${xp} XP`);
+  return parts.join(' · ') || 'No reward';
 };
 
 interface TaskManagerProps {
@@ -87,7 +102,12 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
       alert('Please fill in a title and description');
       return;
     }
-    const points = Math.max(1, Math.round(Number(form.points) || 25));
+    // Reward kind decides which amounts actually apply. POINTS/XP zero out the
+    // other; BOTH keeps both. Amounts are clamped to >= 1 for whatever's active.
+    const wantPoints = form.rewardKind === 'POINTS' || form.rewardKind === 'BOTH';
+    const wantXp = form.rewardKind === 'XP' || form.rewardKind === 'BOTH';
+    const points = wantPoints ? Math.max(1, Math.round(Number(form.points) || 0)) : 0;
+    const xp = wantXp ? Math.max(1, Math.round(Number(form.xp) || 0)) : 0;
     setSaving(true);
     try {
       if (form.id) {
@@ -95,6 +115,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
           title: form.title.trim(),
           description: form.description.trim(),
           points,
+          xp,
           requiresProof: form.requiresProof,
         });
       } else {
@@ -102,6 +123,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
           title: form.title.trim(),
           description: form.description.trim(),
           points,
+          xp,
           requiresProof: form.requiresProof,
         });
       }
@@ -163,14 +185,14 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
           </div>
         ) : (
           <div className="space-y-2">
-            {pending.map(({ submission, taskTitle, points, studentName, parentName }) => (
+            {pending.map(({ submission, taskTitle, points, xp, studentName, parentName }) => (
               <div key={submission.id} className="pz-card-sm p-4" style={{ background: 'var(--pz-panel-2)', borderColor: 'rgba(245, 158, 11, 0.35)' }}>
                 <div className="flex items-start gap-3 flex-wrap sm:flex-nowrap">
                   <div className="flex-grow min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-black text-sm text-white">{studentName}</span>
                       <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[9px] font-black uppercase">
-                        +{points} pts
+                        {rewardLabel(points, xp)}
                       </span>
                     </div>
                     <div className="text-xs font-bold text-white/90 flex items-center gap-1.5"><Ic.Star size={12} className="text-[#CBFE1C]" /> {taskTitle}</div>
@@ -258,7 +280,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-black text-sm text-white">{t.title}</span>
                       <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[9px] font-black uppercase">
-                        +{t.points} pts
+                        {rewardLabel(t.points, t.xp ?? 0)}
                       </span>
                       {t.requiresProof && (
                         <span className="px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 text-[9px] font-black uppercase inline-flex items-center gap-1">
@@ -280,15 +302,19 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
                 </div>
                 <div className="flex gap-2 mt-3">
                   <button
-                    onClick={() =>
+                    onClick={() => {
+                      const xp = t.xp ?? 0;
+                      const kind: RewardKind = t.points > 0 && xp > 0 ? 'BOTH' : xp > 0 ? 'XP' : 'POINTS';
                       setForm({
                         id: t.id,
                         title: t.title,
                         description: t.description,
-                        points: t.points,
+                        rewardKind: kind,
+                        points: t.points > 0 ? t.points : 25,
+                        xp: xp > 0 ? xp : 25,
                         requiresProof: t.requiresProof,
-                      })
-                    }
+                      });
+                    }}
                     className="touch-btn focus-ring pz-btn-ghost px-3 py-2 text-[10px] inline-flex items-center gap-1.5"
                   >
                     <Ic.Edit size={14} /> Edit
@@ -362,17 +388,58 @@ const TaskManager: React.FC<TaskManagerProps> = ({ adminName }) => {
                 />
               </div>
 
+              {/* Reward: points, XP, or both */}
               <div>
                 <label className="text-[10px] font-black text-[#ABABAB] uppercase tracking-widest mb-2 block">
-                  Points
+                  Reward
                 </label>
-                <input
-                  type="number"
-                  min={1}
-                  value={form.points}
-                  onChange={(e) => updateField('points', Number(e.target.value))}
-                  className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white outline-none focus:border-[#CBFE1C]"
-                />
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  {(['POINTS', 'XP', 'BOTH'] as RewardKind[]).map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => updateField('rewardKind', k)}
+                      className={`touch-btn min-h-[44px] py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all ${
+                        form.rewardKind === k
+                          ? 'bg-[#CBFE1C] text-[#0B0E13] border-[#CBFE1C]'
+                          : 'bg-white/5 text-white/60 border-white/10'
+                      }`}
+                    >
+                      {k === 'POINTS' ? 'Points' : k === 'XP' ? 'XP' : 'Both'}
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {(form.rewardKind === 'POINTS' || form.rewardKind === 'BOTH') && (
+                    <div className={form.rewardKind === 'BOTH' ? '' : 'col-span-2'}>
+                      <label className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1 block">Points</label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={form.points}
+                        onChange={(e) => updateField('points', Number(e.target.value))}
+                        className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white outline-none focus:border-[#CBFE1C]"
+                      />
+                    </div>
+                  )}
+                  {(form.rewardKind === 'XP' || form.rewardKind === 'BOTH') && (
+                    <div className={form.rewardKind === 'BOTH' ? '' : 'col-span-2'}>
+                      <label className="text-[9px] font-black text-[#CBFE1C] uppercase tracking-widest mb-1 block">XP</label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={form.xp}
+                        onChange={(e) => updateField('xp', Number(e.target.value))}
+                        className="w-full min-h-[48px] px-4 py-3 rounded-xl border border-white/10 bg-[#171C27] text-sm font-bold text-white outline-none focus:border-[#CBFE1C]"
+                      />
+                    </div>
+                  )}
+                </div>
+                <p className="text-[10px] text-[#ABABAB] mt-2">
+                  {form.rewardKind === 'POINTS' && 'Spendable points only — no XP.'}
+                  {form.rewardKind === 'XP' && 'Lifetime XP only (climbs rank & Volt) — no spendable points.'}
+                  {form.rewardKind === 'BOTH' && 'Awards both, in the exact amounts set above.'}
+                </p>
               </div>
 
               <div className="pz-card-sm flex items-center justify-between p-4" style={{ background: 'var(--pz-panel-2)' }}>

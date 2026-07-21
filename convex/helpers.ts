@@ -246,7 +246,11 @@ export async function applyPoints(
   description: string,
   adminName: string,
   clientId?: string,
-  gameSessionId?: Id<"gameSessions">
+  gameSessionId?: Id<"gameSessions">,
+  // When true, award the points WITHOUT the automatic XP mirror. Used where XP
+  // is granted separately/explicitly (e.g. special tasks that reward points and
+  // XP independently), so the two rewards don't double up.
+  skipXp?: boolean
 ): Promise<AwardResult> {
   const student = await ctx.db.get(studentId);
   if (!student) throw new Error("Student not found");
@@ -352,7 +356,7 @@ export async function applyPoints(
   // block below; here we only need the projected new total for rank math.
   let xpFactor = 1;
   let xpGain = 0;
-  if (amount > 0 && XP_SOURCES.includes(sourceType)) {
+  if (amount > 0 && XP_SOURCES.includes(sourceType) && !skipXp) {
     xpFactor = 1 + volt.xpPct / 100;
     for (const activation of liveActivations) {
       xpFactor += gearItem(activation.gearKey)?.xpBoost ?? 0;
