@@ -880,22 +880,25 @@ const AdminDashboard: React.FC = () => {
               </h1>
             </div>
           ) : (
-            <div className="flex bg-white/5 border border-white/10 p-0.5 sm:p-1 flex-grow max-w-[200px] sm:max-w-[250px]" style={{ clipPath: NOTCH_SM }}>
-              {(['GAMES', 'ATHLETES'] as const).map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`flex-1 touch-btn relative px-2 sm:px-4 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all focus-ring inline-flex items-center justify-center gap-1 ${activeTab === tab
-                    ? 'text-white bg-white/5'
-                    : 'text-white/50'
-                    }`}
-                >
-                  {tab === 'GAMES' ? <Ic.Controller size={16} /> : <Ic.Users size={16} />}
-                  <span className="hidden sm:inline">{tab}</span>
-                  <span className="sm:hidden">{tab.slice(0, 4)}</span>
-                  {activeTab === tab && <span className="absolute left-2 right-2 bottom-0 h-0.5" style={{ background: 'var(--pz-volt)' }} />}
-                </button>
-              ))}
+            <div className="flex bg-white/5 border border-white/15 p-1 gap-1 flex-grow max-w-[260px] sm:max-w-[340px]" style={{ clipPath: NOTCH_SM }}>
+              {(['GAMES', 'ATHLETES'] as const).map(tab => {
+                const isActive = activeTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    aria-pressed={isActive}
+                    className={`flex-1 touch-btn relative px-3 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-sm font-black uppercase tracking-wider transition-all focus-ring inline-flex items-center justify-center gap-1.5 ${isActive
+                      ? 'text-[#0B0E13]'
+                      : 'text-white/60 hover:text-white active:bg-white/10'
+                      }`}
+                    style={isActive ? { background: 'var(--pz-volt)', clipPath: NOTCH_SM, boxShadow: '0 0 14px rgba(203,254,28,0.45)' } : undefined}
+                  >
+                    {tab === 'GAMES' ? <Ic.Controller size={18} /> : <Ic.Users size={18} />}
+                    <span>{tab === 'GAMES' ? 'Games' : 'Athletes'}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
 

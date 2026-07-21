@@ -22,6 +22,7 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
   const [filterHouse, setFilterHouse] = useState<string>('all');
   const [reasonChip, setReasonChip] = useState<string | null>(null);
   const [reasonText, setReasonText] = useState('');
+  const [actionType, setActionType] = useState<'AWARD' | 'DEDUCT'>('AWARD');
 
   const toggle = (id: string) => {
     if (loading) return;
@@ -58,16 +59,18 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
       alert('Please enter a valid amount (> 0).');
       return;
     }
-    const confirmMsg = `Award ${pts} points to ${selected.size} athletes?`;
+    const isDeduct = actionType === 'DEDUCT';
+    const confirmMsg = `${isDeduct ? 'Deduct' : 'Award'} ${pts} points ${isDeduct ? 'from' : 'to'} ${selected.size} athletes?`;
     if (!window.confirm(confirmMsg)) return;
 
     // Fast coaches never get blocked: untouched reason falls back cleanly.
     const reason = reasonText.trim() || reasonChip || '';
-    const description = reason ? `Coach award: ${reason}` : 'Coach award';
+    const verb = isDeduct ? 'deduction' : 'award';
+    const description = reason ? `Coach ${verb}: ${reason}` : `Coach ${verb}`;
 
     setLoading(true);
     try {
-      await supabaseService.addBatchPoints(Array.from(selected), pts, description, adminName);
+      await supabaseService.addBatchPoints(Array.from(selected), isDeduct ? -pts : pts, description, adminName);
       setSelected(new Set());
       setReasonChip(null);
       setReasonText('');
@@ -85,6 +88,24 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
 
   return (
     <div className="space-y-4">
+      {/* Award / Deduct mode */}
+      <div className="flex bg-white/5 border border-white/10 rounded-lg p-1 gap-1">
+        {(['AWARD', 'DEDUCT'] as const).map(a => {
+          const active = actionType === a;
+          const isDeduct = a === 'DEDUCT';
+          return (
+            <button
+              key={a}
+              onClick={() => setActionType(a)}
+              disabled={loading}
+              className={`flex-1 py-2.5 rounded-md text-xs font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 ${active ? (isDeduct ? 'bg-red-600 text-white' : 'bg-[#CBFE1C] text-[#0B0E13]') : 'text-white/50 hover:text-white'}`}
+            >
+              {isDeduct ? '− Deduct' : '+ Award'}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Header with Select All */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
@@ -183,7 +204,7 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
       {/* Points Input Section */}
       <div className="pz-card-sm p-4 space-y-3">
         <label className="text-[10px] font-black uppercase tracking-widest block" style={{ color: 'var(--pz-text)' }}>
-          Points to Award
+          Points to {actionType === 'DEDUCT' ? 'Deduct' : 'Award'}
         </label>
 
         {/* Quick Presets */}
@@ -195,11 +216,11 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
               disabled={loading}
               className={`touch-btn px-4 py-2 text-sm font-black transition-all ${
                 points === String(preset)
-                  ? 'bg-[#CBFE1C] text-[#0B0E13]'
+                  ? (actionType === 'DEDUCT' ? 'bg-red-600 text-white' : 'bg-[#CBFE1C] text-[#0B0E13]')
                   : 'bg-white/5 text-white/60 border border-white/10 active:bg-white/10'
               }`}
             >
-              +{preset}
+              {actionType === 'DEDUCT' ? '−' : '+'}{preset}
             </button>
           ))}
           <div className="flex items-center gap-2 flex-grow min-w-[100px] bg-[#171C27] border border-white/10 px-3">
@@ -254,22 +275,22 @@ const BatchAwardForm: React.FC<BatchAwardFormProps> = ({ students, adminName, on
         disabled={selected.size === 0 || loading || !parseInt(points || '0', 10)}
         className={`
           touch-btn w-full min-h-[52px] font-black py-4 transition-all uppercase tracking-widest text-sm
-          ${loading ? 'bg-white/10 text-white/50 cursor-wait' : 'pz-btn active:scale-[0.98]'}
+          ${loading ? 'bg-white/10 text-white/50 cursor-wait' : actionType === 'DEDUCT' ? 'bg-red-600 text-white active:scale-[0.98]' : 'pz-btn active:scale-[0.98]'}
           ${(selected.size === 0 || !parseInt(points || '0', 10)) ? 'opacity-30' : ''}
         `}
       >
         {loading ? (
           <span className="flex items-center justify-center gap-2">
             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            Awarding...
+            {actionType === 'DEDUCT' ? 'Deducting...' : 'Awarding...'}
           </span>
         ) : selected.size > 0 ? (
           <span className="flex items-center justify-center gap-2">
             <Ic.Star size={18} />
-            {`Award ${points} pts to ${selected.size} Athlete${selected.size > 1 ? 's' : ''}`}
+            {`${actionType === 'DEDUCT' ? 'Deduct' : 'Award'} ${points} pts ${actionType === 'DEDUCT' ? 'from' : 'to'} ${selected.size} Athlete${selected.size > 1 ? 's' : ''}`}
           </span>
         ) : (
-          'Select Athletes to Award'
+          `Select Athletes to ${actionType === 'DEDUCT' ? 'Deduct' : 'Award'}`
         )}
       </button>
     </div>

@@ -16,6 +16,53 @@ interface OneHandScorerProps {
   gameLibrary: GameDefinition[];
 }
 
+// Per-player quick-score buttons (presets + custom), shared by every template so
+// award/deduct behavior stays identical everywhere. In deduct mode the same
+// buttons SUBTRACT points (and turn red) instead of adding.
+const ScoreControls: React.FC<{
+  label: string;
+  deduct: boolean;
+  custom: string;
+  onCustomChange: (v: string) => void;
+  onScore: (amount: number, desc: string) => void;
+}> = ({ label, deduct, custom, onCustomChange, onScore }) => {
+  const sign = deduct ? -1 : 1;
+  const pfx = deduct ? '−' : '+';
+  const desc = deduct ? `${label} Deduction` : `${label} Points`;
+  const applyCustom = () => {
+    const v = parseInt(custom || '0', 10);
+    if (v > 0) { onScore(sign * v, 'Custom'); onCustomChange(''); }
+  };
+  return (
+    <>
+      {[1, 3, 5, 10].map(val => (
+        <button
+          key={val}
+          onClick={() => onScore(sign * val, desc)}
+          className={`flex-1 h-7 border rounded font-bold text-[9px] active:scale-95 ${deduct ? 'bg-red-500/15 border-red-500/40 text-red-300' : 'bg-white/10 border-white/10 text-white'}`}
+        >
+          {pfx}{val}
+        </button>
+      ))}
+      <input
+        type="text"
+        inputMode="numeric"
+        value={custom}
+        onChange={(e) => onCustomChange(e.target.value.replace(/[^0-9]/g, ''))}
+        onKeyDown={(e) => { if (e.key === 'Enter') applyCustom(); }}
+        className="w-8 h-7 border border-white/10 rounded text-center font-bold text-[10px] bg-[#171C27] text-white placeholder-white/30"
+        placeholder="#"
+      />
+      <button
+        onClick={applyCustom}
+        className={`w-7 h-7 rounded font-black text-xs active:scale-95 ${deduct ? 'bg-red-600 text-white' : 'bg-[#CBFE1C] text-[#0B0E13]'}`}
+      >
+        {pfx}
+      </button>
+    </>
+  );
+};
+
 const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminName, gameLibrary }) => {
   // Look up game in the dynamic library passed from parent, fallback to session title if not found
   const game = gameLibrary.find(g => g.gameKey === session.gameKey);
@@ -29,6 +76,9 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
   // Custom amount for the "award everyone still in" one-tap action (e.g. per round
   // in Zone Master).
   const [bulkCustom, setBulkCustom] = useState('');
+  // Global scoring mode: DEDUCT flips every point button in the scorer to subtract.
+  const [scoreMode, setScoreMode] = useState<'AWARD' | 'DEDUCT'>('AWARD');
+  const deduct = scoreMode === 'DEDUCT';
   const [outs, setOuts] = useState<Record<string, boolean>>(() => (session.results?.outs || {}));
 
   useEffect(() => {
@@ -112,14 +162,15 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
   // One tap awards the same points to every player still in the game. Since
   // game scoring is time-windowed over the ledger, these count for the game.
   const bulkAwardStillIn = async (amount: number) => {
-    if (session.pausedAt != null || stillInIds.length === 0) return;
+    if (session.pausedAt != null || stillInIds.length === 0 || amount === 0) return;
     try {
-      await supabaseService.addBatchPoints(stillInIds, amount, `${session.title || 'Game'}: still in`, adminName, session.id);
-      AudioService.playRandomAward();
+      const suffix = amount < 0 ? ' (deduction)' : '';
+      await supabaseService.addBatchPoints(stillInIds, amount, `${session.title || 'Game'}: still in${suffix}`, adminName, session.id);
+      if (amount > 0) AudioService.playRandomAward(); else AudioService.playPointLost();
       AdminNotifications.pointsAwarded(amount, `${stillInIds.length} still in`);
     } catch (err: any) {
-      console.error('Bulk still-in award failed:', err);
-      AdminNotifications.error(`Failed to award: ${err.message || 'Please try again'}`);
+      console.error('Bulk still-in adjust failed:', err);
+      AdminNotifications.error(`Failed: ${err.message || 'Please try again'}`);
     }
   };
 
@@ -169,42 +220,13 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                       {/* Point Buttons - 1, 3, 5, 10, custom + LAP */}
                       {!isOut ? (
                         <div className="flex items-center gap-0.5 flex-1">
-                          {[1, 3, 5, 10].map(val => (
-                            <button
-                              key={val}
-                              onClick={() => handleScore(s.id, undefined, val, `${game?.displayName || 'Time Trial'} Points`)}
-                              className="flex-1 h-7 bg-white/10 border border-white/10 text-white rounded font-bold text-[9px] active:scale-95"
-                            >
-                              +{val}
-                            </button>
-                          ))}
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={customValues[s.id] ?? ''}
-                            onChange={(e) => setCustomValues(v => ({ ...v, [s.id]: e.target.value.replace(/[^0-9]/g, '') }))}
-                            onKeyDown={(e) => {
-                              const num = parseInt(customValues[s.id] || '0', 10);
-                              if (e.key === 'Enter' && num > 0) {
-                                handleScore(s.id, undefined, num, `Custom`);
-                                setCustomValues(v => ({ ...v, [s.id]: '' }));
-                              }
-                            }}
-                            className="w-7 h-7 border border-white/10 rounded text-center font-bold text-[10px] bg-[#171C27] text-white placeholder-white/30"
-                            placeholder="#"
+                          <ScoreControls
+                            label={game?.displayName || 'Time Trial'}
+                            deduct={deduct}
+                            custom={customValues[s.id] ?? ''}
+                            onCustomChange={(v) => setCustomValues(cv => ({ ...cv, [s.id]: v }))}
+                            onScore={(amount, desc) => handleScore(s.id, undefined, amount, desc)}
                           />
-                          <button
-                            onClick={() => {
-                              const v = parseInt(customValues[s.id] || '0', 10);
-                              if (v > 0) {
-                                handleScore(s.id, undefined, v, `Custom`);
-                                setCustomValues(cv => ({ ...cv, [s.id]: '' }));
-                              }
-                            }}
-                            className="w-6 h-7 bg-[#CBFE1C] text-[#0B0E13] rounded font-black text-[10px] active:scale-95"
-                          >
-                            +
-                          </button>
                           <button
                             onClick={() => recordLap(s.id)}
                             className="px-2 h-7 bg-brand-blue text-white rounded font-black text-[8px] uppercase active:scale-95"
@@ -268,42 +290,13 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                   {/* Point Buttons - 1, 3, 5, 10, custom */}
                   {!isOut ? (
                     <div className="flex items-center gap-0.5 flex-1">
-                      {[1, 3, 5, 10].map(val => (
-                        <button
-                          key={val}
-                          onClick={() => handleScore(s.id, undefined, val, `${game?.displayName || 'Accuracy'} Points`)}
-                          className="flex-1 h-7 bg-white/10 border border-white/10 text-white rounded font-bold text-[9px] active:scale-95"
-                        >
-                          +{val}
-                        </button>
-                      ))}
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={customValues[s.id] ?? ''}
-                        onChange={(e) => setCustomValues(v => ({ ...v, [s.id]: e.target.value.replace(/[^0-9]/g, '') }))}
-                        onKeyDown={(e) => {
-                          const num = parseInt(customValues[s.id] || '0', 10);
-                          if (e.key === 'Enter' && num > 0) {
-                            handleScore(s.id, undefined, num, `Custom`);
-                            setCustomValues(v => ({ ...v, [s.id]: '' }));
-                          }
-                        }}
-                        className="w-8 h-7 border border-white/10 rounded text-center font-bold text-[10px] bg-[#171C27] text-white placeholder-white/30"
-                        placeholder="#"
+                      <ScoreControls
+                        label={game?.displayName || 'Accuracy'}
+                        deduct={deduct}
+                        custom={customValues[s.id] ?? ''}
+                        onCustomChange={(v) => setCustomValues(cv => ({ ...cv, [s.id]: v }))}
+                        onScore={(amount, desc) => handleScore(s.id, undefined, amount, desc)}
                       />
-                      <button
-                        onClick={() => {
-                          const v = parseInt(customValues[s.id] || '0', 10);
-                          if (v > 0) {
-                            handleScore(s.id, undefined, v, `Custom`);
-                            setCustomValues(cv => ({ ...cv, [s.id]: '' }));
-                          }
-                        }}
-                        className="w-7 h-7 bg-[#CBFE1C] text-[#0B0E13] rounded font-black text-xs active:scale-95"
-                      >
-                        +
-                      </button>
                     </div>
                   ) : (
                     <div className="flex-1" />
@@ -342,42 +335,13 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
                   {/* Point Buttons - 1, 3, 5, 10, custom */}
                   {!isOut ? (
                     <div className="flex items-center gap-0.5 flex-1">
-                      {[1, 3, 5, 10].map(val => (
-                        <button
-                          key={val}
-                          onClick={() => handleScore(s.id, undefined, val, `${game?.displayName || 'Game'} Points`)}
-                          className="flex-1 h-7 bg-white/10 border border-white/10 text-white rounded font-bold text-[9px] active:scale-95"
-                        >
-                          +{val}
-                        </button>
-                      ))}
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={customValues[s.id] ?? ''}
-                        onChange={(e) => setCustomValues(v => ({ ...v, [s.id]: e.target.value.replace(/[^0-9]/g, '') }))}
-                        onKeyDown={(e) => {
-                          const num = parseInt(customValues[s.id] || '0', 10);
-                          if (e.key === 'Enter' && num > 0) {
-                            handleScore(s.id, undefined, num, `Custom`);
-                            setCustomValues(v => ({ ...v, [s.id]: '' }));
-                          }
-                        }}
-                        className="w-8 h-7 border border-white/10 rounded text-center font-bold text-[10px] bg-[#171C27] text-white placeholder-white/30"
-                        placeholder="#"
+                      <ScoreControls
+                        label={game?.displayName || 'Game'}
+                        deduct={deduct}
+                        custom={customValues[s.id] ?? ''}
+                        onCustomChange={(v) => setCustomValues(cv => ({ ...cv, [s.id]: v }))}
+                        onScore={(amount, desc) => handleScore(s.id, undefined, amount, desc)}
                       />
-                      <button
-                        onClick={() => {
-                          const v = parseInt(customValues[s.id] || '0', 10);
-                          if (v > 0) {
-                            handleScore(s.id, undefined, v, `Custom`);
-                            setCustomValues(cv => ({ ...cv, [s.id]: '' }));
-                          }
-                        }}
-                        className="w-7 h-7 bg-[#CBFE1C] text-[#0B0E13] rounded font-black text-xs active:scale-95"
-                      >
-                        +
-                      </button>
                     </div>
                   ) : (
                     <div className="flex-1" />
@@ -398,6 +362,22 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
 
   return (
     <div className="flex flex-col h-full gap-4">
+      {/* Award / Deduct mode — flips every point button in the scorer to subtract */}
+      <div className="shrink-0 flex bg-white/5 border border-white/10 rounded-lg p-1 gap-1">
+        {(['AWARD', 'DEDUCT'] as const).map(m => {
+          const active = scoreMode === m;
+          const isDeduct = m === 'DEDUCT';
+          return (
+            <button
+              key={m}
+              onClick={() => setScoreMode(m)}
+              className={`flex-1 py-2 rounded-md text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 ${active ? (isDeduct ? 'bg-red-600 text-white' : 'bg-[#CBFE1C] text-[#0B0E13]') : 'text-white/50 hover:text-white'}`}
+            >
+              {isDeduct ? '− Deduct' : '+ Award'}
+            </button>
+          );
+        })}
+      </div>
       <div className="flex-grow overflow-y-auto custom-scrollbar">
         {renderTemplateUI()}
       </div>
@@ -420,16 +400,16 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
               {[1, 3, 5, 10].map(amt => (
                 <button
                   key={amt}
-                  onClick={() => bulkAwardStillIn(amt)}
+                  onClick={() => bulkAwardStillIn(deduct ? -amt : amt)}
                   disabled={session.pausedAt != null}
-                  className="bg-[#CBFE1C] text-[#0B0E13] font-black px-3 py-1.5 rounded-lg text-xs active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className={`font-black px-3 py-1.5 rounded-lg text-xs active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${deduct ? 'bg-red-600 text-white' : 'bg-[#CBFE1C] text-[#0B0E13]'}`}
                 >
-                  +{amt}
+                  {deduct ? '−' : '+'}{amt}
                 </button>
               ))}
             </div>
           </div>
-          {/* Custom amount to EVERY still-in player in one tap (e.g. Zone Master rounds). */}
+          {/* Custom amount to/from EVERY still-in player in one tap (e.g. Zone Master rounds). */}
           <div className="flex items-center gap-1.5">
             <input
               type="text"
@@ -438,17 +418,17 @@ const OneHandScorer: React.FC<OneHandScorerProps> = ({ session, students, adminN
               onChange={(e) => setBulkCustom(e.target.value.replace(/[^0-9]/g, ''))}
               onKeyDown={(e) => {
                 const v = parseInt(bulkCustom || '0', 10);
-                if (e.key === 'Enter' && v > 0 && session.pausedAt == null) { bulkAwardStillIn(v); setBulkCustom(''); }
+                if (e.key === 'Enter' && v > 0 && session.pausedAt == null) { bulkAwardStillIn(deduct ? -v : v); setBulkCustom(''); }
               }}
-              placeholder="Custom amount to all still in"
+              placeholder={deduct ? 'Custom amount from all still in' : 'Custom amount to all still in'}
               className="flex-1 h-9 px-3 bg-[#171C27] border border-white/10 rounded-lg text-white font-bold text-xs placeholder-white/30 focus:border-[#CBFE1C] outline-none"
             />
             <button
-              onClick={() => { const v = parseInt(bulkCustom || '0', 10); if (v > 0) { bulkAwardStillIn(v); setBulkCustom(''); } }}
+              onClick={() => { const v = parseInt(bulkCustom || '0', 10); if (v > 0) { bulkAwardStillIn(deduct ? -v : v); setBulkCustom(''); } }}
               disabled={session.pausedAt != null || !parseInt(bulkCustom || '0', 10)}
-              className="h-9 px-4 bg-[#CBFE1C] text-[#0B0E13] font-black rounded-lg text-xs active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+              className={`h-9 px-4 font-black rounded-lg text-xs active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap ${deduct ? 'bg-red-600 text-white' : 'bg-[#CBFE1C] text-[#0B0E13]'}`}
             >
-              Award All
+              {deduct ? 'Deduct All' : 'Award All'}
             </button>
           </div>
         </div>
