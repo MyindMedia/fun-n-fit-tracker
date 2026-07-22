@@ -143,9 +143,9 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
               list.map(s => {
                 const studentRank = ranks.find(r => r.id === s.rankId);
                 return (
-                  <div key={s.id} className="pz-card-sm p-4 flex flex-col md:flex-row justify-between items-center gap-4 group hover:border-[#CBFE1C]/40 transition-all" style={{ background: 'var(--pz-panel-2)' }}>
+                  <div key={s.id} className="pz-card-sm p-3 sm:p-4 flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-4 group hover:border-[#CBFE1C]/40 transition-all" style={{ background: 'var(--pz-panel-2)' }}>
                     <div
-                      className="flex items-center gap-6 flex-grow min-w-0 cursor-pointer"
+                      className="flex items-center gap-3 sm:gap-6 w-full md:w-auto flex-grow min-w-0 cursor-pointer"
                       onClick={() => onOpenEdit(s)}
                       title="View full stats report"
                     >
@@ -169,8 +169,8 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 shrink-0">
-                      <div className="text-right mr-2">
+                    <div className="flex items-center gap-2 sm:gap-4 w-full md:w-auto justify-between md:justify-end md:shrink-0">
+                      <div className="text-left md:text-right md:mr-2 shrink-0">
                         <div className="text-[8px] font-black uppercase" style={{ color: 'var(--pz-text)' }}>Points</div>
                         <div className="pz-display text-xl text-[#CBFE1C] leading-none">{s.points.toLocaleString()}</div>
                       </div>
@@ -178,14 +178,14 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
                       <button
                         onClick={() => setAdjustStudent(s)}
                         title="Adjust or zero out points"
-                        className="px-4 py-3 text-[10px] font-black uppercase tracking-widest border border-white/10 bg-white/5 text-[#CBFE1C] hover:border-[#CBFE1C]/50 transition-all"
+                        className="px-3 sm:px-4 py-3 text-[10px] font-black uppercase tracking-widest border border-white/10 bg-white/5 text-[#CBFE1C] hover:border-[#CBFE1C]/50 transition-all whitespace-nowrap"
                       >
                         Points
                       </button>
 
                       <button
                         onClick={() => onOpenEdit(s)}
-                        className="pz-btn-ghost px-6 py-3 text-[10px] hover:scale-105 active:scale-95 transition-all"
+                        className="pz-btn-ghost px-4 sm:px-6 py-3 text-[10px] hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
                       >
                         Edit
                       </button>
@@ -207,7 +207,7 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
                         }}
                         title={s.isPresent ? "Mark Inactive" : "Mark Active"}
                         aria-label={s.isPresent ? "Mark Inactive" : "Mark Active"}
-                        className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all border ${s.isPresent ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400' : 'bg-white/5 border-white/10 text-white/50'} ${busyId === s.id ? 'opacity-60 cursor-wait' : 'hover:border-white/30'}`}
+                        className={`px-3 sm:px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap ${s.isPresent ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400' : 'bg-white/5 border-white/10 text-white/50'} ${busyId === s.id ? 'opacity-60 cursor-wait' : 'hover:border-white/30'}`}
                       >
                         {busyId === s.id ? 'Updating…' : (s.isPresent ? 'Active' : 'Inactive')}
                       </button>
@@ -285,8 +285,8 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
               archived.map(s => {
                 const studentRank = ranks.find(r => r.id === s.rankId);
                 return (
-                  <div key={s.id} className="pz-card-sm p-4 flex flex-col md:flex-row justify-between items-center gap-4 opacity-80 hover:opacity-100 transition-all" style={{ background: 'var(--pz-panel-2)' }}>
-                    <div className="flex items-center gap-6 flex-grow min-w-0">
+                  <div key={s.id} className="pz-card-sm p-3 sm:p-4 flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-4 opacity-80 hover:opacity-100 transition-all" style={{ background: 'var(--pz-panel-2)' }}>
+                    <div className="flex items-center gap-3 sm:gap-6 w-full md:w-auto flex-grow min-w-0">
                       <StudentAvatar student={s} rank={studentRank} size="md" />
                       <div className="truncate">
                         <div className="pz-display text-white text-lg leading-tight truncate">{s.fullName}</div>
@@ -306,15 +306,15 @@ const RosterList: React.FC<RosterListProps> = ({ students, adminName, onOpenEdit
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 shrink-0">
-                      <div className="text-right mr-2">
+                    <div className="flex items-center gap-2 sm:gap-4 w-full md:w-auto justify-between md:justify-end md:shrink-0">
+                      <div className="text-left md:text-right md:mr-2 shrink-0">
                         <div className="text-[8px] font-black uppercase" style={{ color: 'var(--pz-text)' }}>Points kept</div>
                         <div className="pz-display text-xl text-[#CBFE1C] leading-none">{s.points.toLocaleString()}</div>
                       </div>
                       <button
                         onClick={() => handleRestore(s)}
                         disabled={busyId === s.id}
-                        className={`px-6 py-3 text-[10px] font-black uppercase tracking-widest transition-all border bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:border-emerald-500 hover:bg-emerald-500/25 ${busyId === s.id ? 'opacity-60 cursor-wait' : ''}`}
+                        className={`px-4 sm:px-6 py-3 text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:border-emerald-500 hover:bg-emerald-500/25 ${busyId === s.id ? 'opacity-60 cursor-wait' : ''}`}
                       >
                         {busyId === s.id ? 'Restoring…' : 'Restore'}
                       </button>

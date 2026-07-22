@@ -880,7 +880,12 @@ const AdminDashboard: React.FC = () => {
               </h1>
             </div>
           ) : (
-            <div className="flex bg-white/5 border border-white/15 p-1 gap-1 flex-grow max-w-[260px] sm:max-w-[340px]" style={{ clipPath: NOTCH_SM }}>
+            // min-w floor, not min-w-0: the strip may shrink to relieve a narrow
+            // header but never collapse into unreadable stubs.
+            <div
+              className="flex min-w-[120px] bg-white/5 border border-white/15 p-1 gap-1 flex-grow max-w-[260px] sm:max-w-[340px]"
+              style={{ clipPath: NOTCH_SM }}
+            >
               {(['GAMES', 'ATHLETES'] as const).map(tab => {
                 const isActive = activeTab === tab;
                 return (
@@ -888,14 +893,16 @@ const AdminDashboard: React.FC = () => {
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     aria-pressed={isActive}
-                    className={`flex-1 touch-btn relative px-3 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-sm font-black uppercase tracking-wider transition-all focus-ring inline-flex items-center justify-center gap-1.5 ${isActive
+                    className={`flex-1 min-w-0 touch-btn relative px-2 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-sm font-black uppercase tracking-wider transition-all focus-ring inline-flex items-center justify-center gap-1 sm:gap-1.5 ${isActive
                       ? 'text-[#0B0E13]'
                       : 'text-white/60 hover:text-white active:bg-white/10'
                       }`}
                     style={isActive ? { background: 'var(--pz-volt)', clipPath: NOTCH_SM, boxShadow: '0 0 14px rgba(203,254,28,0.45)' } : undefined}
                   >
-                    {tab === 'GAMES' ? <Ic.Controller size={18} /> : <Ic.Users size={18} />}
-                    <span>{tab === 'GAMES' ? 'Games' : 'Athletes'}</span>
+                    <span className="shrink-0">
+                      {tab === 'GAMES' ? <Ic.Controller size={18} /> : <Ic.Users size={18} />}
+                    </span>
+                    <span className="truncate">{tab === 'GAMES' ? 'Games' : 'Athletes'}</span>
                   </button>
                 );
               })}

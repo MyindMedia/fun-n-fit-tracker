@@ -632,6 +632,17 @@
         overscroll-behavior-y: contain;
       }
 
+      /* Backstop: nothing may push the page sideways. A single over-wide row
+         used to drag the whole layout off-screen on narrower Android handsets
+         (Galaxy S24 Ultra is 411 CSS px vs 430 on a Pro Max iPhone), clipping
+         content on BOTH edges wherever a card centred its children. Rows that
+         genuinely need to scroll sideways (wide tables, tab strips) opt in with
+         their own overflow-x:auto container. */
+      html, body {
+        max-width: 100%;
+        overflow-x: clip;
+      }
+
       /* Prevent auto-zoom on input focus in iOS/Android */
       @media screen and (max-width: 768px) {
         input, select, textarea {
