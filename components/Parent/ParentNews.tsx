@@ -1,6 +1,7 @@
-// News inbox — announcements, kid wins and coach messages in one feed.
-// Unread items carry a volt dot; tap opens the full detail sheet (and marks it
-// read). Select mode adds checkboxes, Select All and Mark as Read.
+// News inbox — announcements and kid wins only; coach messages live in the
+// Messages tab and are counted there. Unread items carry a volt bar; tap opens
+// the full detail sheet (and marks it read). Select mode adds checkboxes,
+// Select All and Mark as Read.
 import React, { useEffect, useMemo, useState } from 'react';
 import { gameCenter } from '../../services/gameCenter';
 import { NewsItem } from '../../types';
@@ -22,21 +23,13 @@ const fullTime = (ts: number): string =>
     month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
   });
 
-const kindIcon = (item: NewsItem) => {
-  if (item.kind === 'MESSAGE') return <Ic.Chat size={18} />;
-  if (item.kind === 'ANNOUNCEMENT') return <Ic.Megaphone size={18} />;
-  return <Ic.Trophy size={18} />;
-};
+const kindIcon = (item: NewsItem) =>
+  item.kind === 'ANNOUNCEMENT' ? <Ic.Megaphone size={18} /> : <Ic.Trophy size={18} />;
 
 const kindLabel = (item: NewsItem): string =>
-  item.kind === 'MESSAGE' ? 'Message' : item.kind === 'ANNOUNCEMENT' ? 'Announcement' : 'Win';
+  item.kind === 'ANNOUNCEMENT' ? 'Announcement' : 'Win';
 
-interface ParentNewsProps {
-  /** Jump to the Messages tab from a coach-message detail sheet. */
-  onOpenMessages?: () => void;
-}
-
-const ParentNews: React.FC<ParentNewsProps> = ({ onOpenMessages }) => {
+const ParentNews: React.FC = () => {
   const [items, setItems] = useState<NewsItem[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState<NewsItem | null>(null);
@@ -155,7 +148,7 @@ const ParentNews: React.FC<ParentNewsProps> = ({ onOpenMessages }) => {
       {/* Feed */}
       {items.length === 0 ? (
         <div className="pz-card-sm p-4 text-sm text-white/50">
-          {loaded ? 'Nothing here yet — announcements, wins and coach messages land here.' : 'Loading…'}
+          {loaded ? 'No news yet — announcements and your kids’ wins land here.' : 'Loading…'}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -322,15 +315,6 @@ const ParentNews: React.FC<ParentNewsProps> = ({ onOpenMessages }) => {
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', padding: '0 1rem', flexShrink: 0 }}>
-              {open.kind === 'MESSAGE' && onOpenMessages && (
-                <button
-                  onClick={() => { setOpen(null); onOpenMessages(); }}
-                  className="pz-btn"
-                  style={{ ...toolbarBtn, ...toolbarPrimary, flexGrow: 1, minHeight: '46px' }}
-                >
-                  Reply in Messages
-                </button>
-              )}
               <button onClick={markOpenUnread} style={{ ...toolbarBtn, minHeight: '46px' }}>
                 Mark Unread
               </button>

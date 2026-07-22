@@ -1,18 +1,18 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireParent } from "./helpers";
-import { Doc, Id } from "./_generated/dataModel";
-import { MutationCtx, QueryCtx } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
+import { QueryCtx } from "./_generated/server";
 
-// Parent News inbox: published announcements, this parent's own kids' level-ups
-// and awards, and coach messages — one merged, newest-first feed with per-item
-// read receipts so the tab badge and the home-screen app badge can count what
-// is still unread.
+// Parent News inbox: published announcements plus this parent's own kids'
+// level-ups and awards, newest first, with per-item read receipts so the News
+// tab badge can count what is still unread. Coach messages live in their own
+// Messages tab and are counted separately — the two never mix.
 
 const PREVIEW_LEN = 140;
 const ALERT_TYPES = new Set(["RANK_UP", "MEDAL", "BADGE_EARNED"]);
 
-export type NewsKind = "ANNOUNCEMENT" | "WIN" | "MESSAGE";
+export type NewsKind = "ANNOUNCEMENT" | "WIN";
 
 const trim = (text: string): string =>
   text.length > PREVIEW_LEN ? `${text.slice(0, PREVIEW_LEN).trimEnd()}…` : text;
@@ -24,16 +24,6 @@ async function readIds(ctx: QueryCtx, parentId: Id<"parents">): Promise<Set<stri
     .withIndex("by_parent", (q) => q.eq("parentId", parentId))
     .collect();
   return new Set(rows.map((r) => r.itemId));
-}
-
-async function conversationFor(
-  ctx: QueryCtx,
-  parentId: Id<"parents">
-): Promise<Doc<"conversations"> | null> {
-  return await ctx.db
-    .query("conversations")
-    .withIndex("by_parent", (q) => q.eq("parentId", parentId))
-    .first();
 }
 
 export const forParent = query({
@@ -59,7 +49,6 @@ export const forParent = query({
       priority: string | null;
       studentName: string | null;
       avatarUrl: string | null;
-      senderName: string | null;
     };
     const items: Item[] = [];
 
@@ -83,7 +72,6 @@ export const forParent = query({
         priority: p.priority,
         studentName: null,
         avatarUrl: null,
-        senderName: null,
       });
     }
 
@@ -109,68 +97,14 @@ export const forParent = query({
         priority: null,
         studentName: n.studentName ?? null,
         avatarUrl: n.avatarUrl ?? null,
-        senderName: null,
       });
-    }
-
-    // Coach messages, so a new message is visible (and openable) from the inbox.
-    const convo = await conversationFor(ctx, parent._id);
-    if (convo) {
-      const staffMessages = await ctx.db
-        .query("messages")
-        .withIndex("by_conversation", (q) => q.eq("conversationId", convo._id))
-        .order("desc")
-        .take(40);
-      for (const m of staffMessages) {
-        if (m.senderType !== "STAFF") continue;
-        const id = m._id as string;
-        items.push({
-          id,
-          kind: "MESSAGE",
-          title: m.senderName || "Fun 'N Fit Team",
-          body: m.body,
-          preview: trim(m.body),
-          timestamp: m.createdAt,
-          read: seen.has(id),
-          priority: null,
-          studentName: null,
-          avatarUrl: null,
-          senderName: m.senderName || "Fun 'N Fit Team",
-        });
-      }
     }
 
     items.sort((a, b) => b.timestamp - a.timestamp);
 
-    const unreadTotal = items.filter((i) => !i.read).length;
-    const unreadMessages = items.filter((i) => i.kind === "MESSAGE" && !i.read).length;
-
-    return { items, unreadTotal, unreadMessages };
+    return { items, unreadTotal: items.filter((i) => !i.read).length };
   },
 });
-
-// A message is unread until the parent reads it in the inbox OR opens the
-// Messages tab, so the conversation counter is derived from the read receipts
-// rather than tracked separately — one source of truth, no drift.
-export async function resyncConversationUnread(
-  ctx: MutationCtx,
-  parentId: Id<"parents">
-): Promise<void> {
-  const convo = await conversationFor(ctx, parentId);
-  if (!convo) return;
-  const seen = await readIds(ctx, parentId);
-  const staffMessages = await ctx.db
-    .query("messages")
-    .withIndex("by_conversation", (q) => q.eq("conversationId", convo._id))
-    .order("desc")
-    .take(200);
-  const unread = staffMessages.filter(
-    (m) => m.senderType === "STAFF" && !seen.has(m._id as string)
-  ).length;
-  if (unread !== convo.unreadForParent) {
-    await ctx.db.patch(convo._id, { unreadForParent: unread });
-  }
-}
 
 export const markRead = mutation({
   args: { sessionToken: v.string(), itemIds: v.array(v.string()) },
@@ -190,7 +124,6 @@ export const markRead = mutation({
       await ctx.db.insert("parentNewsReads", { parentId: parent._id, itemId, readAt: now });
       marked++;
     }
-    await resyncConversationUnread(ctx, parent._id);
     return { marked };
   },
 });
@@ -209,7 +142,6 @@ export const markUnread = mutation({
         .first();
       if (existing) await ctx.db.delete(existing._id);
     }
-    await resyncConversationUnread(ctx, parent._id);
     return { ok: true };
   },
 });

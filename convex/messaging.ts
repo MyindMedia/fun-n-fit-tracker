@@ -152,29 +152,7 @@ export const markReadByParent = mutation({
       .query("conversations")
       .withIndex("by_parent", (q) => q.eq("parentId", parent._id))
       .first();
-    if (!convo) return;
-    // Opening the thread also clears those messages from the News inbox, so
-    // the tab badge and the home-screen app badge can never disagree.
-    const staffMessages = await ctx.db
-      .query("messages")
-      .withIndex("by_conversation", (q) => q.eq("conversationId", convo._id))
-      .order("desc")
-      .take(200);
-    const now = Date.now();
-    for (const m of staffMessages) {
-      if (m.senderType !== "STAFF") continue;
-      const itemId = m._id as string;
-      const existing = await ctx.db
-        .query("parentNewsReads")
-        .withIndex("by_parent_item", (q) =>
-          q.eq("parentId", parent._id).eq("itemId", itemId)
-        )
-        .first();
-      if (!existing) {
-        await ctx.db.insert("parentNewsReads", { parentId: parent._id, itemId, readAt: now });
-      }
-    }
-    if (convo.unreadForParent > 0) {
+    if (convo && convo.unreadForParent > 0) {
       await ctx.db.patch(convo._id, { unreadForParent: 0 });
     }
   },

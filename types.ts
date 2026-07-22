@@ -405,9 +405,10 @@ export interface StaffInboxEntry {
   parent: { id: string; fullName: string; email: string };
 }
 
-// Parent News inbox: announcements, kid wins and coach messages merged into one
-// newest-first feed with per-item read receipts.
-export type NewsKind = 'ANNOUNCEMENT' | 'WIN' | 'MESSAGE';
+// Parent News inbox: announcements and kid wins, newest first, with per-item
+// read receipts. Coach messages are NOT in here — they have their own tab and
+// their own unread count.
+export type NewsKind = 'ANNOUNCEMENT' | 'WIN';
 
 export interface NewsItem {
   id: string;
@@ -420,13 +421,11 @@ export interface NewsItem {
   priority: string | null;
   studentName: string | null;
   avatarUrl: string | null;
-  senderName: string | null;
 }
 
 export interface ParentNewsFeed {
   items: NewsItem[];
   unreadTotal: number;
-  unreadMessages: number;
 }
 
 export interface PartnerBusiness {

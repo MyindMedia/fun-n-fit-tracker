@@ -110,8 +110,8 @@ const ParentDashboard: React.FC = () => {
         return unsubscribe;
     }, []);
 
-    // Live unread badge for the News tab. unreadTotal already counts coach
-    // messages, so it doubles as the home-screen app badge number.
+    // Live unread badge for the News tab (announcements + kid wins only —
+    // coach messages are counted on the Messages tab, never here).
     useEffect(() => {
         const unsubscribe = gameCenter.subscribeParentNews((feed) => {
             setUnreadNews(feed.unreadTotal);
@@ -119,12 +119,13 @@ const ParentDashboard: React.FC = () => {
         return unsubscribe;
     }, []);
 
-    // Home-screen app icon badge (installed PWA). The service worker bumps this
-    // on push while the app is closed; here we push the authoritative count back
-    // so the two can never drift.
+    // Home-screen app icon badge (installed PWA): the two counts added, since
+    // the icon has only one number. The service worker bumps it on push while
+    // the app is closed; here we push the authoritative total back so the two
+    // can never drift.
     useEffect(() => {
-        setAppBadge(unreadNews);
-    }, [unreadNews]);
+        setAppBadge(unreadNews + unreadMessages);
+    }, [unreadNews, unreadMessages]);
 
     const init = async () => {
         const parent = await parentAuth.getSession();
@@ -294,7 +295,7 @@ const ParentDashboard: React.FC = () => {
                 />
             )}
 
-            {activeTab === 'news' && <ParentNews onOpenMessages={() => setActiveTab('messages')} />}
+            {activeTab === 'news' && <ParentNews />}
             {activeTab === 'messages' && <ParentMessages />}
 
             {activeTab === 'earn' && (
