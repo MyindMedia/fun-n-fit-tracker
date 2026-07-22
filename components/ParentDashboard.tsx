@@ -28,7 +28,7 @@ import LevelPath from './LevelPath';
 import AvatarRig from './avatar/AvatarRig';
 import AvatarStudio from './avatar/AvatarStudio';
 import { VoltTag } from './StudentAvatar';
-import { pushClient, PushStatus } from '../services/pushClient';
+import { pushClient, PushStatus, setAppBadge } from '../services/pushClient';
 import { PZ, PzPortalCss, pStyles } from './Parent/shared';
 import { getStudentDisplayName } from '../utils/studentDisplay';
 import { Ic, DataIcon, IconProps } from './icons';
@@ -59,6 +59,7 @@ const ParentDashboard: React.FC = () => {
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [passStudent, setPassStudent] = useState<Student | null>(null);
     const [unreadMessages, setUnreadMessages] = useState(0);
+    const [unreadNews, setUnreadNews] = useState(0);
     // Deep-link payloads (#/parent-dashboard?checkin=<token> or ?visit=<secret>)
     const [pendingCheckinToken, setPendingCheckinToken] = useState<string | null>(null);
     const [pendingVisitSecret, setPendingVisitSecret] = useState<string | null>(null);
@@ -108,6 +109,22 @@ const ParentDashboard: React.FC = () => {
         });
         return unsubscribe;
     }, []);
+
+    // Live unread badge for the News tab. unreadTotal already counts coach
+    // messages, so it doubles as the home-screen app badge number.
+    useEffect(() => {
+        const unsubscribe = gameCenter.subscribeParentNews((feed) => {
+            setUnreadNews(feed.unreadTotal);
+        });
+        return unsubscribe;
+    }, []);
+
+    // Home-screen app icon badge (installed PWA). The service worker bumps this
+    // on push while the app is closed; here we push the authoritative count back
+    // so the two can never drift.
+    useEffect(() => {
+        setAppBadge(unreadNews);
+    }, [unreadNews]);
 
     const init = async () => {
         const parent = await parentAuth.getSession();
@@ -277,7 +294,7 @@ const ParentDashboard: React.FC = () => {
                 />
             )}
 
-            {activeTab === 'news' && <ParentNews />}
+            {activeTab === 'news' && <ParentNews onOpenMessages={() => setActiveTab('messages')} />}
             {activeTab === 'messages' && <ParentMessages />}
 
             {activeTab === 'earn' && (
@@ -387,11 +404,17 @@ const ParentDashboard: React.FC = () => {
                                 }} />
                                 <span style={{ position: 'relative', display: 'inline-flex' }}>
                                     <Icon size={26} />
-                                    {t.id === 'messages' && unreadMessages > 0 && (
-                                        <span className="pz-live" style={styles.tabBadge}>
-                                            {unreadMessages > 9 ? '9+' : unreadMessages}
-                                        </span>
-                                    )}
+                                    {(() => {
+                                        const count =
+                                            t.id === 'messages' ? unreadMessages :
+                                            t.id === 'news' ? unreadNews : 0;
+                                        if (count === 0) return null;
+                                        return (
+                                            <span className="pz-live" style={styles.tabBadge}>
+                                                {count > 9 ? '9+' : count}
+                                            </span>
+                                        );
+                                    })()}
                                 </span>
                                 <span style={styles.tabLabel}>{t.label}</span>
                             </button>

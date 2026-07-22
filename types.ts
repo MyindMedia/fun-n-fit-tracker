@@ -405,6 +405,30 @@ export interface StaffInboxEntry {
   parent: { id: string; fullName: string; email: string };
 }
 
+// Parent News inbox: announcements, kid wins and coach messages merged into one
+// newest-first feed with per-item read receipts.
+export type NewsKind = 'ANNOUNCEMENT' | 'WIN' | 'MESSAGE';
+
+export interface NewsItem {
+  id: string;
+  kind: NewsKind;
+  title: string;
+  body: string;
+  preview: string;
+  timestamp: number;
+  read: boolean;
+  priority: string | null;
+  studentName: string | null;
+  avatarUrl: string | null;
+  senderName: string | null;
+}
+
+export interface ParentNewsFeed {
+  items: NewsItem[];
+  unreadTotal: number;
+  unreadMessages: number;
+}
+
 export interface PartnerBusiness {
   id: string;
   name: string;

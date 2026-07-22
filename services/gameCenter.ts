@@ -11,6 +11,7 @@ import {
   CheckIn,
   ChatMessage,
   Conversation,
+  ParentNewsFeed,
   PartnerBusiness,
   Redemption,
   SpecialTask,
@@ -175,16 +176,7 @@ class GameCenterService {
 
   // ── Parent News feed ─────────────────────────────────────────────────────────
 
-  public subscribeParentNews(
-    cb: (feed: {
-      announcements: Array<{
-        id: string; title: string; excerpt: string; content: string; priority: string; publishedAt: number;
-      }>;
-      alerts: Array<{
-        id: string; type: string; studentName: string; avatarUrl: string | null; message: string; timestamp: number;
-      }>;
-    }) => void
-  ): () => void {
+  public subscribeParentNews(cb: (feed: ParentNewsFeed) => void): () => void {
     const token = parentAuth.sessionToken;
     if (!token) return () => {};
     return this.client.onUpdate(
@@ -192,6 +184,18 @@ class GameCenterService {
       { sessionToken: token },
       (r) => cb(r as any)
     );
+  }
+
+  public async markNewsRead(itemIds: string[]): Promise<void> {
+    const token = parentAuth.sessionToken;
+    if (!token || itemIds.length === 0) return;
+    await this.client.mutation(api.news.markRead, { sessionToken: token, itemIds });
+  }
+
+  public async markNewsUnread(itemIds: string[]): Promise<void> {
+    const token = parentAuth.sessionToken;
+    if (!token || itemIds.length === 0) return;
+    await this.client.mutation(api.news.markUnread, { sessionToken: token, itemIds });
   }
 
   // ── Messaging ──────────────────────────────────────────────────────────────

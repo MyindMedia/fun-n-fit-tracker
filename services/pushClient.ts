@@ -37,6 +37,25 @@ const isStandalone = (): boolean =>
   window.matchMedia('(display-mode: standalone)').matches ||
   (navigator as unknown as { standalone?: boolean }).standalone === true;
 
+// Home-screen app icon badge (Badging API). Supported on installed PWAs in
+// Chrome/Edge and iOS 16.4+ standalone; a no-op everywhere else. The service
+// worker keeps its own counter for pushes that land while the app is closed, so
+// we mirror the authoritative count over to it on every update.
+export const setAppBadge = (count: number): void => {
+  const n = Math.max(0, Math.floor(count) || 0);
+  const nav = navigator as Navigator & {
+    setAppBadge?: (c?: number) => Promise<void>;
+    clearAppBadge?: () => Promise<void>;
+  };
+  try {
+    if (n > 0) nav.setAppBadge?.(n)?.catch(() => {});
+    else nav.clearAppBadge?.()?.catch(() => {});
+  } catch { /* Badging API unavailable */ }
+  navigator.serviceWorker?.ready
+    .then((reg) => reg.active?.postMessage({ type: 'badge:set', count: n }))
+    .catch(() => {});
+};
+
 class PushClientService {
   private client = new ConvexClient(CONVEX_URL);
 

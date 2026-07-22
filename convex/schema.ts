@@ -541,6 +541,17 @@ export default defineSchema({
     .index("by_student_date", ["studentId", "date"])
     .index("by_student", ["studentId"]),
 
+  // Per-parent read receipts for the News inbox. One row per item a parent has
+  // read; itemId is a blogPosts / notifications / messages id (kept as a plain
+  // string because the inbox mixes all three tables).
+  parentNewsReads: defineTable({
+    parentId: v.id("parents"),
+    itemId: v.string(),
+    readAt: v.number(),
+  })
+    .index("by_parent", ["parentId"])
+    .index("by_parent_item", ["parentId", "itemId"]),
+
   // ── Game center: staff ↔ parent messaging ─────────────────────────────────
   conversations: defineTable({
     parentId: v.id("parents"),
